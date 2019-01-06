@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="类,线程,Linux,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言这是一篇来源于阿里内部技术论坛的文章，原文在阿里内部获得一致好评。作者已经把这篇文章开放到云栖社区中供外网访问。本文中包含一些只有阿里内部才能使用的工具，还有些只有阿里内部才能访问的链接。 摘要： # 我的问题排查工具箱 ## 前言 平时的工作中经常碰到很多疑难问题的处理，在解决问题的同时，有一些工具起到了相当大的作用，在此书写下来，一是作为笔记，可以让自己后续忘记了可快速翻阅，二是分享，希望">
+<meta name="keywords" content="类,线程,Linux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="阿里员工的Java问题排查工具单">
+<meta property="og:url" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/index.html">
+<meta property="og:site_name" content="Star&#39;s Blog">
+<meta property="og:description" content="前言这是一篇来源于阿里内部技术论坛的文章，原文在阿里内部获得一致好评。作者已经把这篇文章开放到云栖社区中供外网访问。本文中包含一些只有阿里内部才能使用的工具，还有些只有阿里内部才能访问的链接。 摘要： # 我的问题排查工具箱 ## 前言 平时的工作中经常碰到很多疑难问题的处理，在解决问题的同时，有一些工具起到了相当大的作用，在此书写下来，一是作为笔记，可以让自己后续忘记了可快速翻阅，二是分享，希望">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图1.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图2.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图3.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图4.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图5.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图6.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图7.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图8.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图9.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图10.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图11.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图12.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图13.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图14.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图15.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图16.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图17.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图18.jpg">
+<meta property="og:updated_time" content="2018-11-25T12:42:56.821Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="阿里员工的Java问题排查工具单">
+<meta name="twitter:description" content="前言这是一篇来源于阿里内部技术论坛的文章，原文在阿里内部获得一致好评。作者已经把这篇文章开放到云栖社区中供外网访问。本文中包含一些只有阿里内部才能使用的工具，还有些只有阿里内部才能访问的链接。 摘要： # 我的问题排查工具箱 ## 前言 平时的工作中经常碰到很多疑难问题的处理，在解决问题的同时，有一些工具起到了相当大的作用，在此书写下来，一是作为笔记，可以让自己后续忘记了可快速翻阅，二是分享，希望">
+<meta name="twitter:image" content="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/图1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/">
+
+
+
+
+
+  <title>阿里员工的Java问题排查工具单 | Star's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Star's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Keep learning, Keep improving</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">阿里员工的Java问题排查工具单</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-25T19:13:42+08:00">
+                2018-11-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p><strong>这是一篇来源于阿里内部技术论坛的文章，原文在阿里内部获得一致好评。作者已经把这篇文章开放到云栖社区中供外网访问。本文中包含一些只有阿里内部才能使用的工具，还有些只有阿里内部才能访问的链接。</strong></p>
+<p><em>摘要：</em> # 我的问题排查工具箱 ## 前言 平时的工作中经常碰到很多疑难问题的处理，在解决问题的同时，有一些工具起到了相当大的作用，在此书写下来，一是作为笔记，可以让自己后续忘记了可快速翻阅，二是分享，希望看到此文的同学们可以拿出自己日常觉得帮助很大的工具，大家一起进步。 闲话不多说，开搞。 ## Linux命令类 ###tail 最常用的tail -f tail -3</p>
+<h4 id="问题排查工具箱"><a href="#问题排查工具箱" class="headerlink" title="问题排查工具箱"></a>问题排查工具箱</h4><p>平时的工作中经常碰到很多疑难问题的处理，在解决问题的同时，有一些工具起到了相当大的作用，在此书写下来，一是作为笔记，可以让自己后续忘记了可快速翻阅，二是分享，希望看到此文的同学们可以拿出自己日常觉得帮助很大的工具，大家一起进步。</p>
+<p>闲话不多说，开搞。</p>
+<h5 id="Linux命令类"><a href="#Linux命令类" class="headerlink" title="Linux命令类"></a>Linux命令类</h5><h6 id="tail"><a href="#tail" class="headerlink" title="tail"></a>tail</h6><p>最常用的tail -f</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tail -300f shopbase.log #倒数300行并进入实时监听文件写入模式</span><br></pre></td></tr></table></figure>
+<h6 id="grep"><a href="#grep" class="headerlink" title="grep"></a>grep</h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">grep forest f.txt     #文件查找</span><br><span class="line">grep forest f.txt cpf.txt #多文件查找</span><br><span class="line">grep 'log' /home/admin -r -n #目录下查找所有符合关键字的文件</span><br><span class="line">cat f.txt | grep -i shopbase    </span><br><span class="line">grep 'shopbase' /home/admin -r -n --include *.&#123;vm,java&#125; #指定文件后缀</span><br><span class="line">grep 'shopbase' /home/admin -r -n --exclude *.&#123;vm,java&#125; #反匹配</span><br><span class="line">seq 10 | grep 5 -A 3    #上匹配</span><br><span class="line">seq 10 | grep 5 -B 3    #下匹配</span><br><span class="line">seq 10 | grep 5 -C 3    #上下匹配，平时用这个就妥了</span><br><span class="line">cat f.txt | grep -c 'SHOPBASE'</span><br></pre></td></tr></table></figure>
+<h6 id="awk"><a href="#awk" class="headerlink" title="awk"></a>awk</h6><p>1 基础命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">awk '&#123;print $4,$6&#125;' f.txt</span><br><span class="line">awk '&#123;print NR,$0&#125;' f.txt cpf.txt    </span><br><span class="line">awk '&#123;print FNR,$0&#125;' f.txt cpf.txt</span><br><span class="line">awk '&#123;print FNR,FILENAME,$0&#125;' f.txt cpf.txt</span><br><span class="line">awk '&#123;print FILENAME,"NR="NR,"FNR="FNR,"$"NF"="$NF&#125;' f.txt cpf.txt</span><br><span class="line">echo 1:2:3:4 | awk -F: '&#123;print $1,$2,$3,$4&#125;'</span><br></pre></td></tr></table></figure>
+<p>2 匹配</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk '/ldb/ &#123;print&#125;' f.txt   #匹配ldb</span><br><span class="line">awk '!/ldb/ &#123;print&#125;' f.txt  #不匹配ldb</span><br><span class="line">awk '/ldb/ &amp;&amp; /LISTEN/ &#123;print&#125;' f.txt   #匹配ldb和LISTEN</span><br><span class="line">awk '$5 ~ /ldb/ &#123;print&#125;' f.txt #第五列匹配ldb</span><br></pre></td></tr></table></figure>
+<p>3 内建变量</p>
+<p>NR:NR表示从awk开始执行后，按照记录分隔符读取的数据次数，默认的记录分隔符为换行符，因此默认的就是读取的数据行数，NR可以理解为Number of Record的缩写。</p>
+<p>FNR:在awk处理多个输入文件的时候，在处理完第一个文件后，NR并不会从1开始，而是继续累加，因此就出现了FNR，每当处理一个新文件的时候，FNR就从1开始计数，FNR可以理解为File Number of Record。</p>
+<p>NF: NF表示目前的记录被分割的字段的数目，NF可以理解为Number of Field。</p>
+<h6 id="find"><a href="#find" class="headerlink" title="find"></a>find</h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin find /home/admin /tmp /usr -name \*.log(多个目录去找)</span><br><span class="line">find . -iname \*.txt(大小写都匹配)</span><br><span class="line">find . -type d(当前目录下的所有子目录)</span><br><span class="line">find /usr -type l(当前目录下所有的符号链接)</span><br><span class="line">find /usr -type l -name "z*" -ls(符号链接的详细信息 eg:inode,目录)</span><br><span class="line">find /home/admin -size +250000k(超过250000k的文件，当然+改成-就是小于了)</span><br><span class="line">find /home/admin f -perm 777 -exec ls -l &#123;&#125; \; (按照权限查询文件)</span><br><span class="line">find /home/admin -atime -1  1天内访问过的文件</span><br><span class="line">find /home/admin -ctime -1  1天内状态改变过的文件    </span><br><span class="line">find /home/admin -mtime -1  1天内修改过的文件</span><br><span class="line">find /home/admin -amin -1  1分钟内访问过的文件</span><br><span class="line">find /home/admin -cmin -1  1分钟内状态改变过的文件    </span><br><span class="line">find /home/admin -mmin -1  1分钟内修改过的文件</span><br></pre></td></tr></table></figure>
+<h6 id="pgm"><a href="#pgm" class="headerlink" title="pgm"></a>pgm</h6><p>批量查询vm-shopbase满足条件的日志</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pgm -A -f vm-shopbase 'cat /home/admin/shopbase/logs/shopbase.log.2017-01-17|grep 2069861630'</span><br></pre></td></tr></table></figure>
+<h6 id="tsar"><a href="#tsar" class="headerlink" title="tsar"></a>tsar</h6><p>tsar是咱公司自己的采集工具。很好用, 将历史收集到的数据持久化在磁盘上，所以我们快速来查询历史的系统数据。当然实时的应用情况也是可以查询的啦。大部分机器上都有安装。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tsar  <span class="comment">##可以查看最近一天的各项指标</span></span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图1.jpg" title="图1">
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tsar --live ##可以查看实时指标，默认五秒一刷</span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图2.jpg" title="图2">
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tsar -d 20161218 ##指定查看某天的数据，貌似最多只能看四个月的数据</span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图3.jpg" title="图3">
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tsar --mem</span><br><span class="line">tsar --load</span><br><span class="line">tsar --cpu</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#当然这个也可以和-d参数配合来查询某天的单个指标的情况</span></span></span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图4.jpg" title="图4">
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图5.jpg" title="图5">
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图6.jpg" title="图6">
+<h6 id="top"><a href="#top" class="headerlink" title="top"></a>top</h6><p>top除了看一些基本信息之外，剩下的就是配合来查询vm的各种问题了</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ps -ef | grep java</span><br><span class="line">top -H -p pid</span><br></pre></td></tr></table></figure>
+<p>获得线程10进制转16进制后jstack去抓看这个线程到底在干啥</p>
+<h6 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">netstat -nat|awk  '&#123;print $6&#125;'|sort|uniq -c|sort -rn </span><br><span class="line"><span class="meta">#</span><span class="bash">查看当前连接，注意close_wait偏高的情况，比如如下</span></span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图7.jpg" title="图7">
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图8.jpg" title="图8">
+<h5 id="排查利器"><a href="#排查利器" class="headerlink" title="排查利器"></a>排查利器</h5><h6 id="btrace"><a href="#btrace" class="headerlink" title="btrace"></a>btrace</h6><p>首当其冲的要说的是btrace。真是生产环境&amp;预发的排查问题大杀器。 简介什么的就不说了。直接上代码干。</p>
+<a id="more"></a> 
+<p>1、查看当前谁调用了ArrayList的add方法，同时只打印当前ArrayList的size大于500的线程调用栈</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@OnMethod</span>(clazz = <span class="string">"java.util.ArrayList"</span>, method=<span class="string">"add"</span>, location = <span class="meta">@Location</span>(value = Kind.CALL, clazz = <span class="string">"/.*/"</span>, method = <span class="string">"/.*/"</span>))</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">m</span><span class="params">(@ProbeClassName String probeClass, @ProbeMethodName String probeMethod, @TargetInstance Object instance, @TargetMethodOrField String method)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">if</span>(getInt(field(<span class="string">"java.util.ArrayList"</span>, <span class="string">"size"</span>), instance) &gt; <span class="number">479</span>)&#123;</span><br><span class="line">       println(<span class="string">"check who ArrayList.add method:"</span> + probeClass + <span class="string">"#"</span> + probeMethod  + <span class="string">", method:"</span> + method + <span class="string">", size:"</span> + getInt(field(<span class="string">"java.util.ArrayList"</span>, <span class="string">"size"</span>), instance));</span><br><span class="line">       jstack();</span><br><span class="line">       println();</span><br><span class="line">       println(<span class="string">"==========================="</span>);</span><br><span class="line">       println();</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>2、监控当前服务方法被调用时返回的值以及请求的参数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@OnMethod</span>(clazz = <span class="string">"com.taobao.sellerhome.transfer.biz.impl.C2CApplyerServiceImpl"</span>, method=<span class="string">"nav"</span>, location = <span class="meta">@Location</span>(value = Kind.RETURN))</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">mt</span><span class="params">(<span class="keyword">long</span> userId, <span class="keyword">int</span> current, <span class="keyword">int</span> relation, String check, String redirectUrl, @Return AnyType result)</span> </span>&#123;</span><br><span class="line">   println(<span class="string">"parameter# userId:"</span> + userId + <span class="string">", current:"</span> + current + <span class="string">", relation:"</span> + relation + <span class="string">", check:"</span> + check + <span class="string">", redirectUrl:"</span> + redirectUrl + <span class="string">", result:"</span> + result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>更多内容，感兴趣的请移步：<a href="https://github.com/btraceio/btrace" target="_blank" rel="noopener">https://github.com/btraceio/btrace</a></p>
+<p>注意:</p>
+<ol>
+<li>经过观察，1.3.9的release输出不稳定，要多触发几次才能看到正确的结果</li>
+<li>正则表达式匹配trace类时范围一定要控制，否则极有可能出现跑满CPU导致应用卡死的情况</li>
+<li>由于是字节码注入的原理，想要应用恢复到正常情况，需要重启应用。</li>
+</ol>
+<h6 id="Greys"><a href="#Greys" class="headerlink" title="Greys"></a>Greys</h6><p>Greys是@杜琨的大作吧。说几个挺棒的功能(部分功能和btrace重合):</p>
+<p><code>sc -df xxx</code>: 输出当前类的详情,包括源码位置和classloader结构</p>
+<p><code>trace class method</code>: 相当喜欢这个功能! 很早前可以早JProfiler看到这个功能。打印出当前方法调用的耗时情况，细分到每个方法。对排查方法性能时很有帮助，比如我之前这篇就是使用了trace命令来的:<a href="http://www.atatech.org/articles/52947" target="_blank" rel="noopener">http://www.atatech.org/articles/52947</a>。</p>
+<p>其他功能部分和btrace重合，可以选用，感兴趣的请移步。<br><a href="http://www.atatech.org/articles/26247" target="_blank" rel="noopener">http://www.atatech.org/articles/26247</a></p>
+<p>另外相关联的是arthas，他是基于Greys的，感兴趣的再移步<a href="http://mw.alibaba-inc.com/products/arthas/docs/middleware-container/arthas.wiki/home.html?spm=a1z9z.8109794.header.32.1lsoMc" target="_blank" rel="noopener">http://mw.alibaba-inc.com/products/arthas/docs/middleware-container/arthas.wiki/home.html?spm=a1z9z.8109794.header.32.1lsoMc</a></p>
+<h6 id="javOSize"><a href="#javOSize" class="headerlink" title="javOSize"></a>javOSize</h6><p>就说一个功能<br><code>classes</code>：通过修改了字节码，改变了类的内容，即时生效。 所以可以做到快速的在某个地方打个日志看看输出，缺点是对代码的侵入性太大。但是如果自己知道自己在干嘛，的确是不错的玩意儿。</p>
+<p>其他功能Greys和btrace都能很轻易做的到，不说了。</p>
+<p>可以看看我之前写的一篇javOSize的简介<a href="http://www.atatech.org/articles/38546" target="_blank" rel="noopener">http://www.atatech.org/articles/38546</a><br>官网请移步<a href="http://www.javosize.com/" target="_blank" rel="noopener">http://www.javosize.com/</a></p>
+<h6 id="JProfiler"><a href="#JProfiler" class="headerlink" title="JProfiler"></a>JProfiler</h6><p>之前判断许多问题要通过JProfiler，但是现在Greys和btrace基本都能搞定了。再加上出问题的基本上都是生产环境(网络隔离)，所以基本不怎么使用了，但是还是要标记一下。<br>官网请移步<a href="https://www.ej-technologies.com/products/jprofiler/overview.html" target="_blank" rel="noopener">https://www.ej-technologies.com/products/jprofiler/overview.html</a></p>
+<h5 id="大杀器"><a href="#大杀器" class="headerlink" title="大杀器"></a>大杀器</h5><h6 id="eclipseMAT"><a href="#eclipseMAT" class="headerlink" title="eclipseMAT"></a>eclipseMAT</h6><p>可作为eclipse的插件，也可作为单独的程序打开。<br>详情请移步<a href="http://www.eclipse.org/mat/" target="_blank" rel="noopener">http://www.eclipse.org/mat/</a></p>
+<h6 id="zprofiler"><a href="#zprofiler" class="headerlink" title="zprofiler"></a>zprofiler</h6><p>集团内的开发应该是无人不知无人不晓了。简而言之一句话:有了zprofiler还要mat干嘛<br>详情请移步<a href="http://zprofiler.alibaba-inc.com/" target="_blank" rel="noopener">zprofiler.alibaba-inc.com</a></p>
+<h5 id="java三板斧，噢不对，是七把"><a href="#java三板斧，噢不对，是七把" class="headerlink" title="java三板斧，噢不对，是七把"></a>java三板斧，噢不对，是七把</h5><h6 id="jps"><a href="#jps" class="headerlink" title="jps"></a>jps</h6><p>我只用一条命令：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin /opt/taobao/java/bin/jps -mlvV</span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图9.jpg" title="图9">
+<h6 id="jstack"><a href="#jstack" class="headerlink" title="jstack"></a>jstack</h6><p>普通用法:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin /opt/taobao/install/ajdk-8_1_1_fp1-b52/bin/jstack 2815</span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图10.jpg" title="图10">
+<p>native+java栈:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin /opt/taobao/install/ajdk-8_1_1_fp1-b52/bin/jstack -m 2815</span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图11.jpg" title="图11">
+<h6 id="jinfo"><a href="#jinfo" class="headerlink" title="jinfo"></a>jinfo</h6><p>可看系统启动的参数，如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin /opt/taobao/install/ajdk-8_1_1_fp1-b52/bin/jinfo -flags 2815</span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图12.jpg" title="图12">
+<h6 id="jmap"><a href="#jmap" class="headerlink" title="jmap"></a>jmap</h6><p>两个用途</p>
+<p>1.查看堆的情况</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin /opt/taobao/install/ajdk-8_1_1_fp1-b52/bin/jmap -heap 2815</span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图13.jpg" title="图13">
+<p>2.dump</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin /opt/taobao/install/ajdk-8_1_1_fp1-b52/bin/jmap -dump:live,format=b,file=/tmp/heap2.bin 2815</span><br></pre></td></tr></table></figure>
+<p>或者</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin /opt/taobao/install/ajdk-8_1_1_fp1-b52/bin/jmap -dump:format=b,file=/tmp/heap3.bin 2815</span><br></pre></td></tr></table></figure>
+<p>3.看看堆都被谁占了? 再配合zprofiler和btrace，排查问题简直是如虎添翼</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin /opt/taobao/install/ajdk-8_1_1_fp1-b52/bin/jmap -histo 2815 | head -10</span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图14.jpg" title="图14">
+<h6 id="jstat"><a href="#jstat" class="headerlink" title="jstat"></a>jstat</h6><p>jstat参数众多，但是使用一个就够了</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin /opt/taobao/install/ajdk-8_1_1_fp1-b52/bin/jstat -gcutil 2815 1000</span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图15.jpg" title="图15">
+<h6 id="jdb"><a href="#jdb" class="headerlink" title="jdb"></a>jdb</h6><p>时至今日，jdb也是经常使用的。<br>jdb可以用来预发debug,假设你预发的java_home是/opt/taobao/java/，远程调试端口是8000.那么</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin /opt/taobao/java/bin/jdb -attach 8000</span><br></pre></td></tr></table></figure>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图16.jpg" title="图16">
+<p>出现以上代表jdb启动成功。后续可以进行设置断点进行调试。<br>具体参数可见oracle官方说明<a href="http://docs.oracle.com/javase/7/docs/technotes/tools/windows/jdb.html" target="_blank" rel="noopener">http://docs.oracle.com/javase/7/docs/technotes/tools/windows/jdb.html</a></p>
+<h6 id="CHLSDB"><a href="#CHLSDB" class="headerlink" title="CHLSDB"></a>CHLSDB</h6><p>CHLSDB感觉很多情况下可以看到更好玩的东西，不详细叙述了。 查询资料听说jstack和jmap等工具就是基于它的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin /opt/taobao/java/bin/java -classpath /opt/taobao/java/lib/sa-jdi.jar sun.jvm.hotspot.CLHSDB</span><br></pre></td></tr></table></figure>
+<p>更详细的可见R大此贴<br><a href="http://rednaxelafx.iteye.com/blog/1847971" target="_blank" rel="noopener">http://rednaxelafx.iteye.com/blog/1847971</a></p>
+<h5 id="plugin-of-intellij-idea"><a href="#plugin-of-intellij-idea" class="headerlink" title="plugin of intellij idea"></a>plugin of intellij idea</h5><h6 id="key-promoter"><a href="#key-promoter" class="headerlink" title="key promoter"></a>key promoter</h6><p>快捷键一次你记不住，多来几次你总能记住了吧？</p>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图17.jpg" title="图17">
+<h6 id="maven-helper"><a href="#maven-helper" class="headerlink" title="maven helper"></a>maven helper</h6><p>分析maven依赖的好帮手。</p>
+<h5 id="VM-options"><a href="#VM-options" class="headerlink" title="VM options"></a>VM options</h5><ol>
+<li><p>你的类到底是从哪个文件加载进来的？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-XX:+TraceClassLoading</span><br><span class="line">结果形如[Loaded java.lang.invoke.MethodHandleImpl<span class="variable">$Lazy</span> from D:\programme\jdk\jdk8U74\jre\lib\rt.jar]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>应用挂了输出dump文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/admin/logs/java.hprof</span><br><span class="line">集团的vm参数里边基本都有这个选项</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h5 id="jar包冲突"><a href="#jar包冲突" class="headerlink" title="jar包冲突"></a>jar包冲突</h5><p>把这个单独写个大标题不过分吧？每个人或多或少都处理过这种烦人的case。我特么下边这么多方案不信就搞不定你?</p>
+<h6 id="mvn-dependency-tree-gt-dependency-txt"><a href="#mvn-dependency-tree-gt-dependency-txt" class="headerlink" title="mvn dependency:tree &gt; ~/dependency.txt"></a>mvn dependency:tree &gt; ~/dependency.txt</h6><p>打出所有依赖</p>
+<h6 id="mvn-dependency-tree-Dverbose-Dincludes-groupId-artifactId"><a href="#mvn-dependency-tree-Dverbose-Dincludes-groupId-artifactId" class="headerlink" title="mvn dependency:tree -Dverbose -Dincludes=groupId:artifactId"></a>mvn dependency:tree -Dverbose -Dincludes=groupId:artifactId</h6><p>只打出指定groupId和artifactId的依赖关系</p>
+<h6 id="XX-TraceClassLoading"><a href="#XX-TraceClassLoading" class="headerlink" title="-XX:+TraceClassLoading"></a>-XX:+TraceClassLoading</h6><p>vm启动脚本加入。在tomcat启动脚本中可见加载类的详细信息</p>
+<h6 id="verbose"><a href="#verbose" class="headerlink" title="-verbose"></a>-verbose</h6><p>vm启动脚本加入。在tomcat启动脚本中可见加载类的详细信息</p>
+<h6 id="greys-sc"><a href="#greys-sc" class="headerlink" title="greys:sc"></a>greys:sc</h6><p>greys的sc命令也能清晰的看到当前类是从哪里加载过来的</p>
+<h6 id="tomcat-classloader-locate"><a href="#tomcat-classloader-locate" class="headerlink" title="tomcat-classloader-locate"></a>tomcat-classloader-locate</h6><p>通过以下url可以获知当前类是从哪里加载的<br>curl <a href="http://localhost:8006/classloader/locate?class=org.apache.xerces.xs.XSObject" target="_blank" rel="noopener">http://localhost:8006/classloader/locate?class=org.apache.xerces.xs.XSObject</a></p>
+<h5 id="ALI-TOMCAT带给我们的惊喜-感谢-务观"><a href="#ALI-TOMCAT带给我们的惊喜-感谢-务观" class="headerlink" title="ALI-TOMCAT带给我们的惊喜(感谢@务观)"></a>ALI-TOMCAT带给我们的惊喜(感谢@务观)</h5><ol>
+<li><p>列出容器加载的jar列表</p>
+<p>curl <a href="http://localhost:8006/classloader/jars" target="_blank" rel="noopener">http://localhost:8006/classloader/jars</a></p>
+</li>
+<li><p>列出当前当当前类加载的实际jar包位置，解决类冲突时有用</p>
+<p>curl <a href="http://localhost:8006/classloader/locate?class=org.apache.xerces.xs.XSObject" target="_blank" rel="noopener">http://localhost:8006/classloader/locate?class=org.apache.xerces.xs.XSObject</a></p>
+</li>
+</ol>
+<img src="/2018/11/25/阿里员工的Java问题排查工具单/图18.jpg" title="图18">
+<h5 id="其他-1"><a href="#其他-1" class="headerlink" title="其他"></a>其他</h5><h6 id="gpref"><a href="#gpref" class="headerlink" title="gpref"></a>gpref</h6><p><a href="http://www.atatech.org/articles/33317?spm=a2c4e.11153940.blogcont69520.25.6a5cbec3UDAtJm" target="_blank" rel="noopener">http://www.atatech.org/articles/33317</a></p>
+<h6 id="dmesg"><a href="#dmesg" class="headerlink" title="dmesg"></a>dmesg</h6><p>如果发现自己的java进程悄无声息的消失了，几乎没有留下任何线索，那么dmesg一发，很有可能有你想要的。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo dmesg|grep -i kill|less</span><br></pre></td></tr></table></figure>
+<p>去找关键字oom_killer。找到的结果类似如下:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[6710782.021013] java invoked oom-killer: gfp_mask=0xd0, order=0, oom_adj=0, oom_scoe_adj=0</span><br><span class="line">[6710782.070639] [&lt;ffffffff81118898&gt;] ? oom_kill_process+0x68/0x140 </span><br><span class="line">[6710782.257588] Task in /LXC011175068174 killed as a result of limit of /LXC011175068174 </span><br><span class="line">[6710784.698347] Memory cgroup out of memory: Kill process 215701 (java) score 854 or sacrifice child </span><br><span class="line">[6710784.707978] Killed process 215701, UID 679, (java) total-vm:11017300kB, anon-rss:7152432kB, file-rss:1232kB</span><br></pre></td></tr></table></figure>
+<p>以上表明，对应的java进程被系统的OOM Killer给干掉了，得分为854.<br>解释一下OOM killer（Out-Of-Memory killer），该机制会监控机器的内存资源消耗。当机器内存耗尽前，该机制会扫描所有的进程（按照一定规则计算，内存占用，时间等），挑选出得分最高的进程，然后杀死，从而保护机器。</p>
+<p>dmesg日志时间转换公式:<br>log实际时间=格林威治1970-01-01+(当前时间秒数-系统启动至今的秒数+dmesg打印的log时间)秒数：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">date -d "1970-01-01 UTC `echo "$(date +%s)-$(cat /proc/uptime|cut -f 1 -d' ')+12288812.926194"|bc ` seconds"</span><br></pre></td></tr></table></figure>
+<p>剩下的，就是看看为什么内存这么大，触发了OOM-Killer了。</p>
+<h5 id="新技能get"><a href="#新技能get" class="headerlink" title="新技能get"></a>新技能get</h5><h6 id="RateLimiter"><a href="#RateLimiter" class="headerlink" title="RateLimiter"></a>RateLimiter</h6><p>想要精细的控制QPS? 比如这样一个场景，你调用某个接口，对方明确需要你限制你的QPS在400之内你怎么控制？这个时候RateLimiter就有了用武之地。详情可移步<a href="http://ifeve.com/guava-ratelimiter/" target="_blank" rel="noopener">http://ifeve.com/guava-ratelimiter/</a></p>
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p><a href="https://yq.aliyun.com/articles/69520?utm_content=m_10360#comment" target="_blank" rel="noopener">https://yq.aliyun.com/articles/69520?utm_content=m_10360#comment</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>看官可在此打赏</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="Morning Star 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Morning Star 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/类/" rel="tag"># 类</a>
+          
+            <a href="/tags/线程/" rel="tag"># 线程</a>
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/18/Mysql-Innodb-中的锁/" rel="next" title="Mysql Innodb 中的锁">
+                <i class="fa fa-chevron-left"></i> Mysql Innodb 中的锁
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/02/MySQL高性能优化原理/" rel="prev" title="MySQL高性能优化原理">
+                MySQL高性能优化原理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="Morning Star">
+            
+              <p class="site-author-name" itemprop="name">Morning Star</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/machenxing" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#问题排查工具箱"><span class="nav-number">2.</span> <span class="nav-text">问题排查工具箱</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Linux命令类"><span class="nav-number">2.1.</span> <span class="nav-text">Linux命令类</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#tail"><span class="nav-number">2.1.1.</span> <span class="nav-text">tail</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#grep"><span class="nav-number">2.1.2.</span> <span class="nav-text">grep</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#awk"><span class="nav-number">2.1.3.</span> <span class="nav-text">awk</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#find"><span class="nav-number">2.1.4.</span> <span class="nav-text">find</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#pgm"><span class="nav-number">2.1.5.</span> <span class="nav-text">pgm</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#tsar"><span class="nav-number">2.1.6.</span> <span class="nav-text">tsar</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#top"><span class="nav-number">2.1.7.</span> <span class="nav-text">top</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#其他"><span class="nav-number">2.1.8.</span> <span class="nav-text">其他</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#排查利器"><span class="nav-number">2.2.</span> <span class="nav-text">排查利器</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#btrace"><span class="nav-number">2.2.1.</span> <span class="nav-text">btrace</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Greys"><span class="nav-number">2.2.2.</span> <span class="nav-text">Greys</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#javOSize"><span class="nav-number">2.2.3.</span> <span class="nav-text">javOSize</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#JProfiler"><span class="nav-number">2.2.4.</span> <span class="nav-text">JProfiler</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#大杀器"><span class="nav-number">2.3.</span> <span class="nav-text">大杀器</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#eclipseMAT"><span class="nav-number">2.3.1.</span> <span class="nav-text">eclipseMAT</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#zprofiler"><span class="nav-number">2.3.2.</span> <span class="nav-text">zprofiler</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#java三板斧，噢不对，是七把"><span class="nav-number">2.4.</span> <span class="nav-text">java三板斧，噢不对，是七把</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#jps"><span class="nav-number">2.4.1.</span> <span class="nav-text">jps</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#jstack"><span class="nav-number">2.4.2.</span> <span class="nav-text">jstack</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#jinfo"><span class="nav-number">2.4.3.</span> <span class="nav-text">jinfo</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#jmap"><span class="nav-number">2.4.4.</span> <span class="nav-text">jmap</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#jstat"><span class="nav-number">2.4.5.</span> <span class="nav-text">jstat</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#jdb"><span class="nav-number">2.4.6.</span> <span class="nav-text">jdb</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#CHLSDB"><span class="nav-number">2.4.7.</span> <span class="nav-text">CHLSDB</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#plugin-of-intellij-idea"><span class="nav-number">2.5.</span> <span class="nav-text">plugin of intellij idea</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#key-promoter"><span class="nav-number">2.5.1.</span> <span class="nav-text">key promoter</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#maven-helper"><span class="nav-number">2.5.2.</span> <span class="nav-text">maven helper</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#VM-options"><span class="nav-number">2.6.</span> <span class="nav-text">VM options</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#jar包冲突"><span class="nav-number">2.7.</span> <span class="nav-text">jar包冲突</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#mvn-dependency-tree-gt-dependency-txt"><span class="nav-number">2.7.1.</span> <span class="nav-text">mvn dependency:tree &gt; ~/dependency.txt</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#mvn-dependency-tree-Dverbose-Dincludes-groupId-artifactId"><span class="nav-number">2.7.2.</span> <span class="nav-text">mvn dependency:tree -Dverbose -Dincludes=groupId:artifactId</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#XX-TraceClassLoading"><span class="nav-number">2.7.3.</span> <span class="nav-text">-XX:+TraceClassLoading</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#verbose"><span class="nav-number">2.7.4.</span> <span class="nav-text">-verbose</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#greys-sc"><span class="nav-number">2.7.5.</span> <span class="nav-text">greys:sc</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#tomcat-classloader-locate"><span class="nav-number">2.7.6.</span> <span class="nav-text">tomcat-classloader-locate</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ALI-TOMCAT带给我们的惊喜-感谢-务观"><span class="nav-number">2.8.</span> <span class="nav-text">ALI-TOMCAT带给我们的惊喜(感谢@务观)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#其他-1"><span class="nav-number">2.9.</span> <span class="nav-text">其他</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#gpref"><span class="nav-number">2.9.1.</span> <span class="nav-text">gpref</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#dmesg"><span class="nav-number">2.9.2.</span> <span class="nav-text">dmesg</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#新技能get"><span class="nav-number">2.10.</span> <span class="nav-text">新技能get</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#RateLimiter"><span class="nav-number">2.10.1.</span> <span class="nav-text">RateLimiter</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Morning Star</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

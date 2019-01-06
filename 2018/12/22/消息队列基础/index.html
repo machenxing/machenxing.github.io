@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="数据结构,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="什么是MOMMOM 就是面向消息中间件（Message-oriented middleware），是用于以分布式应用或系统中的异步、松耦合、可靠、可扩展和安全通信的一类软件。MOM 的总体思想是它作为消息发送器和消息接收器之间的消息中介,这种中介提供了一个全新水平的松耦合。 MOM思想就是A和B两个应用程序不直接发送消息。之前A和B直接发送消息有很多效率问题，如A发送之后B没有及时接受，那么A就一">
+<meta name="keywords" content="数据结构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="消息队列基础">
+<meta property="og:url" content="http://yoursite.com/2018/12/22/消息队列基础/index.html">
+<meta property="og:site_name" content="Star&#39;s Blog">
+<meta property="og:description" content="什么是MOMMOM 就是面向消息中间件（Message-oriented middleware），是用于以分布式应用或系统中的异步、松耦合、可靠、可扩展和安全通信的一类软件。MOM 的总体思想是它作为消息发送器和消息接收器之间的消息中介,这种中介提供了一个全新水平的松耦合。 MOM思想就是A和B两个应用程序不直接发送消息。之前A和B直接发送消息有很多效率问题，如A发送之后B没有及时接受，那么A就一">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图1.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图2.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图3.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图4.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图5.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图6.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图7.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图8.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图9.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图10.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图11.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图12.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图13.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/12/22/消息队列基础/图14.jpg">
+<meta property="og:updated_time" content="2018-12-23T08:16:12.794Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="消息队列基础">
+<meta name="twitter:description" content="什么是MOMMOM 就是面向消息中间件（Message-oriented middleware），是用于以分布式应用或系统中的异步、松耦合、可靠、可扩展和安全通信的一类软件。MOM 的总体思想是它作为消息发送器和消息接收器之间的消息中介,这种中介提供了一个全新水平的松耦合。 MOM思想就是A和B两个应用程序不直接发送消息。之前A和B直接发送消息有很多效率问题，如A发送之后B没有及时接受，那么A就一">
+<meta name="twitter:image" content="http://yoursite.com/2018/12/22/消息队列基础/图1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/22/消息队列基础/">
+
+
+
+
+
+  <title>消息队列基础 | Star's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Star's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Keep learning, Keep improving</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/22/消息队列基础/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">消息队列基础</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-22T15:35:52+08:00">
+                2018-12-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/中间件/" itemprop="url" rel="index">
+                    <span itemprop="name">中间件</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="什么是MOM"><a href="#什么是MOM" class="headerlink" title="什么是MOM"></a>什么是MOM</h4><p>MOM 就是面向消息中间件（Message-oriented middleware），是用于以分布式应用或系统中的异步、松耦合、可靠、可扩展和安全通信的一类软件。MOM 的总体思想是它作为消息发送器和消息接收器之间的消息中介,这种中介提供了一个全新水平的松耦合。</p>
+<p>MOM思想就是A和B两个应用程序不直接发送消息。之前A和B直接发送消息有很多效率问题，如A发送之后B没有及时接受，那么A就一直再在那里堵塞并发性不好，A必须等B接受完之后有返结果了A才可以结束。而MOM就是为了解决这样的问题，不让A与B之间交互，在A和B之间加一个消息中间件，A把消息放到消息中间上，就可以走了，去做别的事情，B什么时候来消息中间件取消息A不用知道也不用管。这样就提高了效率提供并发性，等B去走后可以通过状态，通知，回调等方式通知A就可以。市面上实现这种思想的技术有很多，IBM（MQSEVICES）、Microsoft(MSMQ）以及BEA的MessageMQ等。处于百家争鸣阶段都是各自实现各自的，没有统一实现标准。此时SUN为了实现统一标准就出现了JMS统一实现规范。JMS主要有2种消息模型，点到点和发布订阅两种。</p>
+<h4 id="什么是消息队列"><a href="#什么是消息队列" class="headerlink" title="什么是消息队列"></a>什么是消息队列</h4><p>消息队列是在消息的传输过程中保存消息的容器，用于接收消息并以文件的方式存储，一个消息队列可以被一个也可以被多个消费者消费。</p>
+<p>消息队列中间件是分布式系统中重要的组件，主要解决应用耦合、异步消息、流量削锋等问题。实现高性能、高可用、可伸缩和最终一致性架构。是大型分布式系统不可缺少的中间件。</p>
+<p>目前在生产环境，使用较多的消息队列有ActiveMQ、RabbitMQ、ZeroMQ、Kafka、MetaMQ、RocketMQ等。</p>
+<h4 id="消息队列优点"><a href="#消息队列优点" class="headerlink" title="消息队列优点"></a>消息队列优点</h4><ol>
+<li>将数据从一个应用程序传到另一个应用程序，或者从软件的一个模块传送到另外一个模块</li>
+<li>负责建立网络通信的通道，进行数据的可靠传送</li>
+<li>保证数据不重发，不丢失</li>
+<li>能够实现跨平台操作，能够为不同操作系统上的软件集成技工数据传送服务</li>
+</ol>
+<h4 id="消息队列的应用场景"><a href="#消息队列的应用场景" class="headerlink" title="消息队列的应用场景"></a>消息队列的应用场景</h4><p>下面详细介绍一下消息队列在实际应用中常用的使用场景。场景分为<strong>异步处理、应用解耦、流量削锋和消息通讯</strong>四个场景。</p>
+<h5 id="异步处理"><a href="#异步处理" class="headerlink" title="异步处理"></a>异步处理</h5><p><strong>场景说明</strong> 用户注册后，需要发送注册邮件和发送注册信息，传统的做法有两种：串行方式、并行方式</p>
+<p><strong>串行方式</strong></p>
+<p>将注册信息写入数据库成功后，发送注册邮件，然后发送注册短信，而所有任务执行完成后，返回信息给客户端</p>
+<img src="/2018/12/22/消息队列基础/图1.jpg" title="图1">
+<p><strong>并行方式</strong></p>
+<p>将注册信息写入数据库成功后，同时进行发送注册邮件和发送注册短信的操作。而所有任务执行完成后，返回信息给客户端。同串行方式相比，并行方式可以提高执行效率，减少执行时间。</p>
+<img src="/2018/12/22/消息队列基础/图2.jpg" title="图2">
+<p>上面的比较可以发现，假设三个操作均需要50ms的执行时间，排除网络因素，则最终执行完成，串行方式需要150ms，而并行方式需要100ms。</p>
+<p>因为cpu在单位时间内处理的请求数量是一致的，假设：CPU每1秒吞吐量是100此，则串行方式1秒内可执行的请求量为1000/150，不到7次；并行方式1秒内可执行的请求量为1000/100，为10次。</p>
+<p>由上可以看出，传统串行和并行的方式会受到系统性能的局限，那么如何解决这个问题？<br>我们需要引入消息队列，将不是必须的业务逻辑，异步进行处理，由此改造出来的流程为</p>
+<img src="/2018/12/22/消息队列基础/图3.jpg" title="图3">
+<p>根据上述的流程，用户的响应的时间基本相当于将数据写入数据库的时间，发送注册邮件，发送注册短信的消息在写入消息队列后，即可返回执行结果，写入消息队列的时间很快，几乎可以忽略，也有此可以将系统吞吐量提升至20QPS，比串行方式提升近3倍，比并行方式提升2倍。</p>
+<h5 id="应用解耦"><a href="#应用解耦" class="headerlink" title="应用解耦"></a>应用解耦</h5><p><strong>场景说明</strong> 用户下单后，订单系统需要通知库存系统。</p>
+<p>传统的做法为：订单系统调用库存系统的接口。如下图所示：</p>
+<img src="/2018/12/22/消息队列基础/图4.jpg" title="图4">
+<p>传统方式具有如下缺点：</p>
+<ol>
+<li>假设库存系统访问失败，则订单减少库存失败，导致订单创建失败</li>
+<li>订单系统同库存系统过度耦合</li>
+</ol>
+<p>如何解决上述的缺点呢？需要引入消息队列，引入消息队列后的架构如下图所示：</p>
+<img src="/2018/12/22/消息队列基础/图5.jpg" title="图5">
+<p>引入消息队列，实现应用解耦</p>
+<ul>
+<li>订单系统：用户下单后，订单系统进行数据持久化处理，然后将消息写入消息队列，返回订单创建成功</li>
+<li>库存系统：使用拉/推的方式，获取下单信息，库存系统根据订单信息，进行库存操作。</li>
+</ul>
+<p>假如在下单时库存系统不能正常使用。也不影响正常下单，因为下单后，订单系统写入消息队列就不再关心其后续操作了。由此实现了订单系统与库存系统的应用解耦。</p>
+<h5 id="流量削锋"><a href="#流量削锋" class="headerlink" title="流量削锋"></a>流量削锋</h5><p>流量削峰 也是消息对列中的常用场景，一般在秒杀或团抢活动中使用广泛。</p>
+<p><strong>应用场景</strong> 秒杀活动，一般会因为流量过大，导致流量暴增，应用挂掉。为解决这个问题，一般需要在应用前端加入消息队列。</p>
+<ol>
+<li>可以控制参与活动的人数；</li>
+<li>可以缓解短时间内高流量对应用的巨大压力；</li>
+</ol>
+<p>流量削锋处理方式系统图如下：</p>
+<img src="/2018/12/22/消息队列基础/图6.jpg" title="图6">
+<ol>
+<li>服务器在接收到用户请求后，首先写入消息队列。这时如果消息队列中消息数量超过最大数量，则直接拒绝用户请求或返回跳转到错误页面；</li>
+<li>秒杀业务根据秒杀规则读取消息队列中的请求信息，进行后续处理。</li>
+</ol>
+<p><strong>日志处理</strong></p>
+<p>日志处理是指将消息队列用在日志处理中，比如Kafka的应用，解决大量日志传输的问题。</p>
+<p>日志处理是指将消息队列用在日志处理中，比如Kafka的应用，解决大量日志传输的问题。架构简化如下：</p>
+<img src="/2018/12/22/消息队列基础/图7.jpg" title="消息队列应用于日志处理的架构">
+<ul>
+<li>日志采集客户端：负责日志数据采集，定时写受写入Kafka队列；</li>
+<li>Kafka消息队列：负责日志数据的接收，存储和转发；</li>
+<li>日志处理应用：订阅并消费kafka队列中的日志数据；</li>
+</ul>
+<img src="/2018/12/22/消息队列基础/图8.jpg" title="服务的技术架构设计">
+<ol>
+<li>Kafka：接收用户日志的消息队列。</li>
+<li>Logstash：做日志解析，统一成JSON输出给Elasticsearch。</li>
+<li>Elasticsearch：实时日志分析服务的核心技术，一个schemaless，实时的数据存储服务，通过index组织数据，兼具强大的搜索和统计功能。</li>
+<li>Kibana：基于Elasticsearch的数据可视化组件，超强的数据可视化能力是众多公司选择ELK stack的重要原因。</li>
+</ol>
+<h5 id="消息通讯"><a href="#消息通讯" class="headerlink" title="消息通讯"></a>消息通讯</h5><p>消息通讯是指，消息队列一般都内置了高效的通信机制，因此也可以用在纯的消息通讯。比如实现点对点消息队列、聊天室等。</p>
+<h6 id="点对点通讯"><a href="#点对点通讯" class="headerlink" title="点对点通讯"></a>点对点通讯</h6><img src="/2018/12/22/消息队列基础/图9.jpg" title="点对点通讯架构设计">
+<p>在点对点通讯架构设计中，客户端A和客户端B共用一个消息队列，即可实现消息通讯功能。</p>
+<h6 id="聊天室通讯"><a href="#聊天室通讯" class="headerlink" title="聊天室通讯"></a>聊天室通讯</h6><img src="/2018/12/22/消息队列基础/图10.jpg" title="聊天室通讯架构设计">
+<p>客户端A、客户端B、直至客户端N订阅同一消息队列，进行消息的发布与接收，即可实现聊天通讯方案架构设计。</p>
+<a id="more"></a> 
+<h4 id="JMS消息服务"><a href="#JMS消息服务" class="headerlink" title="JMS消息服务"></a>JMS消息服务</h4><p>讲消息队列就不得不提JMS。JMS(Java Message Service，Java消息服务) JMS 叫做 Java 消息服务（Java Message Service）,是 Java 平台上有关面向 MOM 的技术规范，旨在通过提供标准的产生、发送、接收和处理消息的 API 简化企业应用的开发，类似于 JDBC 和关系型数据库通信方式的抽象。</p>
+<p>API是一个消息服务的标准/规范，允许应用程序组件基于JavaEE平台创建，发送，接收和读取消息。他是分布式通信耦合度更低，消息服务更加可靠以及异步性。</p>
+<p>在EJB架构中，有消息bean可以无缝的与JM消息服务集成。在J2EE架构模式中，有消息服务者模式，用于实现消息与应用直接的解耦。</p>
+<img src="/2018/12/22/消息队列基础/图11.jpg" title="图11">
+<h5 id="常用概念"><a href="#常用概念" class="headerlink" title="常用概念"></a>常用概念</h5><ul>
+<li>Provider：纯 Java 语言编写的 JMS 接口实现（比如 ActiveMQ 就是）</li>
+<li>Domains：消息传递方式，包括点对点（P2P）、发布/订阅（Pub/Sub）两种</li>
+<li>Connection factory：客户端使用连接工厂来创建与 JMS provider 的连接</li>
+<li>Destination：消息被寻址、发送以及接收的对象</li>
+</ul>
+<h5 id="消息模型"><a href="#消息模型" class="headerlink" title="消息模型"></a>消息模型</h5><p>在JMS标准中，有两种消息模型P2P（Point to Point），Publish/Subscribe（Pub/Sub）</p>
+<h6 id="P2P-模式"><a href="#P2P-模式" class="headerlink" title="P2P 模式"></a>P2P 模式</h6><img src="/2018/12/22/消息队列基础/图12.jpg" title="图12">
+<p>P2P（点对点）模式包含三个角色：消息队列（Queue），发送者（Sender），接收者（Receiver）。每个消息都被发送到一个特定的队列，接收者从队列中获取消息。队列保留着消息，知道他们被消费或者超时。</p>
+<p>P2P 消息域使用 queue 作为 Destination，消息可以被同步或异步的发送和接收，每个消息只会给一个 Consumer 传送一次。Consumer 可以使用 MessageConsumer.receive() 同步地接收消息，也可以通过使用MessageConsumer.setMessageListener() 注册一个 MessageListener 实现异步接收。</p>
+<p>多个 Consumer 可以注册到同一个 queue 上，但一个消息只能被一个 Consumer 所接收，然后由该 Consumer 来确认消息。并且在这种情况下，Provider 对所有注册的 Consumer 以轮询的方式发送消息。</p>
+<img src="/2018/12/22/消息队列基础/图13.jpg" title="图13">
+<p><strong>P2P的特点</strong></p>
+<ol>
+<li><p>每个消息只有一个消费者（Consumer）（即一旦被消费，消息就不再在消息队列中，其他的消费者就不能得到这条消息了。）</p>
+</li>
+<li><p>发送者和接收者质检在时间上没有依赖性，也就是说当发送者发送了消息之后，不管接收者有没有正在运行，他不会影响到消息发送到队列。</p>
+</li>
+<li><p>消费者必须确认对消息的接收</p>
+<p>​      收到消息后消费者必须确认消息已被接收，否则JMS服务提供者会认为该消息没有被接收，那么这条消息仍然可以被其他人接收。程序可以自动进行确认，不需要人工干预。</p>
+</li>
+<li><p>非持久的消息最多只发送一次</p>
+<p>​      非持久的消息最多只发送一次，表示消息有可能未被发送，造成未被发送的原因可能有：</p>
+<p>​            1、 JMS服务提供者出现宕机等情况，造成非持久信息的丢失</p>
+<p>​            2、 队列中的消息过期，未被接收</p>
+</li>
+<li><p>持久的消息严格发送一次</p>
+<p>​      我们可以将比较重要的消息设置为持久化的消息，持久化后的消息不会因为JMS服务提供者的故障或者其他原因造成消息丢失。</p>
+</li>
+</ol>
+<p>如果希望发送的每个消息都会被成功处理的话，那么需要p2p 模式</p>
+<h6 id="Pub-Sub模式"><a href="#Pub-Sub模式" class="headerlink" title="Pub/Sub模式"></a>Pub/Sub模式</h6><img src="/2018/12/22/消息队列基础/图14.jpg" title="图14">
+<p>包含三个角色：主题（Topic），发布者（Publisher），订阅者（Subscriber）。多个发布者将消息发送到Topic，系统将这些消息传递给多个订阅者。</p>
+<p>Pub/Sub（发布/订阅，Publish/Subscribe）消息域使用 topic 作为 Destination，发布者向 topic 发送消息，订阅者注册接收来自 topic 的消息。发送到 topic 的任何消息都将自动传递给所有订阅者。接收方式（同步和异步）与 P2P 域相同。</p>
+<p>除非显式指定，否则 topic 不会为订阅者保留消息。当然，这可以通过持久化（Durable）订阅来实现消息的保存。这种情况下，当订阅者与 Provider 断开时，Provider 会为它存储消息。当持久化订阅者重新连接时，将会受到所有的断连期间未消费的消息。</p>
+<p><strong>Pub/Sub的特点</strong></p>
+<ul>
+<li>每个消息都可以有多个（0，1，……）订阅者，每条消息可以有多个消费者，如果报纸和杂志一样，谁订阅了谁都可以获得。</li>
+<li>发布者和订阅者之间有时间上的依赖性。订阅者只能消费他们订阅之后出版的消息，针对某个主题（Topic）的订阅者，它必须创建一个订阅者之后，才能消费发布者的消息。这就要求订阅者必须先订阅，生产者再发布。即订阅者必须先运行，再等待生产者的运行，这和点对点类型有所差异。</li>
+<li>为了消费消息，订阅者必须保持运行的状态。即订阅者必须保持活动状态等待发布者发布的消息，如果订阅者在发布者发布消息之后才运行，则不能获得先前发布者发布的消息。</li>
+</ul>
+<p>为了缓和这样严格的时间相关性，JMS允许订阅者创建一个可持久化的订阅。这样，即使订阅者没有被激活（运行），它也能接收到发布者的消息。<br>如果希望发送的消息可以不被做任何处理、或者只被一个消息者处理、或者可以被多个消费者处理的话，那么可以采用Pub/Sub模型。</p>
+<h5 id="消息消费"><a href="#消息消费" class="headerlink" title="消息消费"></a>消息消费</h5><p>在JMS中，消息的产生和消费都是异步的。对于消费来说，JMS的消息者可以通过两种方式来小消费消息。</p>
+<ol>
+<li>同步<br>订阅者或接收者通过receive方法来接受消息，receive在接收到消息之前（或超时之前）将一直阻塞。</li>
+<li>异步<br>订阅者或接收者亦可以注册未一个消息监听器。当消息到达之后，系统自动调用监听器的onMessage的方法。</li>
+</ol>
+<p>JDNI：Java命名和目录接口，是一种标准的Java命名系统接口。可以在网络上查找和访问服务。通过指定一个资源名称，该名称对应于数据库或者命名服务中的一个记录，同时返回资源连接建立所必需的信息。</p>
+<p>JNDI在JMS中起到查找二号访问发送目标或消息来源的作用。</p>
+<h4 id="JMS编程"><a href="#JMS编程" class="headerlink" title="JMS编程"></a>JMS编程</h4><h5 id="JMS通用步骤"><a href="#JMS通用步骤" class="headerlink" title="JMS通用步骤"></a>JMS通用步骤</h5><ul>
+<li>获取连接工厂</li>
+<li>使用连接工厂创建连接</li>
+<li>启动连接</li>
+<li>从连接创建会话</li>
+<li>获取 Destination</li>
+<li>创建 Producer，或<ul>
+<li>创建 Producer</li>
+<li>创建 message</li>
+</ul>
+</li>
+<li>创建 Consumer，或发送或接收message发送或接收 message<ul>
+<li>创建 Consumer</li>
+<li>注册消息监听器（可选）</li>
+</ul>
+</li>
+<li>发送或接收 message</li>
+<li>关闭资源（connection, session, producer, consumer 等)</li>
+</ul>
+<h5 id="JMS编程模型"><a href="#JMS编程模型" class="headerlink" title="JMS编程模型"></a>JMS编程模型</h5><p>1.ConnectionFactory</p>
+<p>创建Connection对象的工厂，针对两周不同的JMS消息模型，分别有QueueConnectionFactory和TopicConnectionFactory两种。可以通过JNDI来查找ConnectionFactory对象。</p>
+<p>2.Destination</p>
+<p>Destination的意思是消息生产者的消息发送目标或着说消息消费者的消息来源。对于消息生产者来说。他的Destination是某个队列(queue)或者某个主题（Topic）；对于消息消费者来说，他的Destination也是某个队列或主题（即消息来源）。</p>
+<p>所以，Destination实际上就是两种类型的对象：Queue，Topic可以通过JNDI来查找Destination</p>
+<p>3.Connection</p>
+<p>Connection表示在客户端和JMS系统之间建立的链接（对TCP/IP Socket的包装）。Connection可以产生一个或多个Session。跟ConnectionFactory一样，Connection也有两种类型：QueueConnection和TopicConnection。</p>
+<p>4.Session</p>
+<p>Session是操作消息的接口。可以通过session创建生产者、消费者、消息等。Session提供了事务的功能。当需要使用session发送/接收多个消息时，可以将这些发送/接收动作放到一个事务中。同样，也分QueueSession和TopicSession。</p>
+<p>5.消息的生产者</p>
+<p>消息生产者由Session创建，并用于将消息发送到Destination。同样，消息生产者分两种类型：QueueSender和TopicPublisher。可以调用消息生产者的方法（send或publish方法）发送消息。</p>
+<p>6.消息消费者</p>
+<p>消息消费者由Session创建，用于接收被发送到Destination的消息。两种类型：QueueReceiver和TopicSubscriber。可分别通过session的createReceiver(Queue)或createSubscriber(Topic)来创建。当然，也可以session的creatDurableSubscriber方法来创建持久化的订阅者。</p>
+<ol start="7">
+<li>MessageListener</li>
+</ol>
+<p>消息监听器。如果注册了消息监听器，一旦消息到达，将自动调用监听器的onMessage方法。EJB中的MDB（Message-Driven Bean）就是一种MessageListener。</p>
+<p>深入学习JMS对掌握JAVA架构、EJB架构有很好的帮助，消息中间件也是大型分布式系统必须的组件。本次分享主要做全局性介绍，具体的深入需要大家学习，实践，总结，领会。</p>
+<h5 id="JMS编程实战"><a href="#JMS编程实战" class="headerlink" title="JMS编程实战"></a>JMS编程实战</h5><p>这里拿ActiveMQ 举例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JMSDemo</span> </span>&#123;</span><br><span class="line">        ConnectionFactory connectionFactory;</span><br><span class="line">        Connection connection;</span><br><span class="line">        Session session;</span><br><span class="line">        Destination destination;</span><br><span class="line">        MessageProducer producer;</span><br><span class="line">        MessageConsumer consumer;</span><br><span class="line">        Message message;</span><br><span class="line">        <span class="keyword">boolean</span> useTransaction = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">                Context ctx = <span class="keyword">new</span> InitialContext();</span><br><span class="line">                connectionFactory = (ConnectionFactory) ctx.lookup(<span class="string">"ConnectionFactoryName"</span>);</span><br><span class="line">                <span class="comment">//使用ActiveMQ时：connectionFactory = new ActiveMQConnectionFactory(user, password, getOptimizeBrokerUrl(broker));</span></span><br><span class="line">                connection = connectionFactory.createConnection();</span><br><span class="line">                connection.start();</span><br><span class="line">                session = connection.createSession(useTransaction, Session.AUTO_ACKNOWLEDGE);</span><br><span class="line">                destination = session.createQueue(<span class="string">"TEST.QUEUE"</span>);</span><br><span class="line">                <span class="comment">//生产者发送消息</span></span><br><span class="line">                producer = session.createProducer(destination);</span><br><span class="line">                message = session.createTextMessage(<span class="string">"this is a test"</span>);</span><br><span class="line"></span><br><span class="line">                <span class="comment">//消费者同步接收</span></span><br><span class="line">                consumer = session.createConsumer(destination);</span><br><span class="line">                message = (TextMessage) consumer.receive(<span class="number">1000</span>);</span><br><span class="line">                System.out.println(<span class="string">"Received message: "</span> + message);</span><br><span class="line">                <span class="comment">//消费者异步接收</span></span><br><span class="line">                consumer.setMessageListener(<span class="keyword">new</span> MessageListener() &#123;</span><br><span class="line">                        <span class="meta">@Override</span></span><br><span class="line">                        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onMessage</span><span class="params">(Message message)</span> </span>&#123;</span><br><span class="line">                                <span class="keyword">if</span> (message != <span class="keyword">null</span>) &#123;</span><br><span class="line">                                        doMessageEvent(message);</span><br><span class="line">                                &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                &#125;);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (JMSException e) &#123;</span><br><span class="line">                ...</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                producer.close();</span><br><span class="line">                session.close();</span><br><span class="line">                connection.close();</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p>本文转载自：</p>
+<p><a href="https://juejin.im/post/5c0522b4e51d4579402b8da2" target="_blank" rel="noopener">https://juejin.im/post/5c0522b4e51d4579402b8da2</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>看官可在此打赏</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="Morning Star 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Morning Star 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/数据结构/" rel="tag"># 数据结构</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/19/Mysql索引优化/" rel="next" title="Mysql索引优化">
+                <i class="fa fa-chevron-left"></i> Mysql索引优化
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/23/JVM与Linux的内存关系分析/" rel="prev" title="JVM与Linux的内存关系分析">
+                JVM与Linux的内存关系分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="Morning Star">
+            
+              <p class="site-author-name" itemprop="name">Morning Star</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/machenxing" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#什么是MOM"><span class="nav-number">1.</span> <span class="nav-text">什么是MOM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#什么是消息队列"><span class="nav-number">2.</span> <span class="nav-text">什么是消息队列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息队列优点"><span class="nav-number">3.</span> <span class="nav-text">消息队列优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息队列的应用场景"><span class="nav-number">4.</span> <span class="nav-text">消息队列的应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#异步处理"><span class="nav-number">4.1.</span> <span class="nav-text">异步处理</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#应用解耦"><span class="nav-number">4.2.</span> <span class="nav-text">应用解耦</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#流量削锋"><span class="nav-number">4.3.</span> <span class="nav-text">流量削锋</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#消息通讯"><span class="nav-number">4.4.</span> <span class="nav-text">消息通讯</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#点对点通讯"><span class="nav-number">4.4.1.</span> <span class="nav-text">点对点通讯</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#聊天室通讯"><span class="nav-number">4.4.2.</span> <span class="nav-text">聊天室通讯</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JMS消息服务"><span class="nav-number">5.</span> <span class="nav-text">JMS消息服务</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#常用概念"><span class="nav-number">5.1.</span> <span class="nav-text">常用概念</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#消息模型"><span class="nav-number">5.2.</span> <span class="nav-text">消息模型</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#P2P-模式"><span class="nav-number">5.2.1.</span> <span class="nav-text">P2P 模式</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Pub-Sub模式"><span class="nav-number">5.2.2.</span> <span class="nav-text">Pub/Sub模式</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#消息消费"><span class="nav-number">5.3.</span> <span class="nav-text">消息消费</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JMS编程"><span class="nav-number">6.</span> <span class="nav-text">JMS编程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#JMS通用步骤"><span class="nav-number">6.1.</span> <span class="nav-text">JMS通用步骤</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#JMS编程模型"><span class="nav-number">6.2.</span> <span class="nav-text">JMS编程模型</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#JMS编程实战"><span class="nav-number">6.3.</span> <span class="nav-text">JMS编程实战</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Morning Star</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
