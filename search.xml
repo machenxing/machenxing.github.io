@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[Docker容器中无法使用jmap等命令的问题]]></title>
+    <url>%2F2019%2F02%2F13%2FDocker%E5%AE%B9%E5%99%A8%E4%B8%AD%E6%97%A0%E6%B3%95%E4%BD%BF%E7%94%A8jmap%E7%AD%89%E5%91%BD%E4%BB%A4%E7%9A%84%E9%97%AE%E9%A2%98%2F</url>
+    <content type="text"><![CDATA[Java工程部署在 CentOS 服务器上。项目偶尔会出现无响应的情况，这时理所当然要上去用 JDK 相关命令看看堆栈和GC等信息了。近期在开发环境的docker排查问题时，发现GC异常频繁，且为full GC，导致系统资源消耗严重，然而jmap命令不可用，导致无法查看Java虚拟机内存占用情况，无法进一步分析。 jps、top、jstat命令均可用。 然而，使用jmap命令 1jmap -heap 1 打印堆栈信息时，却报错了 123456789101112131415161718192021222324Attaching to process ID 1, please wait...Error attaching to process: sun.jvm.hotspot.debugger.DebuggerException: Can't attach to the process: ptrace(PTRACE_ATTACH, ..) failed for 1: Operation not permittedsun.jvm.hotspot.debugger.DebuggerException: sun.jvm.hotspot.debugger.DebuggerException: Can't attach to the process: ptrace(PTRACE_ATTACH, ..) failed for 1: Operation not permitted at sun.jvm.hotspot.debugger.linux.LinuxDebuggerLocal$LinuxDebuggerLocalWorkerThread.execute(LinuxDebuggerLocal.java:163) at sun.jvm.hotspot.debugger.linux.LinuxDebuggerLocal.attach(LinuxDebuggerLocal.java:278) at sun.jvm.hotspot.HotSpotAgent.attachDebugger(HotSpotAgent.java:671) at sun.jvm.hotspot.HotSpotAgent.setupDebuggerLinux(HotSpotAgent.java:611) at sun.jvm.hotspot.HotSpotAgent.setupDebugger(HotSpotAgent.java:337) at sun.jvm.hotspot.HotSpotAgent.go(HotSpotAgent.java:304) at sun.jvm.hotspot.HotSpotAgent.attach(HotSpotAgent.java:140) at sun.jvm.hotspot.tools.Tool.start(Tool.java:185) at sun.jvm.hotspot.tools.Tool.execute(Tool.java:118) at sun.jvm.hotspot.tools.JInfo.main(JInfo.java:138) at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) at java.lang.reflect.Method.invoke(Method.java:498) at sun.tools.jinfo.JInfo.runTool(JInfo.java:108) at sun.tools.jinfo.JInfo.main(JInfo.java:76)Caused by: sun.jvm.hotspot.debugger.DebuggerException: Can't attach to the process: ptrace(PTRACE_ATTACH, ..) failed for 1: Operation not permitted at sun.jvm.hotspot.debugger.linux.LinuxDebuggerLocal.attach0(Native Method) at sun.jvm.hotspot.debugger.linux.LinuxDebuggerLocal.access$100(LinuxDebuggerLocal.java:62) at sun.jvm.hotspot.debugger.linux.LinuxDebuggerLocal$1AttachTask.doit(LinuxDebuggerLocal.java:269) at sun.jvm.hotspot.debugger.linux.LinuxDebuggerLocal$LinuxDebuggerLocalWorkerThread.run(LinuxDebuggerLocal.java:138) 以上的关键信息就是：Can&#39;t attach to the process: ptrace(PTRACE_ATTACH, ..) failed for 1: Operation not permitted，操作不允许。 解决方案这其实不是什么 Bug，而是 Docker 自 1.10 版本开始加入的安全特性。 类似于 jmap 这些 JDK 工具依赖于 Linux 的 PTRACE_ATTACH，而是 Docker 自 1.10 在默认的 seccomp 配置文件中禁用了 ptrace。 主要有三种解决办法： –security-opt seccomp=unconfined简单暴力（不推荐），直接关闭 seccomp 配置。用法： 1docker run --security-opt seccomp:unconfined ... –cap-add=SYS_PTRACE使用 –cap-add 明确添加指定功能： 1docker run --cap-add=SYS_PTRACE ... Docker Compose 的支持Docker Compose 自 version 1.1.0 (2015-02-25) 起支持 cap_add。官方文档：cap_add, cap_drop。用法： 前面的 docker-compose.yml 改写后文件内容如下（相同内容部分就不重复贴了）： 12345678910version: '2'services: mysql: ... api: ... cap_add: - SYS_PTRACE]]></content>
+      <categories>
+        <category>服务器</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>垃圾回收</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[博客迁移成功]]></title>
     <url>%2F2019%2F01%2F06%2F%E5%8D%9A%E5%AE%A2%E8%BF%81%E7%A7%BB%E6%88%90%E5%8A%9F%2F</url>
     <content type="text"><![CDATA[成功将博客迁移到新的笔记本上，以此纪念。]]></content>
@@ -26,9 +38,9 @@
         <category>Java虚拟机</category>
       </categories>
       <tags>
+        <tag>Linux</tag>
         <tag>垃圾回收</tag>
         <tag>内存</tag>
-        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -87,8 +99,8 @@
         <category>数据库</category>
       </categories>
       <tags>
-        <tag>一致性</tag>
         <tag>数据库</tag>
+        <tag>一致性</tag>
         <tag>分布式</tag>
         <tag>事务</tag>
       </tags>
@@ -153,9 +165,9 @@
         <category>Java</category>
       </categories>
       <tags>
+        <tag>Linux</tag>
         <tag>类</tag>
         <tag>线程</tag>
-        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -342,8 +354,8 @@
         <category>数据库</category>
       </categories>
       <tags>
-        <tag>一致性</tag>
         <tag>数据库</tag>
+        <tag>一致性</tag>
         <tag>分布式</tag>
         <tag>事务</tag>
       </tags>
@@ -427,8 +439,8 @@
         <category>服务器</category>
       </categories>
       <tags>
-        <tag>一致性</tag>
         <tag>数据库</tag>
+        <tag>一致性</tag>
         <tag>缓存</tag>
       </tags>
   </entry>
@@ -628,9 +640,9 @@
         <tag>内存</tag>
         <tag>脏读</tag>
         <tag>锁</tag>
+        <tag>synchronized</tag>
         <tag>volatile</tag>
         <tag>happens-before</tag>
-        <tag>synchronized</tag>
       </tags>
   </entry>
   <entry>
