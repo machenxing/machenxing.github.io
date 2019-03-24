@@ -291,6 +291,232 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/03/Linux的iptables原理/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/03/Linux的iptables原理/" itemprop="url">Linux的iptables原理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-03T16:58:55+08:00">
+                2018-11-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>在Linux系统中，对于防火墙的实现一般分为包过滤防火墙，TCP-Wrapper即程序管控，代理服务器等几种方式。其中，iptables作为一种基于包过滤方式的防火墙工具，在实际中应用非常广泛，是非常重要的一个安全工具。真正实现防火墙功能的是 netfilter，它是一个 linux 内核模块，做实际的包过滤。实际上，除了 iptables 以外，还有很多类似的用户空间工具。</p>
+<img src="/2018/11/03/Linux的iptables原理/图1.jpg" title="图1">
+<h4 id="iptables的“链”与“表”"><a href="#iptables的“链”与“表”" class="headerlink" title="iptables的“链”与“表”"></a>iptables的“链”与“表”</h4><p>netfilter 使用表（table）和 链（chain）来组织网络包的处理规则（rule）。它默认定义了以下表和链：</p>
+<img src="/2018/11/03/Linux的iptables原理/图2.jpg" title="图2">
+<table>
+<thead>
+<tr>
+<th>表</th>
+<th>表功能</th>
+<th>链</th>
+<th>链功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>raw</td>
+<td></td>
+<td>PREROUTING OUTPUT</td>
+<td>RAW 拥有最高的优先级，它使用PREROUTING和OUTPUT两个链，因此 RAW 可以覆盖所有包。在raw表中支持一个特殊的目标:TRACE，使内核记录下每条匹配该包的对应iptables规则信息。使用raw表内的TRACE target 即可实现对iptables规则的跟踪调试。比如：# iptables -t raw -A OUTPUT -p icmp -j TRACE # ipt ables -t raw -A PREROUTING -p icmp -j TRACE</td>
+</tr>
+<tr>
+<td>Filter</td>
+<td>包过滤</td>
+<td>FORWARD</td>
+<td>过滤目的地址和源地址都不是本机的包</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>INPUT</td>
+<td>过滤目的地址是本机的包</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>OUTPUT</td>
+<td>过滤源地址是本机的包</td>
+</tr>
+<tr>
+<td>Nat</td>
+<td>网络地址转换</td>
+<td>PREROUTING</td>
+<td>在路由前做地址转换，使得目的地址能够匹配上防火墙的路由表，常用于转换目的地址。</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>POSTROUTING</td>
+<td>在路由后做地址转换。这意味着不需要在路由前修改目的地址。常用于转换源地址。</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>OUTPUT</td>
+<td>对防火墙产生的包做地址转换（很少量地用于 SOHO 环境中）</td>
+</tr>
+<tr>
+<td>Mangle</td>
+<td>TCP 头修改</td>
+<td>PREROUTING POSTROUTING OUTPUT INPUT FORWARD</td>
+<td>在路由器修改 TCP 包的 QoS（很少量地用在 SOHO 环境中）</td>
+</tr>
+</tbody>
+</table>
+<img src="/2018/11/03/Linux的iptables原理/图3.jpg" title="图3">
+<p>先是透过路由判断， 决定了输出的路径后，再透过 filter 的 OUTPUT 链来传送的， mangle 这个表格很少被使用，如果将上图的mangle 拿掉的话，那就容易看的多了：</p>
+<img src="/2018/11/03/Linux的iptables原理/图4.jpg" title="图4">
+<p>如果你的防火墙事实上是用来管制 LAN 内的其他主机的话，那么你就必须要再针对 filter 的 FORWARD 这条链，还有 nat 的 PREROUTING, POSTROUTING 以及 OUTPUT 进行额外的规则订定才行。</p>
+<h4 id="iptables实现SNAT与DNAT"><a href="#iptables实现SNAT与DNAT" class="headerlink" title="iptables实现SNAT与DNAT"></a>iptables实现SNAT与DNAT</h4><p>NAT 服务器的重点就在于上面流程NAT table 的两条重要的链：PREROUTING 与 POSTROUTING。</p>
+<p>举例如下：</p>
+<p><strong>SNAT封包传送和封包接收</strong></p>
+<img src="/2018/11/03/Linux的iptables原理/图5.jpg" title="图5">
+<p>客户端所发出的封包表头中，来源会是 192.168.1.100 ，然后传送到 NAT 这部主机；NAT 这部主机的内部接口 (192.168.1.2) 接收到这个封包后，会主动分析表头数据， 因为表头数据显示目的并非 Linux 本机，所以开始经过路由， 将此封包转到可以连接到 Internet 的 Public IP 处；由于 private IP 与 public IP 不能互通，所以 Linux 主机透过 iptables 的 NAT table 内的 Postrouting 链将封包表头的来源伪装成为 Linux 的 Public IP ，并且将两个不同来源 (192.168.1.100 及 public IP) 的封包对应写入暂存内存当中， 然后将此封包传送出去了；<br> 此时 Internet 上面看到这个封包时，都只会知道这个封包来自那个 Public IP 而不知道其实是来自内部啦。 好了，那么如果 Internet 回传封包呢？又会怎么作？</p>
+<img src="/2018/11/03/Linux的iptables原理/图6.jpg" title="图6">
+<p> 在 Internet 上面的主机接到这个封包时，会将响应数据传送给那个 Public IP 的主机；当 Linux NAT 服务器收到来自 Internet 的回应封包后，会分析该封包的序号，并比对刚刚记录到内存当中的数据， 由于发现该封包为后端主机之前传送出去的，因此在 NAT Prerouting 链中，会将目标 IP 修改成为后端主机，亦即那部 192.168.1.100，然后发现目标已经不是本机 (public IP)， 所以开始透过路由分析封包流向；封包会传送到 192.168.1.2 这个内部接口，然后再传送到最终目标 192.168.1.100 机器上去！</p>
+<p>SNAT 主要是应付内部 LAN 连接到 Internet 的使用方式，至于 DNAT 则主要用在内部主机想要架设可以让 Internet 存取的服务器啦！</p>
+<p><strong>DNAT封包传送</strong></p>
+<img src="/2018/11/03/Linux的iptables原理/图7.jpg" title="图7">
+<p>假设我的内部主机 192.168.1.210 启动了 WWW 服务，这个服务的 port 开启在 port 80 ， 那么 Internet 上面的主机 (61.xx.xx.xx) 要如何连接到我的内部服务器呢？当然啦， 还是得要透过 Linux NAT 服务器嘛！所以这部 Internet 上面的机器必须要连接到我们的 NAT 的 public IP 才行。外部主机想要连接到目的端的 WWW 服务，则必须要连接到我们的 NAT 服务器上头；我们的 NAT 服务器已经设定好要分析出 port 80 的封包，所以当 NAT 服务器接到这个封包后， 会将目标 IP 由 public IP 改成 192.168.1.210 ，且将该封包相关信息记录下来，等待内部服务器的响应；上述的封包在经过路由后，来到 private 接口处，然后透过内部的 LAN 传送到 192.168.1.210 上头！</p>
+<p> 192.186.1.210 会响应数据给 61.xx.xx.xx ，这个回应当然会传送到 192.168.1.2 上头去；经过路由判断后，来到 NAT Postrouting 的链，然后透过刚刚的记录，将来源 IP 由 192.168.1.210 改为 public IP 后，就可以传送出去了！</p>
+<h4 id="iptables常用命令"><a href="#iptables常用命令" class="headerlink" title="iptables常用命令"></a>iptables常用命令</h4>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/11/03/Linux的iptables原理/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/03/JAVA打印Array数组内容的几种方法/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -976,172 +1202,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/27/设计模式之代理模式/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/10/27/设计模式之代理模式/" itemprop="url">设计模式之代理模式</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-27T08:37:35+08:00">
-                2018-10-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/设计模式/" itemprop="url" rel="index">
-                    <span itemprop="name">设计模式</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p> 什么是代理模式？</p>
-<p>日常生活中我们经常会碰到代理模式，例如我们找房产中介帮我们介绍房子，找婚姻中介帮我们介绍对象，找保洁帮我们打理房间，找律师帮我们进行诉讼等。我们在无形中都运用到了代理模式。</p>
-<p>为什么要使用代理？</p>
-<p>运用代理可以使我们的生活更加便利，有了代理，我们不需要自己去找房子，不需要自己去找对象，不需要自己去打理房间，不需要自己去诉讼。当然，你也可以选择一切都自己来干，但是存在前提条件，一是你是否都具备这样的资源和能力来做这些事情，二是你是否愿意花费这么多精力和时间来做这些事情。总之，代理模式使我们各专其事，我们可以将时间浪费在美好的事情上，而不用天天被一些琐事所羁绊。</p>
-<p>代理模式有哪些实现？</p>
-<p>代理的实现分动态代理和静态代理，静态代理的实现是对已经生成了的JAVA类进行封装。</p>
-<p>动态代理则是在运行时生成了相关代理类，在JAVA中生成动态代理一般有三种方式。</p>
-<p><strong>静态代理</strong></p>
-<p>- 由程序员创建或特定工具自动生成源代码再对其编译。在程序运行前代理类的.class文件就已经存在了。</p>
-<p><strong>动态代理</strong></p>
-<p>- 在程序运行时运用反射机制动态创建而成。</p>
-<h4 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h4><p>代理接口：UserDao.java</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserDao</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">save</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>目标对象：UserDaoImpl.java</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDaoImpl</span> <span class="keyword">implements</span> <span class="title">UserDao</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">save</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"正在保存用户信息。。。"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>代理对象：TransactionHandler.java</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TransactionHandler</span> <span class="keyword">implements</span> <span class="title">UserDao</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> UserDaoImpl target;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TransactionHandler</span><span class="params">(UserDaoImpl target)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.target = target;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">save</span><span class="params">()</span> </span>&#123;</span><br><span class="line">         System.out.println(<span class="string">"开启事务控制。。。"</span>);</span><br><span class="line">         target.save();</span><br><span class="line">         System.out.println(<span class="string">"关闭事务控制。。。"</span>);</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        UserDaoImpl target = <span class="keyword">new</span> UserDaoImpl();</span><br><span class="line">        UserDao userDao = <span class="keyword">new</span> TransactionHandler(target);</span><br><span class="line">        userDao.save();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>总的来说静态代理实现简单也容易理解，但是静态代理不能使一个代理类反复作用于多个目标对象，代理对象直接持有目标对象的引用，这<strong>导致代理对象和目标对象类型紧密耦合了在一起</strong>。如果UserDao接口下还有另一个实现类也需要进行事务控制，那么就要重新写一个代理类，这样就会产生许多重复的模版代码，不能达到代码复用的目的。而动态代理就可以很好的解决这样的问题。</p>
-<h4 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h4><p>Spring AOP的拦截功能是由java中的动态代理来实现的。说白了，就是在目标类的基础上增加切面逻辑，生成增强的目标类（该切面逻辑或者在目标类函数执行之前，或者目标类函数执行之后，或者在目标类函数抛出异常时候执行。不同的切入时机对应不同的Interceptor的种类，如BeforeAdviseInterceptor，AfterAdviseInterceptor以及ThrowsAdviseInterceptor等）。</p>
-<p>Spring AOP的源码中用到了两种动态代理来实现拦截切入功能：jdk动态代理和cglib动态代理（核心）。两种方法同时存在，各有优劣。<strong>jdk动态代理是由java内部的反射机制来实现的，cglib动态代理底层则是借助asm来实现的。总的来说，反射机制在生成类的过程中比较高效，而asm在生成类之后的相关执行过程中比较高效（可以通过将asm生成的类进行缓存，这样解决asm生成类过程低效问题）。还有一点必须注意：jdk动态代理的应用前提，必须是目标类基于统一的接口。如果没有上述前提，jdk动态代理不能应用。由此可以看出，jdk动态代理有一定的局限性，cglib这种第三方类库实现的动态代理应用更加广泛，且在效率上更有优势</strong>。</p>
-<p>这里仍然使用上面同样的代理接口和目标对象。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/10/27/设计模式之代理模式/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1194,7 +1254,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">58</span>
+                  <span class="site-state-item-count">59</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
