@@ -291,6 +291,212 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/04/Java并发队列BlockingQueue/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/04/Java并发队列BlockingQueue/" itemprop="url">Java并发队列BlockingQueue</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-04T19:47:35+08:00">
+                2018-11-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/多线程/" itemprop="url" rel="index">
+                    <span itemprop="name">多线程</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>在Concurrent包中(在Java5版本开始提供)，BlockingQueue很好的解决了多线程中，如何高效安全“传输”数据的问题。通过这些高效并且线程安全的队列类，为我们快速搭建高质量的多线程程序带来极大的便利。本文详细介绍了BlockingQueue家庭中的所有成员，包括他们各自的功能以及常见使用场景。</p>
+<h4 id="BlockingQueue"><a href="#BlockingQueue" class="headerlink" title="BlockingQueue"></a>BlockingQueue</h4><p>阻塞队列，顾名思义，首先它是一个队列，而一个队列在数据结构中所起的作用大致如下图所示：</p>
+<img src="/2018/11/04/Java并发队列BlockingQueue/图1.jpg" title="图1">
+<p>从上图我们可以很清楚看到，通过一个共享的队列，可以使得数据由队列的一端输入，从另外一端输出；</p>
+<p>常用的队列主要有以下两种：（当然通过不同的实现方式，还可以延伸出很多不同类型的队列，DelayQueue就是其中的一种）</p>
+<p>先进先出（FIFO）：先插入的队列的元素也最先出队列，类似于排队的功能。从某种程度上来说这种队列也体现了一种公平性。</p>
+<p>后进先出（LIFO）：后插入队列的元素最先出队列，这种队列优先处理最近发生的事件。　　</p>
+<p>​      多线程环境中，通过队列可以很容易实现数据共享，比如经典的“生产者”和“消费者”模型中，通过队列可以很便利地实现两者之间的数据共享。假设我们有若干生产者线程，另外又有若干个消费者线程。如果生产者线程需要把准备好的数据共享给消费者线程，利用队列的方式来传递数据，就可以很方便地解决他们之间的数据共享问题。但如果生产者和消费者在某个时间段内，万一发生数据处理速度不匹配的情况呢？理想情况下，如果生产者产出数据的速度大于消费者消费的速度，并且当生产出来的数据累积到一定程度的时候，那么生产者必须暂停等待一下（阻塞生产者线程），以便等待消费者线程把累积的数据处理完毕，反之亦然。然而，在concurrent包发布以前，在多线程环境下，我们每个程序员都必须去自己控制这些细节，尤其还要兼顾效率和线程安全，而这会给我们的程序带来不小的复杂度。好在此时，强大的concurrent包横空出世了，而他也给我们带来了强大的BlockingQueue。（在多线程领域：所谓阻塞，在某些情况下会挂起线程（即阻塞），一旦条件满足，被挂起的线程又会自动被唤醒），下面两幅图演示了BlockingQueue的两个常见阻塞场景：</p>
+<img src="/2018/11/04/Java并发队列BlockingQueue/图2.jpg" title="图2">
+<p><em>如上图所示：当队列中没有数据的情况下，消费者端的所有线程都会被自动阻塞（挂起），直到有数据放入队列。</em></p>
+<img src="/2018/11/04/Java并发队列BlockingQueue/图3.jpg" title="图3">
+<p><em>如上图所示：当队列中填满数据的情况下，生产者端的所有线程都会被自动阻塞（挂起），直到队列中有空的位置，线程被自动唤醒。</em></p>
+<p>　　这也是我们在多线程环境下，为什么需要BlockingQueue的原因。作为BlockingQueue的使用者，我们再也不需要关心什么时候需要阻塞线程，什么时候需要唤醒线程，因为这一切BlockingQueue都给你一手包办了。既然BlockingQueue如此神通广大，让我们一起来见识下它的常用方法</p>
+<h4 id="BlockingQueue的核心方法"><a href="#BlockingQueue的核心方法" class="headerlink" title="BlockingQueue的核心方法"></a>BlockingQueue的核心方法</h4><h5 id="放入数据"><a href="#放入数据" class="headerlink" title="放入数据"></a>放入数据</h5><p><strong>offer(anObject)</strong>:表示如果可能的话,将anObject加到BlockingQueue里,即如果BlockingQueue可以容纳,则返回true,否则返回false.（本方法不阻塞当前执行方法的线程）；　　　　　　<br><strong>offer(E o, long timeout, TimeUnit unit)</strong>：可以设定等待的时间，如果在指定的时间内，还不能往队列中加入BlockingQueue，则返回失败。</p>
+<p><strong>put(anObject)</strong>:把anObject加到BlockingQueue里,如果BlockQueue没有空间,则调用此方法的线程被阻断直到BlockingQueue里面有空间再继续.</p>
+<h5 id="获取数据"><a href="#获取数据" class="headerlink" title="获取数据"></a>获取数据</h5><p><strong>poll()</strong>:取走BlockingQueue里排在首位的对象,取不到时返回null;</p>
+<p><strong>poll(long timeout, TimeUnit unit)</strong>：从BlockingQueue取出一个队首的对象，如果在指定时间内，队列一旦有数据可取，则立即返回队列中的数据。否则直到时间超时还没有数据可取，返回失败。</p>
+<p><strong>take()</strong>:取走BlockingQueue里排在首位的对象,若BlockingQueue为空,阻断进入等待状态直到BlockingQueue有新的数据被加入; </p>
+<p><strong>drainTo()</strong>:一次性从BlockingQueue获取所有可用的数据对象（还可以指定获取数据的个数），通过该方法，可以提升获取数据效率；不需要多次分批加锁或释放锁。</p>
+<p>BlockingQueue 对插入操作、移除操作、获取元素操作提供了四种不同的方法用于不同的场景中使用：1、抛出异常；2、返回特殊值（null 或 true/false，取决于具体的操作）；3、阻塞等待此操作，直到这个操作成功；4、阻塞等待此操作，直到成功或者超时指定时间。总结如下：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><em>Throws exception</em></th>
+<th><em>Special value</em></th>
+<th><em>Blocks</em></th>
+<th><em>Times out</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Insert</td>
+<td>add(e)</td>
+<td>offer(e)</td>
+<td>put(e)</td>
+<td>offer(e, time, unit)</td>
+</tr>
+<tr>
+<td>Remove</td>
+<td>remove()</td>
+<td>poll()</td>
+<td>take()</td>
+<td>poll(time, unit)</td>
+</tr>
+<tr>
+<td>Examine</td>
+<td>element()</td>
+<td>peek()</td>
+<td><em>not applicable</em></td>
+<td><em>not applicable</em></td>
+</tr>
+</tbody>
+</table>
+<p><em>对于 BlockingQueue，我们的关注点应该在 put(e) 和 take() 这两个方法，因为这两个方法是带阻塞的。</em></p>
+<p><em>ThrowsException</em>：如果操作不能马上进行，则抛出异常</p>
+<p><em>SpecialValue</em>：如果操作不能马上进行，将会返回一个特殊的值，一般是true或者false</p>
+<p><em>Blocks</em>:  如果操作不能马上进行，操作会被阻塞</p>
+<p><em>TimesOut</em>:  如果操作不能马上进行，操作会被阻塞指定的时间，如果指定时间没执行，则返回一个特殊值，一般是true或者false</p>
+<p>BlockingQueue 不接受 null 值的插入，相应的方法在碰到 null 的插入时会抛出 NullPointerException 异常。null 值在这里通常用于作为特殊值返回（表格中的第三列），代表 poll 失败。所以，如果允许插入 null 值的话，那获取的时候，就不能很好地用 null 来判断到底是代表失败，还是获取的值就是 null 值。</p>
+<h4 id="常见的几种BlockingQueue"><a href="#常见的几种BlockingQueue" class="headerlink" title="常见的几种BlockingQueue"></a>常见的几种BlockingQueue</h4><img src="/2018/11/04/Java并发队列BlockingQueue/图4.jpg" title="图4">
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/11/04/Java并发队列BlockingQueue/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/03/Linux的iptables原理/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1012,196 +1218,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/27/Spring的事务管理/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/10/27/Spring的事务管理/" itemprop="url">Spring的事务管理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-27T17:34:06+08:00">
-                2018-10-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>事务管理对于企业应用来说是至关重要的，即使出现异常情况，它也可以保证数据的一致性。<br>Spring Framework对事务管理提供了一致的抽象，其特点如下：</p>
-<ul>
-<li><p>为不同的事务API提供一致的编程模型，比如JTA(Java Transaction API), JDBC, Hibernate, JPA(Java Persistence API和JDO(Java Data Objects)</p>
-</li>
-<li><p>支持声明式事务管理，特别是基于注解的声明式事务管理，简单易用</p>
-</li>
-<li><p>提供比其他事务API如JTA更简单的编程式事务管理API</p>
-</li>
-<li><p>与spring数据访问抽象的完美集成</p>
-</li>
-</ul>
-<h4 id="事务的基本原理"><a href="#事务的基本原理" class="headerlink" title="事务的基本原理"></a>事务的基本原理</h4><p>Spring事务的本质其实就是数据库对事务的支持，没有数据库的事务支持，spring是无法提供事务功能的。对于纯JDBC操作数据库，想要用到事务，可以按照以下步骤进行：</p>
-<ol>
-<li><p>获取连接 Connection con = DriverManager.getConnection()</p>
-</li>
-<li><p>开启事务con.setAutoCommit(true/false)</p>
-</li>
-<li><p>执行CRUD</p>
-</li>
-<li><p>提交事务/回滚事务 con.commit() / con.rollback()</p>
-</li>
-<li><p>关闭连接 conn.close()</p>
-</li>
-</ol>
-<h4 id="事务管理方式"><a href="#事务管理方式" class="headerlink" title="事务管理方式"></a>事务管理方式</h4><p>spring支持编程式事务管理和声明式事务管理两种方式。</p>
-<p>编程式事务管理使用TransactionTemplate或者直接使用底层的PlatformTransactionManager。对于编程式事务管理，spring推荐使用TransactionTemplate。</p>
-<p>声明式事务管理建立在AOP之上的。其本质是对方法前后进行拦截，然后在目标方法开始之前创建或者加入一个事务，在执行完目标方法之后根据执行情况提交或者回滚事务。声明式事务最大的优点就是不需要通过编程的方式管理事务，这样就不需要在业务逻辑代码中掺杂事务管理的代码，只需在配置文件中做相关的事务规则声明(或通过基于@Transactional注解的方式)，便可以将事务规则应用到业务逻辑中。</p>
-<p>显然声明式事务管理要优于编程式事务管理，这正是spring倡导的非侵入式的开发方式。声明式事务管理使业务代码不受污染，一个普通的POJO对象，只要加上注解就可以获得完全的事务支持。和编程式事务相比，声明式事务唯一不足地方是，后者的最细粒度只能作用到方法级别，无法做到像编程式事务那样可以作用到代码块级别。但是即便有这样的需求，也存在很多变通的方法，比如，可以将需要进行事务管理的代码块独立为方法等等。</p>
-<p>声明式事务管理也有两种常用的方式，一种是基于tx和aop名字空间的xml配置文件，另一种就是基于@Transactional注解。显然基于注解的方式更简单易用，更清爽。</p>
-<h5 id="自动提交-AutoCommit-与连接关闭时的是否自动提交"><a href="#自动提交-AutoCommit-与连接关闭时的是否自动提交" class="headerlink" title="自动提交(AutoCommit)与连接关闭时的是否自动提交"></a>自动提交(AutoCommit)与连接关闭时的是否自动提交</h5><p>自动提交</p>
-<p>默认情况下，数据库处于自动提交模式。每一条语句处于一个单独的事务中，在这条语句执行完毕时，如果执行成功则隐式的提交事务，如果<br>执行失败则隐式的回滚事务。</p>
-<p>对于正常的事务管理，是一组相关的操作处于一个事务之中，因此必须关闭数据库的自动提交模式。不过，这个我们不用担心，spring会将底层连接的自动提交特性设置为false。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"> <span class="number">1</span> <span class="comment">// switch to manual commit if necessary. this is very expensive in some jdbc drivers,</span></span><br><span class="line"> <span class="number">2</span> <span class="comment">// so we don't want to do it unnecessarily (for example if we've explicitly</span></span><br><span class="line"> <span class="number">3</span> <span class="comment">// configured the connection pool to set it already).</span></span><br><span class="line"> <span class="number">4</span> <span class="keyword">if</span> (con.getautocommit()) &#123;</span><br><span class="line"> <span class="number">5</span>     txobject.setmustrestoreautocommit(<span class="keyword">true</span>);</span><br><span class="line"> <span class="number">6</span>     <span class="keyword">if</span> (logger.isdebugenabled()) &#123;</span><br><span class="line"> <span class="number">7</span>         logger.debug(<span class="string">"switching jdbc connection ["</span> + con + <span class="string">"] to manual commit"</span>);</span><br><span class="line"> <span class="number">8</span>     &#125;</span><br><span class="line"> <span class="number">9</span>     con.setautocommit(<span class="keyword">false</span>);</span><br><span class="line"><span class="number">10</span> &#125;</span><br></pre></td></tr></table></figure>
-<p>有些数据连接池提供了关闭事务自动提交的设置，最好在设置连接池时就将其关闭。但C3P0没有提供这一特性，只能依靠spring来设置。<br>因为JDBC规范规定，当连接对象建立时应该处于自动提交模式，这是跨DBMS的缺省值，如果需要,必须显式的关闭自动提交。C3P0遵守这一规范，让客户代码来显式的设置需要的提交模式。</p>
-<p><em>连接关闭时的是否自动提交</em></p>
-<p>当一个连接关闭时，如果有未提交的事务应该如何处理？JDBC规范没有提及，C3P0默认的策略是回滚任何未提交的事务。这是一个正确的策略，但JDBC驱动提供商之间对此问题并没有达成一致。<br>C3P0的autoCommitOnClose属性默认是false,没有十分必要不要动它。或者可以显式的设置此属性为false，这样会更明确。</p>
-<h5 id="基于注解的声明式事务管理配置"><a href="#基于注解的声明式事务管理配置" class="headerlink" title="基于注解的声明式事务管理配置"></a>基于注解的声明式事务管理配置</h5><p>XML配置文件</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span> &lt;!-- transaction support--&gt;</span><br><span class="line"><span class="number">2</span> &lt;!-- PlatformTransactionMnager --&gt;</span><br><span class="line"><span class="number">3</span> &lt;bean id=<span class="string">"txManager"</span> <span class="class"><span class="keyword">class</span></span>=<span class="string">"org.springframework.jdbc.datasource.DataSourceTransactionManager"</span>&gt;</span><br><span class="line"><span class="number">4</span>     &lt;property name=<span class="string">"dataSource"</span> ref=<span class="string">"dataSource"</span> /&gt;</span><br><span class="line">5 &lt;/bean&gt;</span><br><span class="line"><span class="number">6</span> &lt;!-- enable transaction annotation support --&gt;</span><br><span class="line"><span class="number">7</span> &lt;tx:annotation-driven transaction-manager=<span class="string">"txManager"</span> /&gt;</span><br></pre></td></tr></table></figure>
-<p>还要在xml配置文件中添加tx名字空间</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"> <span class="number">1</span> ...</span><br><span class="line"> <span class="number">2</span>     xmlns:tx=<span class="string">"http://www.springframework.org/schema/tx"</span></span><br><span class="line"> <span class="number">3</span>     xmlns:aop=<span class="string">"http://www.springframework.org/schema/aop"</span></span><br><span class="line"> <span class="number">4</span>     xsi:schemaLocation=<span class="string">"</span></span><br><span class="line"><span class="string"> 5     ...</span></span><br><span class="line"><span class="string"> 6  </span></span><br><span class="line"><span class="string"> 7 http://www.springframework.org/schema/tx</span></span><br><span class="line"><span class="string"> 8  </span></span><br><span class="line"><span class="string"> 9  </span></span><br><span class="line"><span class="string">10 http://www.springframework.org/schema/tx/spring-tx.xsd</span></span><br><span class="line"><span class="string">11  </span></span><br><span class="line"><span class="string">12     ...</span></span><br></pre></td></tr></table></figure>
-<p>MyBatis自动参与到spring事务管理中，无需额外配置，只要org.mybatis.spring.SqlSessionFactoryBean引用的数据源与DataSourceTransactionManager引用的数据源一致即可，否则事务管理会不起作用。</p>
-<h4 id="spring事务特性"><a href="#spring事务特性" class="headerlink" title="spring事务特性"></a>spring事务特性</h4><p>spring所有的事务管理策略类都继承自org.springframework.transaction.PlatformTransactionManager接口。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span> <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PlatformTransactionManager</span> </span>&#123;</span><br><span class="line"><span class="number">2</span>  </span><br><span class="line"><span class="number">3</span>   <span class="function">TransactionStatus <span class="title">getTransaction</span><span class="params">(TransactionDefinition definition)</span></span></span><br><span class="line"><span class="function">4     <span class="keyword">throws</span> TransactionException</span>;</span><br><span class="line"><span class="number">5</span>  </span><br><span class="line"><span class="number">6</span>   <span class="function"><span class="keyword">void</span> <span class="title">commit</span><span class="params">(TransactionStatus status)</span> <span class="keyword">throws</span> TransactionException</span>;</span><br><span class="line"><span class="number">7</span>  </span><br><span class="line"><span class="number">8</span>   <span class="function"><span class="keyword">void</span> <span class="title">rollback</span><span class="params">(TransactionStatus status)</span> <span class="keyword">throws</span> TransactionException</span>;</span><br><span class="line"><span class="number">9</span> &#125;</span><br></pre></td></tr></table></figure>
-<p>其中TransactionDefinition接口定义以下特性：</p>
-<h5 id="事务隔离级别"><a href="#事务隔离级别" class="headerlink" title="事务隔离级别"></a>事务隔离级别</h5>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/10/27/Spring的事务管理/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1254,7 +1270,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">59</span>
+                  <span class="site-state-item-count">60</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
