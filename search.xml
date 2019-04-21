@@ -11,6 +11,7 @@
         <tag>数据库</tag>
         <tag>内存</tag>
         <tag>缓存</tag>
+        <tag>Redis</tag>
       </tags>
   </entry>
   <entry>
@@ -241,6 +242,7 @@
         <tag>数据库</tag>
         <tag>内存</tag>
         <tag>缓存</tag>
+        <tag>Redis</tag>
       </tags>
   </entry>
   <entry>
@@ -517,6 +519,7 @@
         <tag>数据结构</tag>
         <tag>锁</tag>
         <tag>缓存</tag>
+        <tag>Redis</tag>
       </tags>
   </entry>
   <entry>
@@ -687,9 +690,9 @@
         <tag>内存</tag>
         <tag>脏读</tag>
         <tag>锁</tag>
+        <tag>synchronized</tag>
         <tag>volatile</tag>
         <tag>happens-before</tag>
-        <tag>synchronized</tag>
       </tags>
   </entry>
   <entry>
