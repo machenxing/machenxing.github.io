@@ -291,6 +291,211 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/02/MySQL高性能优化原理/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/02/MySQL高性能优化原理/" itemprop="url">MySQL高性能优化原理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-02T19:42:56+08:00">
+                2018-12-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>说起 MySQL 的查询优化，相信大家收藏了一堆奇技淫巧：不能使用 SELECT *、不使用 NULL 字段、合理创建索引、为字段选择合适的数据类型….. 你是否真的理解这些优化技巧？是否理解其背后的工作原理？在实际场景下性能真有提升吗？我想未必。因而理解这些优化建议背后的原理就尤为重要，希望本文能让你重新审视这些优化建议，并在实际业务场景下合理的运用。</p>
+<h4 id="MySQL-逻辑架构"><a href="#MySQL-逻辑架构" class="headerlink" title="MySQL 逻辑架构"></a>MySQL 逻辑架构</h4><p>如果能在头脑中构建一幅 MySQL 各组件之间如何协同工作的架构图，有助于深入理解 MySQL 服务器。下图展示了 MySQL 的逻辑架构图。</p>
+<img src="/2018/12/02/MySQL高性能优化原理/图1.jpg" title="MySQL逻辑架构，来自：高性能MySQL">
+<p>MySQL 逻辑架构整体分为三层，最上层为客户端层，并非 MySQL 所独有，诸如：连接处理、授权认证、安全等功能均在这一层处理。</p>
+<p>MySQL 大多数核心服务均在中间这一层，包括查询解析、分析、优化、缓存、内置函数 (比如：时间、数学、加密等函数)。所有的跨存储引擎的功能也在这一层实现：存储过程、触发器、视图等。</p>
+<p>最下层为存储引擎，其负责 MySQL 中的数据存储和提取。和 Linux 下的文件系统类似，每种存储引擎都有其优势和劣势。中间的服务层通过 API 与存储引擎通信，这些 API 接口屏蔽了不同存储引擎间的差异。</p>
+<h4 id="MySQL-查询过程"><a href="#MySQL-查询过程" class="headerlink" title="MySQL 查询过程"></a>MySQL 查询过程</h4><p>我们总是希望 MySQL 能够获得更高的查询性能，最好的办法是弄清楚 MySQL 是如何优化和执行查询的。一旦理解了这一点，就会发现：很多的查询优化工作实际上就是遵循一些原则让 MySQL 的优化器能够按照预想的合理方式运行而已。当向 MySQL 发送一个请求的时候，MySQL 到底做了些什么呢？</p>
+<img src="/2018/12/02/MySQL高性能优化原理/图2.jpg" title="MySQL 查询过程">
+<h5 id="客户端-服务端通信协议"><a href="#客户端-服务端通信协议" class="headerlink" title="客户端 / 服务端通信协议"></a>客户端 / 服务端通信协议</h5><p>MySQL 客户端 / 服务端通信协议是 “半双工” 的：在任一时刻，要么是服务器向客户端发送数据，要么是客户端向服务器发送数据，这两个动作不能同时发生。一旦一端开始发送消息，另一端要接收完整个消息才能响应它，所以我们无法也无须将一个消息切成小块独立发送，也没有办法进行流量控制。</p>
+<p>客户端用一个单独的数据包将查询请求发送给服务器，所以当查询语句很长的时候，需要设置 max_allowed_packet 参数。但是需要注意的是，如果查询实在是太大，服务端会拒绝接收更多数据并抛出异常。</p>
+<p>与之相反的是，服务器响应给用户的数据通常会很多，由多个数据包组成。但是当服务器响应客户端请求时，客户端必须完整的接收整个返回结果，而不能简单的只取前面几条结果，然后让服务器停止发送。因而在实际开发中，尽量保持查询简单且只返回必需的数据，减小通信间数据包的大小和数量是一个非常好的习惯，这也是查询中尽量避免使用 SELECT * 以及加上 LIMIT 限制的原因之一。</p>
+<h5 id="查询缓存"><a href="#查询缓存" class="headerlink" title="查询缓存"></a>查询缓存</h5><p>在解析一个查询语句前，如果查询缓存是打开的，那么 MySQL 会检查这个查询语句是否命中查询缓存中的数据。如果当前查询恰好命中查询缓存，在检查一次用户权限后直接返回缓存中的结果。这种情况下，查询不会被解析，也不会生成执行计划，更不会执行。</p>
+<p>MySQL 将缓存存放在一个引用表（不要理解成 table，可以认为是类似于 HashMap 的数据结构），通过一个哈希值索引，这个哈希值通过查询本身、当前要查询的数据库、客户端协议版本号等一些可能影响结果的信息计算得来。所以两个查询在任何字符上的不同（例如：空格、注释），都会导致缓存不会命中。</p>
+<p>如果查询中包含任何用户自定义函数、存储函数、用户变量、临时表、MySQL 库中的系统表，其查询结果都不会被缓存。比如函数 NOW() 或者 CURRENT_DATE() 会因为不同的查询时间，返回不同的查询结果，再比如包含 CURRENT_USER 或者 CONNECION_ID() 的查询语句会因为不同的用户而返回不同的结果，将这样的查询结果缓存起来没有任何的意义。</p>
+<p>既然是缓存，就会失效，那查询缓存何时失效呢？</p>
+<p>MySQL 的查询缓存系统会跟踪查询中涉及的每个表，如果这些表（数据或结构）发生变化，那么和这张表相关的所有缓存数据都将失效。正因为如此，在任何的写操作时，MySQL 必须将对应表的所有缓存都设置为失效。如果查询缓存非常大或者碎片很多，这个操作就可能带来很大的系统消耗，甚至导致系统僵死一会儿。而且查询缓存对系统的额外消耗也不仅仅在写操作，读操作也不例外：</p>
+<p>1、任何的查询语句在开始之前都必须经过检查，即使这条 SQL 语句永远不会命中缓存</p>
+<p>2、如果查询结果可以被缓存，那么执行完成后，会将结果存入缓存，也会带来额外的系统消耗</p>
+<p>基于此，我们要知道并不是什么情况下查询缓存都会提高系统性能，缓存和失效都会带来额外消耗，只有当缓存带来的资源节约大于其本身消耗的资源时，才会给系统带来性能提升。但要如何评估打开缓存是否能够带来性能提升是一件非常困难的事情，也不在本文讨论的范畴内。如果系统确实存在一些性能问题，可以尝试打开查询缓存，并在数据库设计上做一些优化，比如：</p>
+<p>1、用多个小表代替一个大表，注意不要过度设计</p>
+<p>2、批量插入代替循环单条插入</p>
+<p>3、合理控制缓存空间大小，一般来说其大小设置为几十兆比较合适</p>
+<p>4、可以通过 SQL_CACHE 和 SQL_NO_CACHE 来控制某个查询语句是否需要进行缓存</p>
+<p>最后的忠告是不要轻易打开查询缓存，特别是写密集型应用。如果你实在是忍不住，可以将 query_cache_type 设置为 DEMAND，这时只有加入 SQL_CACHE 的查询才会走缓存，其他查询则不会，这样可以非常自由地控制哪些查询需要被缓存。</p>
+<p>当然查询缓存系统本身是非常复杂的，这里讨论的也只是很小的一部分，其他更深入的话题，比如：缓存是如何使用内存的？如何控制内存的碎片化？事务对查询缓存有何影响等等，读者可以自行阅读相关资料，这里权当抛砖引玉吧。</p>
+<h5 id="语法解析和预处理"><a href="#语法解析和预处理" class="headerlink" title="语法解析和预处理"></a>语法解析和预处理</h5><p>MySQL 通过关键字将 SQL 语句进行解析，并生成一棵对应的解析树。这个过程解析器主要通过语法规则来验证和解析。比如 SQL 中是否使用了错误的关键字或者关键字的顺序是否正确等等。预处理则会根据 MySQL 规则进一步检查解析树是否合法。比如检查要查询的数据表和数据列是否存在等。</p>
+<h5 id="查询优化"><a href="#查询优化" class="headerlink" title="查询优化"></a>查询优化</h5><p>经过前面的步骤生成的语法树被认为是合法的了，并且由优化器将其转化成查询计划。多数情况下，一条查询可以有很多种执行方式，最后都返回相应的结果。优化器的作用就是找到这其中最好的执行计划。</p>
+<p>MySQL 使用基于成本的优化器，它尝试预测一个查询使用某种执行计划时的成本，并选择其中成本最小的一个。在 MySQL 可以通过查询当前会话的 last_query_cost 的值来得到其计算当前查询的成本。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from t_message limit 10;</span><br><span class="line"></span><br><span class="line">...省略结果集</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">mysql&gt; show status like &apos;last_query_cost&apos;;</span><br><span class="line"></span><br><span class="line">+-----------------+-------------+</span><br><span class="line"></span><br><span class="line">| Variable_name   | Value       |</span><br><span class="line"></span><br><span class="line">+-----------------+-------------+</span><br><span class="line"></span><br><span class="line">| Last_query_cost | 6391.799000 |</span><br><span class="line"></span><br><span class="line">+-----------------+-------------+</span><br></pre></td></tr></table></figure>
+<p>示例中的结果表示优化器认为大概需要做 6391 个数据页的随机查找才能完成上面的查询。这个结果是根据一些列的统计信息计算得来的，这些统计信息包括：每张表或者索引的页面个数、索引的基数、索引和数据行的长度、索引的分布情况等等。</p>
+<p>有非常多的原因会导致 MySQL 选择错误的执行计划，比如统计信息不准确、不会考虑不受其控制的操作成本（用户自定义函数、存储过程）、MySQL 认为的最优跟我们想的不一样（我们希望执行时间尽可能短，但 MySQL 值选择它认为成本小的，但成本小并不意味着执行时间短）等等。</p>
+<p>MySQL 的查询优化器是一个非常复杂的部件，它使用了非常多的优化策略来生成一个最优的执行计划：</p>
+<p>1、重新定义表的关联顺序（多张表关联查询时，并不一定按照 SQL 中指定的顺序进行，但有一些技巧可以指定关联顺序）</p>
+<p>2、优化 MIN() 和 MAX() 函数（找某列的最小值，如果该列有索引，只需要查找 B+Tree 索引最左端，反之则可以找到最大值，具体原理见下文）</p>
+<p>3、提前终止查询（比如：使用 Limit 时，查找到满足数量的结果集后会立即终止查询）</p>
+<p>4、优化排序（在老版本 MySQL 会使用两次传输排序，即先读取行指针和需要排序的字段在内存中对其排序，然后再根据排序结果去读取数据行，而新版本采用的是单次传输排序，也就是一次读取所有的数据行，然后根据给定的列排序。对于 I/O 密集型应用，效率会高很多）</p>
+<p>随着 MySQL 的不断发展，优化器使用的优化策略也在不断的进化，这里仅仅介绍几个非常常用且容易理解的优化策略，其他的优化策略，大家自行查阅吧。</p>
+<h5 id="查询执行引擎"><a href="#查询执行引擎" class="headerlink" title="查询执行引擎"></a>查询执行引擎</h5><p>在完成解析和优化阶段以后，MySQL 会生成对应的执行计划，查询执行引擎根据执行计划给出的指令逐步执行得出结果。整个执行过程的大部分操作均是通过调用存储引擎实现的接口来完成，这些接口被称为 handler API。查询过程中的每一张表由一个 handler 实例表示。实际上，MySQL 在查询优化阶段就为每一张表创建了一个 handler 实例，优化器可以根据这些实例的接口来获取表的相关信息，包括表的所有列名、索引统计信息等。存储引擎接口提供了非常丰富的功能，但其底层仅有几十个接口，这些接口像搭积木一样完成了一次查询的大部分操作。</p>
+<h5 id="返回结果给客户端"><a href="#返回结果给客户端" class="headerlink" title="返回结果给客户端"></a>返回结果给客户端</h5><p>查询执行的最后一个阶段就是将结果返回给客户端。即使查询不到数据，MySQL 仍然会返回这个查询的相关信息，比如该查询影响到的行数以及执行时间等。</p>
+<p>如果查询缓存被打开且这个查询可以被缓存，MySQL 也会将结果存放到缓存中。</p>
+<p>结果集返回客户端是一个增量且逐步返回的过程。有可能 MySQL 在生成第一条结果时，就开始向客户端逐步返回结果集了。这样服务端就无须存储太多结果而消耗过多内存，也可以让客户端第一时间获得返回结果。需要注意的是，结果集中的每一行都会以一个满足①中所描述的通信协议的数据包发送，再通过 TCP 协议进行传输，在传输过程中，可能对 MySQL 的数据包进行缓存然后批量发送。</p>
+<p>回头总结一下 MySQL 整个查询执行过程，总的来说分为以下个步骤：</p>
+<p>1、客户端向 MySQL 服务器发送一条查询请求</p>
+<p>2、服务器首先检查查询缓存，如果命中缓存，则立刻返回存储在缓存中的结果。否则进入下一阶段</p>
+<p>3、服务器进行 SQL 解析、预处理、再由优化器生成对应的执行计划</p>
+<p>4、MySQL 根据执行计划，调用存储引擎的 API 来执行查询</p>
+<p>5、将结果返回给客户端，同时缓存查询结果</p>
+<h4 id="性能优化建议"><a href="#性能优化建议" class="headerlink" title="性能优化建议"></a>性能优化建议</h4><p>看了这么多，你可能会期待给出一些优化手段，是的，下面会从 3 个不同方面给出一些优化建议。但请等等，还有一句忠告要先送给你：不要听信你看到的关于优化的 “绝对真理”，包括本文所讨论的内容，而应该是在实际的业务场景下通过测试来验证你关于执行计划以及响应时间的假设。</p>
+<h5 id="Scheme-设计与数据类型优化"><a href="#Scheme-设计与数据类型优化" class="headerlink" title="Scheme 设计与数据类型优化"></a>Scheme 设计与数据类型优化</h5><p>选择数据类型只要遵循小而简单的原则就好，越小的数据类型通常会更快，占用更少的磁盘、内存，处理时需要的 CPU 周期也更少。越简单的数据类型在计算时需要更少的 CPU 周期，比如，整型就比字符操作代价低，因而会使用整型来存储 ip 地址，使用 DATETIME 来存储时间，而不是使用字符串。</p>
+<p>这里总结几个可能容易理解错误的技巧：</p>
+<p>1、通常来说把可为 NULL 的列改为 NOT NULL 不会对性能提升有多少帮助，只是如果计划在列上创建索引，就应该将该列设置为 NOT NULL。</p>
+<p>2、对整数类型指定宽度，比如 INT(11)，没有任何卵用。INT 使用 32 位（4 个字节）存储空间，那么它的表示范围已经确定，所以 INT(1) 和 INT(20) 对于存储和计算是相同的。</p>
+<p>3、UNSIGNED 表示不允许负值，大致可以使正数的上限提高一倍。比如 TINYINT 存储范围是 - 128 ~ 127，而 UNSIGNED TINYINT 存储的范围却是 0 – 255。</p>
+<p>4、通常来讲，没有太大的必要使用 DECIMAL 数据类型。即使是在需要存储财务数据时，仍然可以使用 BIGINT。比如需要精确到万分之一，那么可以将数据乘以一百万然后使用 BIGINT 存储。这样可以避免浮点数计算不准确和 DECIMAL 精确计算代价高的问题。</p>
+<p>5、TIMESTAMP 使用 4 个字节存储空间，DATETIME 使用 8 个字节存储空间。因而，TIMESTAMP 只能表示 1970 – 2038 年，比 DATETIME 表示的范围小得多，而且 TIMESTAMP 的值因时区不同而不同。</p>
+<p>6、大多数情况下没有使用枚举类型的必要，其中一个缺点是枚举的字符串列表是固定的，添加和删除字符串（枚举选项）必须使用 ALTER TABLE（如果只是在列表末尾追加元素，不需要重建表）。</p>
+<p>7、schema 的列不要太多。原因是存储引擎的 API 工作时需要在服务器层和存储引擎层之间通过行缓冲格式拷贝数据，然后在服务器层将缓冲内容解码成各个列，这个转换过程的代价是非常高的。如果列太多而实际使用的列又很少的话，有可能会导致 CPU 占用过高。</p>
+<p>8、大表 ALTER TABLE 非常耗时，MySQL 执行大部分修改表结果操作的方法是用新的结构创建一个张空表，从旧表中查出所有的数据插入新表，然后再删除旧表。尤其当内存不足而表又很大，而且还有很大索引的情况下，耗时更久。当然有一些奇技淫巧可以解决这个问题，有兴趣可自行查阅。</p>
+<h5 id="创建高性能索引"><a href="#创建高性能索引" class="headerlink" title="创建高性能索引"></a>创建高性能索引</h5><p>索引是提高 MySQL 查询性能的一个重要途径，但过多的索引可能会导致过高的磁盘使用率以及过高的内存占用，从而影响应用程序的整体性能。应当尽量避免事后才想起添加索引，因为事后可能需要监控大量的 SQL 才能定位到问题所在，而且添加索引的时间肯定是远大于初始添加索引所需要的时间，可见索引的添加也是非常有技术含量的。</p>
+<p>接下来将向你展示一系列创建高性能索引的策略，以及每条策略其背后的工作原理。但在此之前，先了解与索引相关的一些算法和数据结构，将有助于更好的理解后文的内容。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/12/02/MySQL高性能优化原理/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1043,172 +1248,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/05/异步任务——FutureTask/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/11/05/异步任务——FutureTask/" itemprop="url">异步任务——FutureTask</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-05T15:08:21+08:00">
-                2018-11-05
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/多线程/" itemprop="url" rel="index">
-                    <span itemprop="name">多线程</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h4 id="Runnable、Callable、Future、FutureTask"><a href="#Runnable、Callable、Future、FutureTask" class="headerlink" title="Runnable、Callable、Future、FutureTask"></a>Runnable、Callable、Future、FutureTask</h4><p>和Java异步打交道就不能回避掉Runnable，Callable，Future，FutureTask等类，首先来介绍下这几个类的区别。</p>
-<h5 id="Runnable"><a href="#Runnable" class="headerlink" title="Runnable"></a>Runnable</h5><p>Runnable接口是我们最熟悉的，它只有一个run函数。然后使用某个线程去执行该runnable即可实现多线程，Thread类在调用start()函数后就是执行的是Runnable的run()函数。Runnable最大的缺点在于run函数没有返回值。</p>
-<h5 id="Callable"><a href="#Callable" class="headerlink" title="Callable"></a>Callable</h5><p>Callable接口和Runnable接口类似，它有一个call函数。使用某个线程执行Callable接口实质就是执行其call函数。call方法和run方法最大的区别就是call方法有返回值：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Callable</span>&lt;<span class="title">V</span>&gt; </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Computes a result, or throws an exception if unable to do so.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> computed result</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> Exception if unable to compute a result</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function">V <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>Callable 接口有返回值，泛型 V 就是要返回的结果类型，可以返回子任务的执行结果。</p>
-<h5 id="Future接口"><a href="#Future接口" class="headerlink" title="Future接口"></a>Future接口</h5><p>Future 接口表示异步计算的结果，通过 Future 接口提供的方法，可以很方便的查询异步计算任务是否执行完成，获取异步计算的结果，取消未执行的异步任务，或者中断异步任务的执行，接口定义如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Future</span>&lt;<span class="title">V</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">cancel</span><span class="params">(<span class="keyword">boolean</span> mayInterruptIfRunning)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">isCancelled</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">isDone</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">V <span class="title">get</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException, ExecutionException</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">V <span class="title">get</span><span class="params">(<span class="keyword">long</span> timeout, TimeUnit unit)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> InterruptedException, ExecutionException, TimeoutException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>cancel(boolean mayInterruptIfRunning)</strong>：取消子任务的执行，如果这个子任务已经执行结束，或者已经被取消，或者不能被取消，这个方法就会执行失败并返回<em>false</em>；如果子任务还没有开始执行，那么子任务会被取消，不会再被执行；如果子任务已经开始执行了，但是还没有执行结束，根据<em>mayInterruptIfRunning</em>的值，如果<em>mayInterruptIfRunning = true</em>，那么会中断执行任务的线程，然后返回<em>true</em>，如果参数为<em>false</em>，会返回<em>true</em>，不会中断执行任务的线程。<br> 需要注意，这个方法执行结束，返回结果之后，再调用<em>isDone()</em>会返回<em>true</em>。</p>
-<p> <strong>isCancelled()</strong>：判断任务是否被取消，如果任务执行结束（正常执行结束和发生异常结束，都算执行结束）前被取消，也就是调用了<em>cancel()</em>方法，并且<em>cancel()</em>返回<em>true</em>，则该方法返回<em>true</em>，否则返回<em>false</em>。</p>
-<p> <strong>isDone()</strong>：判断任务是否执行结束，正常执行结束，或者发生异常结束，或者被取消，都属于结束，该方法都会返回true.</p>
-<p> <strong>V get()</strong>：获取结果，如果这个计算任务还没有执行结束，该调用线程会进入阻塞状态。如果计算任务已经被取消，调用<em>get()</em>会抛出<em>CancellationException</em>，如果计算过程中抛出异常，该方法会抛出<em>ExecutionException</em>，如果当前线程在阻塞等待的时候被中断了，该方法会抛出<em>InterruptedException</em>。</p>
-<p> <strong>V get(long timeout, TimeUnit unit)</strong>：带超时限制的<em>get()</em>，等待超时之后，该方法会抛出<em>TimeoutException</em>，如果子任务执行结束了，但是超时时间还没有到，这个方法也会返回结果。</p>
-<h5 id="FutureTask"><a href="#FutureTask" class="headerlink" title="FutureTask"></a>FutureTask</h5><p>Future只是一个接口，在实际使用过程中，诸如ThreadPoolExecutor返回的都是一个FutureTask实例。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FutureTask</span>&lt;<span class="title">V</span>&gt; <span class="keyword">implements</span> <span class="title">RunnableFuture</span>&lt;<span class="title">V</span>&gt; </span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">interface</span> <span class="title">RunnableFuture</span>&lt;<span class="title">V</span>&gt; <span class="keyword">extends</span> <span class="title">Runnable</span>, <span class="title">Future</span>&lt;<span class="title">V</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<p>FutureTask可以像Runnable一下，封装异步任务，然后提交给Thread或线程池执行，然后获取任务执行结果。原因在于 FutureTask 实现了 RunnableFuture 接口，RunnableFuture是什么呢，其实就是 Runnable 和 Future 的结合，实现了 Runnable 和 Future 两个接口。</p>
-<h4 id="FutureTask的成员变量"><a href="#FutureTask的成员变量" class="headerlink" title="FutureTask的成员变量"></a>FutureTask的成员变量</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FutureTask</span>&lt;<span class="title">V</span>&gt; <span class="keyword">implements</span> <span class="title">RunnableFuture</span>&lt;<span class="title">V</span>&gt; </span>&#123;</span><br><span class="line">     <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * FutureTask中定义了一个state变量，用于记录任务执行的相关状态 ，状态的变化过程如下</span></span><br><span class="line"><span class="comment">     * NEW -&gt; COMPLETING -&gt; NORMAL</span></span><br><span class="line"><span class="comment">     * NEW -&gt; COMPLETING -&gt; EXCEPTIONAL</span></span><br><span class="line"><span class="comment">     * NEW -&gt; CANCELLED</span></span><br><span class="line"><span class="comment">     * NEW -&gt; INTERRUPTING -&gt; INTERRUPTED</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">int</span> state;</span><br><span class="line">    <span class="comment">//主流程状态</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> NEW = <span class="number">0</span>; <span class="comment">//当FutureTask实例刚刚创建到callbale的call方法执行完成前，处于此状态</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> COMPLETING  = <span class="number">1</span>; <span class="comment">//callable的call方法执行完成或出现异常时，首先进行此状态</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> NORMAL    = <span class="number">2</span>;<span class="comment">//callable的call方法正常结束时，进入此状态，将outcom设置为正常结果</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> EXCEPTIONAL = <span class="number">3</span>;<span class="comment">//callable的call方法异常结束时，进入此状态，将outcome设置为抛出的异常</span></span><br><span class="line">    <span class="comment">//取消任务执行时可能处于的状态</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> CANCELLED= <span class="number">4</span>;<span class="comment">// FutureTask任务尚未执行，即还在任务队列的时候，调用了cancel方法，进入此状态</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> INTERRUPTING = <span class="number">5</span>;<span class="comment">// FutureTask的run方法已经在执行，收到中断信号，进入此状态</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> INTERRUPTED  = <span class="number">6</span>;<span class="comment">// 任务成功中断后，进入此状态</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> Callable&lt;V&gt; callable;<span class="comment">//需要执行的任务，提示：如果提交的是Runnable对象，会先转换为Callable对象，这是构造方法参数</span></span><br><span class="line">    <span class="keyword">private</span> Object outcome; <span class="comment">//任务运行的结果</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> Thread runner;<span class="comment">//执行此任务的线程</span></span><br><span class="line">  </span><br><span class="line">    <span class="comment">//等待该FutureTask的线程链表，对于同一个FutureTask，如果多个线程调用了get方法，对应的线程都会加入到waiters链表中，同时当FutureTask执行完成后，也会告知所有waiters中的线程</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> WaitNode waiters;</span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/11/05/异步任务——FutureTask/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/">13</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1256,7 +1300,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-count">61</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
