@@ -291,6 +291,168 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/18/Mysql-Innodb-中的锁/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/18/Mysql-Innodb-中的锁/" itemprop="url">Mysql Innodb 中的锁</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-18T15:01:48+08:00">
+                2018-11-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文中介绍的Mysql 数据库版本是5.7，隔离级别是Repeatable-Read(可重复读)，不同的数据库版本和隔离级别对语句的执行结果影响很大。讨论锁的时候需指明版本和隔离级别。</p>
+<p>数据库是一个多用户使用的共享资源。当多个用户并发地存取数据时，在数据库中就会产生多个事务同时存取同一数据的情况。若对并发操作不加控制就可能会读取和存储不正确的数据，破坏数据库的一致性。</p>
+<p><strong>锁是用于管理对公共资源的并发控制</strong>。也就是说并发的情况下，会出现资源竞争，所以需要加锁。</p>
+<p>举个例子，转账操作。简单来说，张三给李四转账x元，可以分为三步：</p>
+<p>先查询张三的账户余额y是否大于x<br>张三的余额 y = y - x元<br>李四的余额 x = z + x元</p>
+<p>假设张三账户余额有1000元，李四余额也有1000元，如果不加锁的话，同时有两个请求，A要求转500元，B要求转600元，第一步查询余额都是足够的，第2步和第3步也能执行成功，但是最终结果却是错误，第二个请求可能会覆盖掉第一个请求。</p>
+<p>这种问题叫做 <strong>丢失更新</strong>： 多个事务操作同一行，后面的更新覆盖了前面的更新值。需要在应用级别加锁来避免。</p>
+<p>数据库有ACID原则，其中I是隔离性，标准SQL规范中定义了四种隔离级别，关于事务的隔离级别见<a href="https://machenxing.github.io/2018/05/26/%E4%BA%8B%E5%8A%A1%E7%9A%844%E7%A7%8D%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" target="_blank" rel="noopener">这篇博客</a> 。</p>
+<img src="/2018/11/18/Mysql-Innodb-中的锁/图1.jpg" title="图1">
+<p>越往下，隔离级别越高，问题越少，同时并发度也越低。隔离级别和并发度成反比的。</p>
+<p>脏读：事务A读取了事务B未提交的数据<br>不可重复读：对于一条记录，事务A两次读取的数据变了<br>幻读：事务A按照相同的查询条件，读取到了新增的数据</p>
+<p>MySQL中的隔离级别如下：</p>
+<img src="/2018/11/18/Mysql-Innodb-中的锁/图2.jpg" title="图2">
+<p>和标准SQL规范相比，MySQL中可重复读解决了幻读，实现了串行化隔离级别的功能，同时没有严重影响并发。是通过加锁、阻止插入新数据，来解决幻读的。</p>
+<h4 id="锁的分类"><a href="#锁的分类" class="headerlink" title="锁的分类"></a>锁的分类</h4><img src="/2018/11/18/Mysql-Innodb-中的锁/图3.jpg" title="图3">
+<p>听说过读锁、写锁、共享锁、互斥锁、行锁等等各种名词，简单对这些锁进行了分类。</p>
+<img src="/2018/11/18/Mysql-Innodb-中的锁/图4.jpg" title="图4">
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/11/18/Mysql-Innodb-中的锁/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/11/Redis-持久化/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1067,232 +1229,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/03/Linux的iptables原理/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/11/03/Linux的iptables原理/" itemprop="url">Linux的iptables原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-03T16:58:55+08:00">
-                2018-11-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/网络/" itemprop="url" rel="index">
-                    <span itemprop="name">网络</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>在Linux系统中，对于防火墙的实现一般分为包过滤防火墙，TCP-Wrapper即程序管控，代理服务器等几种方式。其中，iptables作为一种基于包过滤方式的防火墙工具，在实际中应用非常广泛，是非常重要的一个安全工具。真正实现防火墙功能的是 netfilter，它是一个 linux 内核模块，做实际的包过滤。实际上，除了 iptables 以外，还有很多类似的用户空间工具。</p>
-<img src="/2018/11/03/Linux的iptables原理/图1.jpg" title="图1">
-<h4 id="iptables的“链”与“表”"><a href="#iptables的“链”与“表”" class="headerlink" title="iptables的“链”与“表”"></a>iptables的“链”与“表”</h4><p>netfilter 使用表（table）和 链（chain）来组织网络包的处理规则（rule）。它默认定义了以下表和链：</p>
-<img src="/2018/11/03/Linux的iptables原理/图2.jpg" title="图2">
-<table>
-<thead>
-<tr>
-<th>表</th>
-<th>表功能</th>
-<th>链</th>
-<th>链功能</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>raw</td>
-<td></td>
-<td>PREROUTING OUTPUT</td>
-<td>RAW 拥有最高的优先级，它使用PREROUTING和OUTPUT两个链，因此 RAW 可以覆盖所有包。在raw表中支持一个特殊的目标:TRACE，使内核记录下每条匹配该包的对应iptables规则信息。使用raw表内的TRACE target 即可实现对iptables规则的跟踪调试。比如：# iptables -t raw -A OUTPUT -p icmp -j TRACE # ipt ables -t raw -A PREROUTING -p icmp -j TRACE</td>
-</tr>
-<tr>
-<td>Filter</td>
-<td>包过滤</td>
-<td>FORWARD</td>
-<td>过滤目的地址和源地址都不是本机的包</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td>INPUT</td>
-<td>过滤目的地址是本机的包</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td>OUTPUT</td>
-<td>过滤源地址是本机的包</td>
-</tr>
-<tr>
-<td>Nat</td>
-<td>网络地址转换</td>
-<td>PREROUTING</td>
-<td>在路由前做地址转换，使得目的地址能够匹配上防火墙的路由表，常用于转换目的地址。</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td>POSTROUTING</td>
-<td>在路由后做地址转换。这意味着不需要在路由前修改目的地址。常用于转换源地址。</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td>OUTPUT</td>
-<td>对防火墙产生的包做地址转换（很少量地用于 SOHO 环境中）</td>
-</tr>
-<tr>
-<td>Mangle</td>
-<td>TCP 头修改</td>
-<td>PREROUTING POSTROUTING OUTPUT INPUT FORWARD</td>
-<td>在路由器修改 TCP 包的 QoS（很少量地用在 SOHO 环境中）</td>
-</tr>
-</tbody>
-</table>
-<img src="/2018/11/03/Linux的iptables原理/图3.jpg" title="图3">
-<p>先是透过路由判断， 决定了输出的路径后，再透过 filter 的 OUTPUT 链来传送的， mangle 这个表格很少被使用，如果将上图的mangle 拿掉的话，那就容易看的多了：</p>
-<img src="/2018/11/03/Linux的iptables原理/图4.jpg" title="图4">
-<p>如果你的防火墙事实上是用来管制 LAN 内的其他主机的话，那么你就必须要再针对 filter 的 FORWARD 这条链，还有 nat 的 PREROUTING, POSTROUTING 以及 OUTPUT 进行额外的规则订定才行。</p>
-<h4 id="iptables实现SNAT与DNAT"><a href="#iptables实现SNAT与DNAT" class="headerlink" title="iptables实现SNAT与DNAT"></a>iptables实现SNAT与DNAT</h4><p>NAT 服务器的重点就在于上面流程NAT table 的两条重要的链：PREROUTING 与 POSTROUTING。</p>
-<p>举例如下：</p>
-<p><strong>SNAT封包传送和封包接收</strong></p>
-<img src="/2018/11/03/Linux的iptables原理/图5.jpg" title="图5">
-<p>客户端所发出的封包表头中，来源会是 192.168.1.100 ，然后传送到 NAT 这部主机；NAT 这部主机的内部接口 (192.168.1.2) 接收到这个封包后，会主动分析表头数据， 因为表头数据显示目的并非 Linux 本机，所以开始经过路由， 将此封包转到可以连接到 Internet 的 Public IP 处；由于 private IP 与 public IP 不能互通，所以 Linux 主机透过 iptables 的 NAT table 内的 Postrouting 链将封包表头的来源伪装成为 Linux 的 Public IP ，并且将两个不同来源 (192.168.1.100 及 public IP) 的封包对应写入暂存内存当中， 然后将此封包传送出去了；<br> 此时 Internet 上面看到这个封包时，都只会知道这个封包来自那个 Public IP 而不知道其实是来自内部啦。 好了，那么如果 Internet 回传封包呢？又会怎么作？</p>
-<img src="/2018/11/03/Linux的iptables原理/图6.jpg" title="图6">
-<p> 在 Internet 上面的主机接到这个封包时，会将响应数据传送给那个 Public IP 的主机；当 Linux NAT 服务器收到来自 Internet 的回应封包后，会分析该封包的序号，并比对刚刚记录到内存当中的数据， 由于发现该封包为后端主机之前传送出去的，因此在 NAT Prerouting 链中，会将目标 IP 修改成为后端主机，亦即那部 192.168.1.100，然后发现目标已经不是本机 (public IP)， 所以开始透过路由分析封包流向；封包会传送到 192.168.1.2 这个内部接口，然后再传送到最终目标 192.168.1.100 机器上去！</p>
-<p>SNAT 主要是应付内部 LAN 连接到 Internet 的使用方式，至于 DNAT 则主要用在内部主机想要架设可以让 Internet 存取的服务器啦！</p>
-<p><strong>DNAT封包传送</strong></p>
-<img src="/2018/11/03/Linux的iptables原理/图7.jpg" title="图7">
-<p>假设我的内部主机 192.168.1.210 启动了 WWW 服务，这个服务的 port 开启在 port 80 ， 那么 Internet 上面的主机 (61.xx.xx.xx) 要如何连接到我的内部服务器呢？当然啦， 还是得要透过 Linux NAT 服务器嘛！所以这部 Internet 上面的机器必须要连接到我们的 NAT 的 public IP 才行。外部主机想要连接到目的端的 WWW 服务，则必须要连接到我们的 NAT 服务器上头；我们的 NAT 服务器已经设定好要分析出 port 80 的封包，所以当 NAT 服务器接到这个封包后， 会将目标 IP 由 public IP 改成 192.168.1.210 ，且将该封包相关信息记录下来，等待内部服务器的响应；上述的封包在经过路由后，来到 private 接口处，然后透过内部的 LAN 传送到 192.168.1.210 上头！</p>
-<p> 192.186.1.210 会响应数据给 61.xx.xx.xx ，这个回应当然会传送到 192.168.1.2 上头去；经过路由判断后，来到 NAT Postrouting 的链，然后透过刚刚的记录，将来源 IP 由 192.168.1.210 改为 public IP 后，就可以传送出去了！</p>
-<h4 id="iptables常用命令"><a href="#iptables常用命令" class="headerlink" title="iptables常用命令"></a>iptables常用命令</h4>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/11/03/Linux的iptables原理/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1345,7 +1281,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-count">64</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
