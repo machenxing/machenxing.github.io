@@ -291,6 +291,225 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/09/分布式事务/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/09/分布式事务/" itemprop="url">分布式事务</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-09T20:16:09+08:00">
+                2018-12-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>考虑支付重构的时候，自然想到原本属于一个本地事务中的处理，现在要跨应用了要怎么处理。拿充值订单举个栗子吧，假设：原本订单模块和账户模块是放在一起的，现在需要做服务拆分，拆分成订单服务，账户服务。原本收到充值回调后，可以将修改订单状态和增加金币放在一个mysql事务中完成的，但是呢，因为服务拆分了，就面临着需要协调2个服务才能完成这个事务。</p>
+<img src="/2018/12/09/分布式事务/图1.jpg" title="图1">
+<p>所以就带出来，我们今天要分享和讨论的话题是：<strong>怎么解决分布式场景下数据一致性问题</strong>，暂且用<strong>分布式事务</strong> 来定义吧。</p>
+<p>同样的问题还存在于其他的场景：</p>
+<p>送礼：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 调用支付服务：先扣送礼用户的金币，然后给主播加相应的荔枝</span><br><span class="line">2. 确认第一步成功后，播放特效，发聊天室送礼评论等</span><br></pre></td></tr></table></figure>
+<p>充值成功消息：</p>
+<ol>
+<li>完成充值订单</li>
+<li>发送订单完成的kafka消息</li>
+</ol>
+<p>在涉及支付交易等付费接口的时候，数据一致性的问题就显得尤为重要，<strong>因为都是钱啊</strong></p>
+<h4 id="目前分布式事务是怎么解决的呢？"><a href="#目前分布式事务是怎么解决的呢？" class="headerlink" title="目前分布式事务是怎么解决的呢？"></a>目前分布式事务是怎么解决的呢？</h4><p>问题肯定不是新问题，也就是目前已经有相应的解决方案了，那就看一下现在是怎么来解决这类问题的吧。</p>
+<blockquote>
+<p>以<strong>购买基础商品成功</strong>后<strong>发送支付订单完成消息</strong>为例：</p>
+<p>假设支付下单购买基础商品，此刻已经收到支付回调，订单已经处理成功了，这个时候kafka服务故障，消息发送失败；而这个时候处理订单的事务已经提交了，<strong>怎么保证订单完成的消息一定能发出去呢？</strong></p>
+</blockquote>
+<img src="/2018/12/09/分布式事务/图2.jpg" title="图2">
+<p>解读一下这个流程：</p>
+<p><strong>绿色部分</strong>，表示流程正常运行的交互过程：</p>
+<ol>
+<li>先往JobController中提交一个job（用于故障恢复）</li>
+<li>提交成功后，开始处理订单逻辑</li>
+<li>处理完订单逻辑之后，开始发送kafka消息</li>
+<li>消息也发送成功后，删除第一步提交的job</li>
+</ol>
+<p><strong>黄色部分</strong>，表示流程出现了异常，数据可能存在不一致现象。这个时候就需要进行流程恢复</p>
+<ol>
+<li>JobController任务控制器定时去redis查询延时任务列表（每个任务都有一个时间戳，按时间戳排序过滤）</li>
+<li>将任务进行恢复（调用job注册时定义的处理方法）</li>
+<li>任务执行成功，表示流程完成；否则下一个定时周期重试</li>
+</ol>
+<p>问题：</p>
+<ol>
+<li>基于redis存储恢复任务，可能存在数据丢失风险</li>
+<li>架构体系中没有统一的分布式事务规范，可否将这层逻辑独立为分布式事务中间件</li>
+<li>缺少事务执行策略管理，如：控制最大重试次数等</li>
+<li>事务执行状态没有记录，追查需要去翻看日志</li>
+</ol>
+<h4 id="行业中有什么解决方案"><a href="#行业中有什么解决方案" class="headerlink" title="行业中有什么解决方案"></a>行业中有什么解决方案</h4><blockquote>
+<p>说解决方案之前，我们先了解一下这些方案的理论依据，有助于帮助我们来理解和实践这些方案</p>
+</blockquote>
+<h5 id="理论依据（讨论的前提）"><a href="#理论依据（讨论的前提）" class="headerlink" title="理论依据（讨论的前提）"></a>理论依据（讨论的前提）</h5><h6 id="本地事务、分布式事务"><a href="#本地事务、分布式事务" class="headerlink" title="本地事务、分布式事务"></a>本地事务、分布式事务</h6><p>如果说<strong>本地事务</strong>是解决单个数据源上的数据操作的一致性问题的话，那么<strong>分布式事务</strong>则是为了解决跨越多个数据源上数据操作的一致性问题。</p>
+<h6 id="强一致性、弱一致性、最终一致性"><a href="#强一致性、弱一致性、最终一致性" class="headerlink" title="强一致性、弱一致性、最终一致性"></a>强一致性、弱一致性、最终一致性</h6><p>从客户端角度，多进程并发访问时，更新过的数据在不同进程如何获取的不同策略，决定了不同的一致性。对于关系型数据库，要求更新过的数据能被后续的访问都能看到，这是<strong>强一致性</strong>。如果能容忍后续的部分或者全部访问不到，则是<strong>弱一致性</strong>。如果经过一段时间后要求能访问到更新后的数据，则是<strong>最终一致性</strong></p>
+<p>从<strong>服务端</strong>角度，如何尽快将更新后的数据分布到整个系统，降低达到最终一致性的时间窗口，是提高系统的可用度和用户体验非常重要的方面。对于分布式数据系统：</p>
+<ul>
+<li>N — 数据复制的份数</li>
+<li>W — 更新数据时需要保证写完成的节点数</li>
+<li>R — 读取数据的时候需要读取的节点数</li>
+</ul>
+<p>如果W+R&gt;N，写的节点和读的节点重叠，则是强一致性。例如对于典型的一主一备同步复制的关系型数据库，N=2,W=2,R=1，则不管读的是主库还是备库的数据，都是一致的。</p>
+<p>如果W+R&lt;=N，则是弱一致性。例如对于一主一备异步复制的关系型数据库，N=2,W=1,R=1，则如果读的是备库，就可能无法读取主库已经更新过的数据，所以是弱一致性。</p>
+<h6 id="CAP理论"><a href="#CAP理论" class="headerlink" title="CAP理论"></a>CAP理论</h6><p>分布式环境下（数据分布）要任何时刻保证数据一致性是不可能的，只能采取妥协的方案来保证数据最终一致性。这个也就是著名的CAP定理。</p>
+<img src="/2018/12/09/分布式事务/图3.jpg" title="图3">
+<p>需要明确的一点是，对于一个分布式系统而言，分区容错性是一个最基本的要求。因为 既然是一个分布式系统，那么分布式系统中的组件必然需要被部署到不同的节点，否则也就无所谓分布式系统了，因此必然出现子网络。而对于分布式系统而言，网 络问题又是一个必定会出现的异常情况，因此分区容错性也就成为了一个分布式系统必然需要面对和解决的问题。因此系统架构师往往需要把精力花在如何根据业务 特点在C（一致性）和A（可用性）之间寻求平衡。</p>
+<h6 id="BASE-理论"><a href="#BASE-理论" class="headerlink" title="BASE 理论"></a>BASE 理论</h6><p>BASE是Basically Available（基本可用）、Soft state（软状态）和Eventually consistent（最终一致性）三个短语的缩写。BASE理论是对CAP中一致性和可用性权衡的结果，其来源于对大规模互联网系统分布式实践的总结， 是基于CAP定理逐步演化而来的。BASE理论的核心思想是：即使无法做到强一致性，但每个应用都可以根据自身业务特点，采用适当的方式来使系统达到最终一致性。</p>
+<p>BASE理论面向的是大型高可用可扩展的分布式系统，和传统的事物ACID特性是相反的，它完全不同于ACID的强一致性模型，而是<strong>通过牺牲强一致性来获得可用性，并允许数据在一段时间内是不一致的，但最终达到一致状态</strong>。但同时，在实际的分布式场景中，不同业务单元和组件对数据一致性的要求是不同的，因此在具体的分布式系统架构设计过程中，ACID特性和BASE理论往往又会结合在一起。</p>
+<h6 id="柔性事务"><a href="#柔性事务" class="headerlink" title="柔性事务"></a>柔性事务</h6><p>不同于ACID的刚性事务，在分布式场景下基于BASE理论，就出现了柔性事务的概念。要想通过柔性事务来达到最终的一致性，就需要依赖于一些特性，这些特性在具体的方案中不一定都要满足，因为不同的方案要求不一样；但是都不满足的话，是不可能做柔性事务的。</p>
+<p><strong>可见性(对外可查询)</strong></p>
+<p>在分布式事务执行过程中，如果某一个步骤执行出错，就需要明确的知道其他几个操作的处理情况，这就需要其他的服务都能够提供查询接口，保证可以通过查询来判断操作的处理情况。</p>
+<p>为了保证操作的可查询，需要对于每一个服务的每一次调用都有一个全局唯一的标识，可以是业务单据号（如订单号）、也可以是系统分配的操作流水号（如支付记录流水号）。除此之外，操作的时间信息也要有完整的记录。</p>
+<p><strong>幂等操作</strong></p>
+<p>幂等性，其实是一个数学概念。幂等函数，或幂等方法，是指可以使用相同参数重复执行，并能获得相同结果的函数。</p>
+<blockquote>
+<p>f(f(x)) = f(x)</p>
+</blockquote>
+<p>在编程中一个幂等操作的特点是其任意多次执行所产生的影响均与一次执行的影响相同。也就是说，同一个方法，使用同样的参数，调用多次产生的业务结果与调用一次产生的业务结果相同。 这一个要求其实也比较好理解，因为要保证数据的最终一致性，很多解决防范都会有很多重试的操作，如果一个方法不保证幂等，那么将无法被重试。 幂等操作的实现方式有多种，如在系统中缓存所有的请求与处理结果、检测到重复操作后，直接返回上一次的处理结果等。</p>
+<h5 id="业界方案"><a href="#业界方案" class="headerlink" title="业界方案"></a>业界方案</h5><h6 id="两阶段提交（2PC）"><a href="#两阶段提交（2PC）" class="headerlink" title="两阶段提交（2PC）"></a>两阶段提交（2PC）</h6><p>XA是X/Open CAE Specification (Distributed Transaction Processing)模型中定义的TM（Transaction Manager）与RM（Resource Manager）之间进行通信的接口。</p>
+<p>在XA规范中，数据库充当RM角色，应用需要充当TM的角色，即生成全局的txId，调用XAResource接口，把多个本地事务协调为全局统一的分布式事务。</p>
+<img src="/2018/12/09/分布式事务/图4.jpg" title="图4">
+<p>二阶段提交是XA的标准实现。它将分布式事务的提交拆分为2个阶段：prepare和commit/rollback。</p>
+<p>2PC模型中，在prepare阶段需要等待所有参与子事务的反馈，因此可能造成数据库资源锁定时间过长，不适合并发高以及子事务生命周长较长的业务场景。两阶段提交这种解决方案属于牺牲了一部分可用性来换取的一致性。</p>
+<h6 id="saga"><a href="#saga" class="headerlink" title="saga"></a>saga</h6><p>saga的提出，最早是为了解决可能会长时间运行的分布式事务（long-running process）的问题。所谓long-running的分布式事务，是指那些企业业务流程，需要跨应用、跨企业来完成某个事务，甚至在事务流程中还需要有手工操作的参与，这类事务的完成时间可能以分计，以小时计，甚至可能以天计。这类事务如果按照事务的ACID的要求去设计，势必造成系统的可用性大大的降低。试想一个由两台服务器一起参与的事务，服务器A发起事务，服务器B参与事务，B的事务需要人工参与，所以处理时间可能很长。如果按照ACID的原则，要保持事务的隔离性、一致性，服务器A中发起的事务中使用到的事务资源将会被锁定，不允许其他应用访问到事务过程中的中间结果，直到整个事务被提交或者回滚。这就造成事务A中的资源被长时间锁定，系统的可用性将不可接受。</p>
+<p>而<strong>saga，则是一种基于补偿的消息驱动的用于解决long-running process的一种解决方案。目标是为了在确保系统高可用的前提下尽量确保数据的一致性</strong>。还是上面的例子，如果用saga来实现，那就是这样的流程：服务器A的事务先执行，如果执行顺利，那么事务A就先行提交；如果提交成功，那么就开始执行事务B，如果事务B也执行顺利，则事务B也提交，整个事务就算完成。但是如果事务B执行失败，那事务B本身需要回滚，这时因为事务A已经提交，所以需要执行一个补偿操作，将已经提交的事务A执行的操作作反操作，恢复到未执行前事务A的状态。<strong>这样的基于消息驱动的实现思路，就是saga</strong>。我们可以看出，saga是牺牲了数据的强一致性，仅仅实现了最终一致性，但是提高了系统整体的可用性。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/12/09/分布式事务/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/08/5种消息队列的差异/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1077,187 +1296,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/25/阿里员工的Java问题排查工具单/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/11/25/阿里员工的Java问题排查工具单/" itemprop="url">阿里员工的Java问题排查工具单</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-25T19:13:42+08:00">
-                2018-11-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p><strong>这是一篇来源于阿里内部技术论坛的文章，原文在阿里内部获得一致好评。作者已经把这篇文章开放到云栖社区中供外网访问。本文中包含一些只有阿里内部才能使用的工具，还有些只有阿里内部才能访问的链接。</strong></p>
-<p><em>摘要：</em> # 我的问题排查工具箱 ## 前言 平时的工作中经常碰到很多疑难问题的处理，在解决问题的同时，有一些工具起到了相当大的作用，在此书写下来，一是作为笔记，可以让自己后续忘记了可快速翻阅，二是分享，希望看到此文的同学们可以拿出自己日常觉得帮助很大的工具，大家一起进步。 闲话不多说，开搞。 ## Linux命令类 ###tail 最常用的tail -f tail -3</p>
-<h4 id="问题排查工具箱"><a href="#问题排查工具箱" class="headerlink" title="问题排查工具箱"></a>问题排查工具箱</h4><p>平时的工作中经常碰到很多疑难问题的处理，在解决问题的同时，有一些工具起到了相当大的作用，在此书写下来，一是作为笔记，可以让自己后续忘记了可快速翻阅，二是分享，希望看到此文的同学们可以拿出自己日常觉得帮助很大的工具，大家一起进步。</p>
-<p>闲话不多说，开搞。</p>
-<h5 id="Linux命令类"><a href="#Linux命令类" class="headerlink" title="Linux命令类"></a>Linux命令类</h5><h6 id="tail"><a href="#tail" class="headerlink" title="tail"></a>tail</h6><p>最常用的tail -f</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tail -300f shopbase.log #倒数300行并进入实时监听文件写入模式</span><br></pre></td></tr></table></figure>
-<h6 id="grep"><a href="#grep" class="headerlink" title="grep"></a>grep</h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">grep forest f.txt     #文件查找</span><br><span class="line">grep forest f.txt cpf.txt #多文件查找</span><br><span class="line">grep 'log' /home/admin -r -n #目录下查找所有符合关键字的文件</span><br><span class="line">cat f.txt | grep -i shopbase    </span><br><span class="line">grep 'shopbase' /home/admin -r -n --include *.&#123;vm,java&#125; #指定文件后缀</span><br><span class="line">grep 'shopbase' /home/admin -r -n --exclude *.&#123;vm,java&#125; #反匹配</span><br><span class="line">seq 10 | grep 5 -A 3    #上匹配</span><br><span class="line">seq 10 | grep 5 -B 3    #下匹配</span><br><span class="line">seq 10 | grep 5 -C 3    #上下匹配，平时用这个就妥了</span><br><span class="line">cat f.txt | grep -c 'SHOPBASE'</span><br></pre></td></tr></table></figure>
-<h6 id="awk"><a href="#awk" class="headerlink" title="awk"></a>awk</h6><p>1 基础命令</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">awk '&#123;print $4,$6&#125;' f.txt</span><br><span class="line">awk '&#123;print NR,$0&#125;' f.txt cpf.txt    </span><br><span class="line">awk '&#123;print FNR,$0&#125;' f.txt cpf.txt</span><br><span class="line">awk '&#123;print FNR,FILENAME,$0&#125;' f.txt cpf.txt</span><br><span class="line">awk '&#123;print FILENAME,"NR="NR,"FNR="FNR,"$"NF"="$NF&#125;' f.txt cpf.txt</span><br><span class="line">echo 1:2:3:4 | awk -F: '&#123;print $1,$2,$3,$4&#125;'</span><br></pre></td></tr></table></figure>
-<p>2 匹配</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">awk '/ldb/ &#123;print&#125;' f.txt   #匹配ldb</span><br><span class="line">awk '!/ldb/ &#123;print&#125;' f.txt  #不匹配ldb</span><br><span class="line">awk '/ldb/ &amp;&amp; /LISTEN/ &#123;print&#125;' f.txt   #匹配ldb和LISTEN</span><br><span class="line">awk '$5 ~ /ldb/ &#123;print&#125;' f.txt #第五列匹配ldb</span><br></pre></td></tr></table></figure>
-<p>3 内建变量</p>
-<p>NR:NR表示从awk开始执行后，按照记录分隔符读取的数据次数，默认的记录分隔符为换行符，因此默认的就是读取的数据行数，NR可以理解为Number of Record的缩写。</p>
-<p>FNR:在awk处理多个输入文件的时候，在处理完第一个文件后，NR并不会从1开始，而是继续累加，因此就出现了FNR，每当处理一个新文件的时候，FNR就从1开始计数，FNR可以理解为File Number of Record。</p>
-<p>NF: NF表示目前的记录被分割的字段的数目，NF可以理解为Number of Field。</p>
-<h6 id="find"><a href="#find" class="headerlink" title="find"></a>find</h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">sudo -u admin find /home/admin /tmp /usr -name \*.log(多个目录去找)</span><br><span class="line">find . -iname \*.txt(大小写都匹配)</span><br><span class="line">find . -type d(当前目录下的所有子目录)</span><br><span class="line">find /usr -type l(当前目录下所有的符号链接)</span><br><span class="line">find /usr -type l -name "z*" -ls(符号链接的详细信息 eg:inode,目录)</span><br><span class="line">find /home/admin -size +250000k(超过250000k的文件，当然+改成-就是小于了)</span><br><span class="line">find /home/admin f -perm 777 -exec ls -l &#123;&#125; \; (按照权限查询文件)</span><br><span class="line">find /home/admin -atime -1  1天内访问过的文件</span><br><span class="line">find /home/admin -ctime -1  1天内状态改变过的文件    </span><br><span class="line">find /home/admin -mtime -1  1天内修改过的文件</span><br><span class="line">find /home/admin -amin -1  1分钟内访问过的文件</span><br><span class="line">find /home/admin -cmin -1  1分钟内状态改变过的文件    </span><br><span class="line">find /home/admin -mmin -1  1分钟内修改过的文件</span><br></pre></td></tr></table></figure>
-<h6 id="pgm"><a href="#pgm" class="headerlink" title="pgm"></a>pgm</h6><p>批量查询vm-shopbase满足条件的日志</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pgm -A -f vm-shopbase 'cat /home/admin/shopbase/logs/shopbase.log.2017-01-17|grep 2069861630'</span><br></pre></td></tr></table></figure>
-<h6 id="tsar"><a href="#tsar" class="headerlink" title="tsar"></a>tsar</h6><p>tsar是咱公司自己的采集工具。很好用, 将历史收集到的数据持久化在磁盘上，所以我们快速来查询历史的系统数据。当然实时的应用情况也是可以查询的啦。大部分机器上都有安装。</p>
-<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tsar  <span class="comment">##可以查看最近一天的各项指标</span></span><br></pre></td></tr></table></figure>
-<img src="/2018/11/25/阿里员工的Java问题排查工具单/图1.jpg" title="图1">
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tsar --live ##可以查看实时指标，默认五秒一刷</span><br></pre></td></tr></table></figure>
-<img src="/2018/11/25/阿里员工的Java问题排查工具单/图2.jpg" title="图2">
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tsar -d 20161218 ##指定查看某天的数据，貌似最多只能看四个月的数据</span><br></pre></td></tr></table></figure>
-<img src="/2018/11/25/阿里员工的Java问题排查工具单/图3.jpg" title="图3">
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tsar --mem</span><br><span class="line">tsar --load</span><br><span class="line">tsar --cpu</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#当然这个也可以和-d参数配合来查询某天的单个指标的情况</span></span></span><br></pre></td></tr></table></figure>
-<img src="/2018/11/25/阿里员工的Java问题排查工具单/图4.jpg" title="图4">
-<img src="/2018/11/25/阿里员工的Java问题排查工具单/图5.jpg" title="图5">
-<img src="/2018/11/25/阿里员工的Java问题排查工具单/图6.jpg" title="图6">
-<h6 id="top"><a href="#top" class="headerlink" title="top"></a>top</h6><p>top除了看一些基本信息之外，剩下的就是配合来查询vm的各种问题了</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ps -ef | grep java</span><br><span class="line">top -H -p pid</span><br></pre></td></tr></table></figure>
-<p>获得线程10进制转16进制后jstack去抓看这个线程到底在干啥</p>
-<h6 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">netstat -nat|awk  '&#123;print $6&#125;'|sort|uniq -c|sort -rn </span><br><span class="line"><span class="meta">#</span><span class="bash">查看当前连接，注意close_wait偏高的情况，比如如下</span></span><br></pre></td></tr></table></figure>
-<img src="/2018/11/25/阿里员工的Java问题排查工具单/图7.jpg" title="图7">
-<img src="/2018/11/25/阿里员工的Java问题排查工具单/图8.jpg" title="图8">
-<h5 id="排查利器"><a href="#排查利器" class="headerlink" title="排查利器"></a>排查利器</h5><h6 id="btrace"><a href="#btrace" class="headerlink" title="btrace"></a>btrace</h6><p>首当其冲的要说的是btrace。真是生产环境&amp;预发的排查问题大杀器。 简介什么的就不说了。直接上代码干。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/11/25/阿里员工的Java问题排查工具单/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1310,7 +1348,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">64</span>
+                  <span class="site-state-item-count">65</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
