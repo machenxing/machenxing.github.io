@@ -291,6 +291,203 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/20/正则表达式/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/05/20/正则表达式/" itemprop="url">正则表达式</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-20T23:49:49+08:00">
+                2019-05-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java基础/" itemprop="url" rel="index">
+                    <span itemprop="name">Java基础</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>正则表达式在几乎所有语言中都可以使用，无论是前端的JavaScript、还是后端的Java、c#。他们都提供相应的接口/函数支持正则表达式。</p>
+<p>很神奇的是：无论你大学选择哪一门计算机语言，都没有关于正则表达式的课程给你修，在你学会正则之前，你只能看着那些正则大师们，写了一串外星文似的字符串，替代了你用一大篇幅的if else代码来做一些数据校验。</p>
+<p>既然喜欢，那就动手学呗，可当你百度出一一堆相关资料时，你发现无一不例外的枯燥至极，难以学习。</p>
+<p>本文旨在用最通俗的语言讲述最枯燥的基本知识！</p>
+<h4 id="正则基础知识点"><a href="#正则基础知识点" class="headerlink" title="正则基础知识点"></a>正则基础知识点</h4><h5 id="元字符"><a href="#元字符" class="headerlink" title="元字符"></a>元字符</h5><p>万物皆有缘，正则也是如此，元字符是构造正则表达式的一种基本元素。</p>
+<p>我们先来记几个常用的元字符：</p>
+<p>元字符说明.匹配除换行符以外的任意字符w匹配字母或数字或下划线或汉字s匹配任意的空白符d匹配数字匹配单词的开始或结束^匹配字符串的开始$匹配字符串的结束</p>
+<p>有了元字符之后，我们就可以利用这些元字符来写一些简单的正则表达式了，</p>
+<p>比如：</p>
+<p>匹配有abc开头的字符串：abc或者^abc</p>
+<p>匹配8位数字的QQ号码：^dddddddd$</p>
+<p>匹配1开头11位数字的手机号码：^1dddddddddd$</p>
+<h5 id="重复限定符"><a href="#重复限定符" class="headerlink" title="重复限定符"></a>重复限定符</h5><p>有了元字符就可以写不少的正则表达式了，但细心的你们可能会发现：别人写的正则简洁明了，而不理君写的正则一堆乱七八糟而且重复的元字符组成的。正则没提供办法处理这些重复的元字符吗？</p>
+<p>答案是有的！</p>
+<p>为了处理这些重复问题，正则表达式中一些重复限定符，把重复部分用合适的限定符替代，下面我们来看一些限定符：</p>
+<p>语法说明*重复零次或更多次+重复一次或更多次?重复零次或一次{n}重复n次{n,}重复n次或更多次{n,m}重复n到m次</p>
+<p>有了这些限定符之后，我们就可以对之前的正则表达式进行改造了，比如：</p>
+<p>匹配8位数字的QQ号码：^d{8}$</p>
+<p>匹配1开头11位数字的手机号码：^1d{10}$</p>
+<p>匹配银行卡号是14~18位的数字：^d{14,18}$</p>
+<p>匹配以a开头的，0个或多个b结尾的字符串^ab*$</p>
+<h5 id="分组"><a href="#分组" class="headerlink" title="分组"></a>分组</h5><p>从上面的例子（4）中看到，限定符是作用在与他左边最近的一个字符，那么问题来了，如果我想要ab同时被限定那怎么办呢？</p>
+<p>正则表达式中用小括号()来做分组，也就是括号中的内容作为一个整体。</p>
+<p>因此当我们要匹配多个ab时，我们可以这样。</p>
+<p>如匹配字符串中包含0到多个ab开头：^(ab)*</p>
+<h5 id="转义"><a href="#转义" class="headerlink" title="转义"></a>转义</h5><p>我们看到正则表达式用小括号来做分组，那么问题来了：</p>
+<p>如果要匹配的字符串中本身就包含小括号，那是不是冲突？应该怎么办？</p>
+<p>针对这种情况，正则提供了转义的方式，也就是要把这些元字符、限定符或者关键字转义成普通的字符，做法很简答，就是在要转义的字符前面加个斜杠，也就是即可。</p>
+<p>如要匹配以(ab)开头：^((ab))*</p>
+<h5 id="条件或"><a href="#条件或" class="headerlink" title="条件或"></a>条件或</h5><p>回到我们刚才的手机号匹配，我们都知道：国内号码都来自三大网，它们都有属于自己的号段，比如联通有130/131/132/155/156/185/186/145/176等号段，假如让我们匹配一个联通的号码，那按照我们目前所学到的正则，应该无从下手的，因为这里包含了一些并列的条件，也就是“或”，那么在正则中是如何表示“或”的呢？</p>
+<p>正则用符号 | 来表示或，也叫做分支条件，当满足正则里的分支条件的任何一种条件时，都会当成是匹配成功。</p>
+<p>那么我们就可以用“或”条件来处理这个问题：^(130|131|132|155|156|185|186|145|176)d{8}$</p>
+<h5 id="区间"><a href="#区间" class="headerlink" title="区间"></a>区间</h5><p>看到上面的例子，是不是看到有什么规律？是不是还有一种想要简化的冲动？</p>
+<p>实际是有的</p>
+<p>正则提供一个元字符中括号 [] 来表示区间条件。</p>
+<ul>
+<li>限定0到9 可以写成[0-9]</li>
+<li>限定A-Z 写成[A-Z]</li>
+<li>限定某些数字 [165]</li>
+</ul>
+<p>那上面的正则我们还改成这样：</p>
+<p>^((13[0-2])|(15[56])|(18[5-6])|145|176)d{8}$</p>
+<p>好了，正则表达式的基本用法就讲到这里了，其实它还有非常多的知识点以及元字符，我们在此只列举了部分元字符和语法来讲，旨在给那些不懂正则或者想学正则但有看不下去文档的人做一个快速入门级的教程，看完本教程，即使你不能写出高大上的正则，至少也能写一些简单的正则或者看得懂别人写的正则了。</p>
+<h4 id="正则进阶知识点"><a href="#正则进阶知识点" class="headerlink" title="正则进阶知识点"></a>正则进阶知识点</h4><h5 id="零宽断言"><a href="#零宽断言" class="headerlink" title="零宽断言"></a>零宽断言</h5><p>无论是零宽还是断言，听起来都古古怪怪的，</p>
+<p>那先解释一下这两个词。</p>
+<p><strong>断言</strong>：俗话的断言就是“我断定什么什么”，而正则中的断言，就是说正则可以指明在指定的内容的前面或后面会出现满足指定规则的内容，意思正则也可以像人类那样断定什么什么，比如”ss1aa2bb3”,正则可以用断言找出aa2前面有bb3，也可以找出aa2后面有ss1.</p>
+<p><strong>零宽</strong>：就是没有宽度，在正则中，断言只是匹配位置，不占字符，也就是说，匹配结果里是不会返回断言本身。</p>
+<p>意思是讲明白了，那他有什么用呢？</p>
+<p>我们来举个栗子：假设我们要用爬虫抓取csdn里的文章阅读量。通过查看源代码可以看到文章阅读量这个内容是这样的结构</p>
+<p>“<span class="read-count">阅读数：641</span>“</p>
+<p>其中也就‘641’这个是变量，也就是说不同文章不同的值，当我们拿到这个字符串时，需要获得这里边的‘641’有很多种办法，但如果正则应该怎么匹配呢？</p>
+<p>下面先来讲几种类型的断言：</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/05/20/正则表达式/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/20/消息队列的本质区别/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -995,218 +1192,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/21/阿里云Redis开发规范/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/21/阿里云Redis开发规范/" itemprop="url">阿里云Redis开发规范</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-21T14:22:09+08:00">
-                2019-04-21
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h4 id="键值设计"><a href="#键值设计" class="headerlink" title="键值设计"></a>键值设计</h4><h5 id="key名设计"><a href="#key名设计" class="headerlink" title="key名设计"></a>key名设计</h5><ul>
-<li>(1)【建议】: 可读性和可管理性</li>
-</ul>
-<p>以业务名(或数据库名)为前缀(防止key冲突)，用冒号分隔，比如业务名:表名:id</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ugc:video:1</span><br></pre></td></tr></table></figure>
-<ul>
-<li>(2)【建议】：简洁性</li>
-</ul>
-<p>保证语义的前提下，控制key的长度，当key较多时，内存占用也不容忽视，例如：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">user:&#123;uid&#125;:friends:messages:&#123;mid&#125;简化为u:&#123;uid&#125;:fr:m:&#123;mid&#125;。</span><br></pre></td></tr></table></figure>
-<ul>
-<li>(3)【强制】：不要包含特殊字符</li>
-</ul>
-<p>反例：包含空格、换行、单双引号以及其他转义字符</p>
-<p><a href="https://mp.weixin.qq.com/s?spm=a2c4e.11153940.blogcont531067.11.fdaf744aJsGIwe&amp;__biz=Mzg2NTEyNzE0OA==&amp;mid=2247483663&amp;idx=1&amp;sn=7c4ad441eaec6f0ff38d1c6a097b1fa4&amp;chksm=ce5f9e8cf928179a2c74227da95bec575bdebc682e8630b5b1bb2071c0a1b4be6f98d67c37ca&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">详细解析</a></p>
-<h5 id="value设计"><a href="#value设计" class="headerlink" title="value设计"></a>value设计</h5><ul>
-<li>(1)【强制】：拒绝bigkey(防止网卡流量、慢查询)</li>
-</ul>
-<p>string类型控制在10KB以内，hash、list、set、zset元素个数不要超过5000。</p>
-<p>反例：一个包含200万个元素的list。</p>
-<p>非字符串的bigkey，不要使用del删除，使用hscan、sscan、zscan方式渐进式删除，同时要注意防止bigkey过期时间自动删除问题(例如一个200万的zset设置1小时过期，会触发del操作，造成阻塞，而且该操作不会不出现在慢查询中(latency可查))</p>
-<p><a href="https://mp.weixin.qq.com/s?spm=a2c4e.11153940.blogcont531067.14.fdaf744aJsGIwe&amp;__biz=Mzg2NTEyNzE0OA==&amp;mid=2247483677&amp;idx=1&amp;sn=5c320b46f0e06ce9369a29909d62b401&amp;chksm=ce5f9e9ef928178834021b6f9b939550ac400abae5c31e1933bafca2f16b23d028cc51813aec&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">详细解析</a></p>
-<ul>
-<li>(2)【推荐】：选择适合的数据类型。</li>
-</ul>
-<p>例如：实体类型(要合理控制和使用数据结构内存编码优化配置,例如ziplist，但也要注意节省内存和性能之间的平衡)</p>
-<p>反例：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> user:1:name tom</span><br><span class="line"><span class="built_in">set</span> user:1:age 19</span><br><span class="line"><span class="built_in">set</span> user:1:favor football</span><br></pre></td></tr></table></figure>
-<p>正例:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hmset user:1 name tom age 19 favor football</span><br></pre></td></tr></table></figure>
-<h5 id="【推荐】：控制key的生命周期，redis不是垃圾桶。"><a href="#【推荐】：控制key的生命周期，redis不是垃圾桶。" class="headerlink" title="【推荐】：控制key的生命周期，redis不是垃圾桶。"></a>【推荐】：控制key的生命周期，redis不是垃圾桶。</h5><p>建议使用expire设置过期时间(条件允许可以打散过期时间，防止集中过期)，不过期的数据重点关注idletime。</p>
-<h4 id="命令使用"><a href="#命令使用" class="headerlink" title="命令使用"></a>命令使用</h4><h5 id="【推荐】-O-N-命令关注N的数量"><a href="#【推荐】-O-N-命令关注N的数量" class="headerlink" title="【推荐】 O(N)命令关注N的数量"></a>【推荐】 O(N)命令关注N的数量</h5><p>例如hgetall、lrange、smembers、zrange、sinter等并非不能使用，但是需要明确N的值。有遍历的需求可以使用hscan、sscan、zscan代替。</p>
-<h5 id="【推荐】：禁用命令"><a href="#【推荐】：禁用命令" class="headerlink" title="【推荐】：禁用命令"></a>【推荐】：禁用命令</h5><p>禁止线上使用keys、flushall、flushdb等，通过redis的rename机制禁掉命令，或者使用scan的方式渐进式处理。</p>
-<h5 id="【推荐】合理使用select"><a href="#【推荐】合理使用select" class="headerlink" title="【推荐】合理使用select"></a>【推荐】合理使用select</h5><p>redis的多数据库较弱，使用数字进行区分，很多客户端支持较差，同时多业务用多数据库实际还是单线程处理，会有干扰。</p>
-<h5 id="【推荐】使用批量操作提高效率"><a href="#【推荐】使用批量操作提高效率" class="headerlink" title="【推荐】使用批量操作提高效率"></a>【推荐】使用批量操作提高效率</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">原生命令：例如mget、mset。</span><br><span class="line">非原生命令：可以使用pipeline提高效率。</span><br></pre></td></tr></table></figure>
-<p>但要注意控制一次批量操作的<strong>元素个数</strong>(例如500以内，实际也和元素字节数有关)。</p>
-<p>注意两者不同：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 原生是原子操作，pipeline是非原子操作。</span><br><span class="line">2. pipeline可以打包不同的命令，原生做不到</span><br><span class="line">3. pipeline需要客户端和服务端同时支持。</span><br></pre></td></tr></table></figure>
-<h5 id="【建议】Redis事务功能较弱，不建议过多使用"><a href="#【建议】Redis事务功能较弱，不建议过多使用" class="headerlink" title="【建议】Redis事务功能较弱，不建议过多使用"></a>【建议】Redis事务功能较弱，不建议过多使用</h5><p>Redis的事务功能较弱(不支持回滚)，而且集群版本(自研和官方)要求一次事务操作的key必须在一个slot上(可以使用hashtag功能解决)</p>
-<h5 id="【建议】Redis集群版本在使用Lua上有特殊要求："><a href="#【建议】Redis集群版本在使用Lua上有特殊要求：" class="headerlink" title="【建议】Redis集群版本在使用Lua上有特殊要求："></a>【建议】Redis集群版本在使用Lua上有特殊要求：</h5><ul>
-<li>1.所有key都应该由 KEYS 数组来传递，redis.call/pcall 里面调用的redis命令，key的位置，必须是KEYS array, 否则直接返回error，”-ERR bad lua script for redis cluster, all the keys that the script uses should be passed using the KEYS array”</li>
-<li>2.所有key，必须在1个slot上，否则直接返回error, “-ERR eval/evalsha command keys must in same slot”</li>
-</ul>
-<h5 id="【建议】必要情况下使用monitor命令时，要注意不要长时间使用。"><a href="#【建议】必要情况下使用monitor命令时，要注意不要长时间使用。" class="headerlink" title="【建议】必要情况下使用monitor命令时，要注意不要长时间使用。"></a>【建议】必要情况下使用monitor命令时，要注意不要长时间使用。</h5><h4 id="客户端使用"><a href="#客户端使用" class="headerlink" title="客户端使用"></a>客户端使用</h4><h5 id="【推荐】"><a href="#【推荐】" class="headerlink" title="【推荐】"></a>【推荐】</h5><p>避免多个应用使用一个Redis实例</p>
-<p>正例：不相干的业务拆分，公共数据做服务化。</p>
-<h5 id="【推荐】-1"><a href="#【推荐】-1" class="headerlink" title="【推荐】"></a>【推荐】</h5><p>使用带有连接池的数据库，可以有效控制连接，同时提高效率，标准使用方式：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">执行命令如下：</span><br><span class="line">Jedis jedis = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    jedis = jedisPool.getResource();</span><br><span class="line">    <span class="comment">//具体的命令</span></span><br><span class="line">    jedis.executeCommand()</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    logger.error(<span class="string">"op key &#123;&#125; error: "</span> + e.getMessage(), key, e);</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">//注意这里不是关闭连接，在JedisPool模式下，Jedis会被归还给资源池。</span></span><br><span class="line">    <span class="keyword">if</span> (jedis != <span class="keyword">null</span>) </span><br><span class="line">        jedis.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>下面是JedisPool优化方法的文章:</p>
-<ul>
-<li><a href="https://yq.aliyun.com/articles/236384?spm=a2c4e.11153940.blogcont531067.15.fdaf744aJsGIwe" target="_blank" rel="noopener">Jedis常见异常汇总</a></li>
-<li><a href="https://yq.aliyun.com/articles/236383?spm=a2c4e.11153940.blogcont531067.16.fdaf744aJsGIwe" target="_blank" rel="noopener">JedisPool资源池优化</a></li>
-</ul>
-<h5 id="【建议】"><a href="#【建议】" class="headerlink" title="【建议】"></a>【建议】</h5><p>高并发下建议客户端添加熔断功能(例如netflix hystrix)</p>
-<h5 id="【推荐】-2"><a href="#【推荐】-2" class="headerlink" title="【推荐】"></a>【推荐】</h5><p>设置合理的密码，如有必要可以使用SSL加密访问（阿里云Redis支持）</p>
-<h5 id="【建议】-1"><a href="#【建议】-1" class="headerlink" title="【建议】"></a>【建议】</h5><p>根据自身业务类型，选好maxmemory-policy(最大内存淘汰策略)，设置好过期时间。</p>
-<p>默认策略是volatile-lru，即超过最大内存后，在过期键中使用lru算法进行key的剔除，保证不过期数据不被删除，但是可能会出现OOM问题。</p>
-<h5 id="其他策略如下："><a href="#其他策略如下：" class="headerlink" title="其他策略如下："></a>其他策略如下：</h5><ul>
-<li>allkeys-lru：根据LRU算法删除键，不管数据有没有设置超时属性，直到腾出足够空间为止。</li>
-<li>allkeys-random：随机删除所有键，直到腾出足够空间为止。</li>
-<li>volatile-random:随机删除过期键，直到腾出足够空间为止。</li>
-<li>volatile-ttl：根据键值对象的ttl属性，删除最近将要过期数据。如果没有，回退到noeviction策略。</li>
-<li>noeviction：不会剔除任何数据，拒绝所有写入操作并返回客户端错误信息”(error) OOM command not allowed when used memory”，此时Redis只响应读操作。</li>
-</ul>
-<h4 id="相关工具"><a href="#相关工具" class="headerlink" title="相关工具"></a>相关工具</h4><h5 id="【推荐】：数据同步"><a href="#【推荐】：数据同步" class="headerlink" title="【推荐】：数据同步"></a>【推荐】：数据同步</h5><p>redis间数据同步可以使用：redis-port</p>
-<h5 id="【推荐】：big-key搜索"><a href="#【推荐】：big-key搜索" class="headerlink" title="【推荐】：big key搜索"></a>【推荐】：big key搜索</h5><p><a href="https://yq.aliyun.com/articles/117042?spm=a2c4e.11153940.blogcont531067.17.fdaf744aJsGIwe" target="_blank" rel="noopener">redis大key搜索工具</a></p>
-<h5 id="【推荐】：热点key寻找-内部实现使用monitor，所以建议短时间使用"><a href="#【推荐】：热点key寻找-内部实现使用monitor，所以建议短时间使用" class="headerlink" title="【推荐】：热点key寻找(内部实现使用monitor，所以建议短时间使用)"></a>【推荐】：热点key寻找(内部实现使用monitor，所以建议短时间使用)</h5><p><a href="https://github.com/facebookarchive/redis-faina" target="_blank" rel="noopener">facebook的redis-faina</a></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">阿里云Redis已经在内核层面解决热点key问题，欢迎使用。</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/04/21/阿里云Redis开发规范/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1259,7 +1244,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">67</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
