@@ -291,6 +291,174 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/20/消息队列的本质区别/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/05/20/消息队列的本质区别/" itemprop="url">消息队列的本质区别</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-20T22:58:26+08:00">
+                2019-05-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/中间件/" itemprop="url" rel="index">
+                    <span itemprop="name">中间件</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>平时经常会看到很多人写文章分析Kafka、RabbitMQ、RocketMQ等各种MQ之间的性能比较，功能比较，但是实际上从MQ消息队列的门派上来说，这些MQ其实是分属不同的门派的。</p>
+<p>那么这不同的门派之间，到底有什么区别呢？</p>
+<h4 id="有Broker的暴力路由"><a href="#有Broker的暴力路由" class="headerlink" title="有Broker的暴力路由"></a>有Broker的暴力路由</h4><p>这个流派最典型的就是Kafka了，Kafka实际上为了提升性能，简化了MQ功能模型，仅仅提供了一些最基础的MQ相关的功能，但是大幅度优化和提升了吞吐量。</p>
+<p>首先，这个流派一定是有一个Broker角色的，也就是说，Kafka需要部署一套服务器集群，每台机器上都有一个Kafka Broker进程，这个进程就负责接收请求，存储数据，发送数据。</p>
+<p>Kafka的生产消费模型做的相对是比较暴力简单的，就是简单的数据流模型。</p>
+<p>简单来说，他有一个概念，叫做“<strong>Topic</strong>”，你可以往这个“Topic”里写数据，然后让别人从这里来消费。</p>
+<p>这个Topic可以划分为多个Partition，每个Partition放一台机器上，存储一部分数据。</p>
+<p>在写消息到Topic的时候，会自动把你这个消息给分发到某一个Partition上去。</p>
+<p>然后消费消息的时候，有一个<strong>Consumer Group</strong>的概念，你部署在多台机器上的Consumer可以组成一个Group，一个Partition只能给一个Consumer消费，一个Cosumer可以消费多个Partition，这是最最核心的一点。</p>
+<p>通过这个模型，保证一个Topic里的每条消息，只会交给Consumer Group里的一个Consumer来消费，形成了一个Queue（队列）的效果。</p>
+<p>假如你想要有一个Queue的效果，也就是希望不停的往Queue里写数据，然后多个消费者消费，每条消息就只能给一个消费者，那么通过Kafka来实现，其实就是生产者写多个Partition，每个Partition只能给Consumer Group中的一个Consumer来消费。如下图所示：</p>
+<img src="/2019/05/20/消息队列的本质区别/图1.jpg" title="图1">
+<p>如果要实现Publish/Subscribe的模型呢？就是说生产者发送的每条消息，都要让所有消费都消费到，怎么实现？</p>
+<p>那就让每个消费者都是一个独立的消费组，这样每条消息都会发送给所有的消费组，每个消费组里那唯一的一个消费者一定会消费到所有的消息。</p>
+<img src="/2019/05/20/消息队列的本质区别/图2.jpg" title="图2">
+<p>但是除此之外，Kafka就没有任何其他的消费功能了，就是如此简单，所以属于一种比较暴力直接的流派。</p>
+<p>它就是简单的消费模型，实现最基础的Queue和Pub/Sub两种消费模型，但是内核中大幅度优化和提升了性能以及吞吐量。</p>
+<p>所以Kafka天生适合的场景，就是大数据领域的实时数据计算的场景。</p>
+<p>因为在大数据的场景下，通常是弱业务的场景，没有太多复杂的业务系统交互，而主要是大量的数据流入Kafka，然后进行实时计算。</p>
+<p>所以就是需要简单的消费模型，但是必须在内核中对吞吐量和性能进行大幅度的优化。</p>
+<p>因此Kafka技术通常是在大数据的实时数据计算领域中使用的，比如说每秒处理几十万条消息，甚至每秒处理上百万条消息。</p>
+<h4 id="有Broker的复杂路由"><a href="#有Broker的复杂路由" class="headerlink" title="有Broker的复杂路由"></a>有Broker的复杂路由</h4><p>第二个流派，就是<strong>RabbitMQ</strong>为代表的流派，他强调的不是说如何提升性能和吞吐量，关注的是说要提供非常强大、复杂而且完善的消息路由功能。</p>
+<p>所以对于RabbitMQ而言，他就不是那么简单的Topic-Partition的消费模型了。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/05/20/消息队列的本质区别/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/18/JVM的垃圾回收机制/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1039,195 +1207,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/21/Unix与Java的IO模型/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/21/Unix与Java的IO模型/" itemprop="url">Unix与Java的IO模型</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-21T13:25:44+08:00">
-                2019-04-21
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/网络/" itemprop="url" rel="index">
-                    <span itemprop="name">网络</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>要搞明白IO相关的概念，首先就得弄清楚同步与异步，阻塞与非阻塞到底是什么意思。</p>
-<h4 id="同步与异步"><a href="#同步与异步" class="headerlink" title="同步与异步"></a>同步与异步</h4><p>想要搞明白IO模型，就先得搞明白“同步”与“异步”的关系。</p>
-<p>所谓的“<strong>同步</strong>”，比如说调用者去调用一个接口，这个接口比如要执行一些磁盘文件读写操作，或者是网络通信操作。</p>
-<p>假设是“同步”的模式，调用者必须要等待这个接口的磁盘读写或者网络通信的操作执行完毕了，调用者才能返回，这就是“同步”，如下图所示：</p>
-<img src="/2019/04/21/Unix与Java的IO模型/图1.jpg" title="图1">
-<p>所谓的“<strong>异步</strong>”，就是说这个调用者调用接口之后，直接就返回了，他去干别的事儿了，也不管那个接口的磁盘读写或者是网络通信是否成功。</p>
-<p>然后这个接口后续如果干完了自己的任务，比如写完了文件或者是什么的，会反过来通知调用者，之前你的那个调用成功了。可以通过一些内部通信机制来通知，也可以通过回调函数来通知，如下图。</p>
-<img src="/2019/04/21/Unix与Java的IO模型/图2.jpg" title="图2">
-<h5 id="用生活中的例子理解同步与异步"><a href="#用生活中的例子理解同步与异步" class="headerlink" title="用生活中的例子理解同步与异步"></a>用生活中的例子理解同步与异步</h5><p>如果给大家举个生活中的例子，那么就可以用买烟这个事儿来举个例子</p>
-<p>比如说现在你要去一个柜台买很多条香烟，但是现在柜台没那么多货，他需要打电话给库房来查一下有没有足够的货。</p>
-<p>这个时候，库房的工作人员正好去吃饭了，那现在你有<strong>两种选择：</strong></p>
-<p>第一种选择，你可以在柜台等着，一直等待库房工作人员回来，柜台专员打通电话给他查到了库存是否充足，你再走。</p>
-<p>这个就是“同步”，你找柜台工作人员买香烟，他要打电话给库房工作人员问库存，如果你选择“同步”模式，那么你就在柜台一直等着，直到成功查询到库存为止。</p>
-<p>第二种选择，你可以先回家干点儿别的，比如说洗衣服做饭之类的，然后过了一会儿，柜台工作人员打通电话给库房工作人员，查到香烟库存了，就会打个电话给你，告诉你这个事儿。</p>
-<p>这就是“异步”，你跟柜台工作人员说了这个事儿，就直接走了，干别的去了，柜台工作人员后面完成他的任务之后，就会反过来打电话回调通知你。</p>
-<h4 id="阻塞与非阻塞"><a href="#阻塞与非阻塞" class="headerlink" title="阻塞与非阻塞"></a>阻塞与非阻塞</h4><p>实际上阻塞与非阻塞的概念，通常是针对底层的IO操作来说的。</p>
-<p>比如现在我们的程序想要通过网络读取数据，如果是阻塞IO模式，一旦发起请求到操作系统内核去从网络中读取数据，就会<strong>阻塞</strong>在那里，必须要等待网络中的数据到达了之后，才能从网络读取数据到内核，再从内核返回给程序，如下图。</p>
-<img src="/2019/04/21/Unix与Java的IO模型/图3.jpg" title="图3">
-<p>而<strong>非阻塞</strong>，指的就是程序发送请求给内核要从网络读取数据，但是此时网络中的数据还没到，此时不会阻塞住，内核会返回一个异常消息给程序。</p>
-<p>程序就可以干点儿别的，然后过一会儿再来发起一次请求给内核，让内核尝试从网络读取数据。</p>
-<p>因为如果网络中的数据还没到位，是不会阻塞住程序的，需要程序自己不断的轮询内核去尝试读取数据，所以这种IO就是非阻塞的。如下图：</p>
-<img src="/2019/04/21/Unix与Java的IO模型/图4.jpg" title="图4">
-<p>不要把“同步/异步”概念和“阻塞/非阻塞”概念混淆起来，实际上他们是两组不同的概念。</p>
-<p>“同步/异步”更多的是针对比如接口调用，服务调用，API类库调用，类似这样的场景。</p>
-<p>而“阻塞/非阻塞”概念针对的是底层IO操作的场景，比如磁盘IO，网络IO。但是在Java IO模型里，两种概念之间是有一定的关联关系的 。</p>
-<h4 id="Unix支持的5种IO模型"><a href="#Unix支持的5种IO模型" class="headerlink" title="Unix支持的5种IO模型"></a>Unix支持的5种IO模型</h4><p>Unix操作系统支持的IO模型主要就是5种：</p>
-<ol>
-<li><strong>阻塞IO</strong>：就是上面图里的那种阻塞IO模式，程序发起请求之后会阻塞，一直到系统内核发现网络中有数据到达了，拷贝数据给程序进程了，才能返回</li>
-<li><strong>非阻塞IO</strong>：就是上面图里的那种非阻塞IO模式，程序发起请求读取数据，系统内核发现网络数据还没到，就返回一个异常信息，程序不会阻塞在IO操作上，但是过一会儿还得再来发起请求给内核，直到内核发现网络数据到达了，此时就会拷贝数据给程序进程</li>
-<li><strong>IO多路复用</strong>：这个下面来讲</li>
-<li><strong>信号驱动式IO</strong>：一般很少用到，这里不说明</li>
-<li><strong>异步IO</strong>：下面来讲</li>
-</ol>
-<h4 id="JDK-1-4之前的同步阻塞IO"><a href="#JDK-1-4之前的同步阻塞IO" class="headerlink" title="JDK 1.4之前的同步阻塞IO"></a>JDK 1.4之前的同步阻塞IO</h4><p>在JDK 1.4之前，主要就是同步阻塞IO模型，在Java里叫做BIO。</p>
-<p>在Java代码里调用IO相关接口，发起IO操作之后，Java程序就会同步等待，这个同步指的是Java程序调用IO API接口的层面而言。</p>
-<p>而IO API在底层的IO操作是基于<strong>阻塞IO</strong>来的，向操作系统内核发起IO请求，系统内核会等待数据就位之后，才会执行IO操作，执行完毕了才会返回。</p>
-<h4 id="JDK-1-4之后的同步非阻塞NIO"><a href="#JDK-1-4之后的同步非阻塞NIO" class="headerlink" title="JDK 1.4之后的同步非阻塞NIO"></a>JDK 1.4之后的同步非阻塞NIO</h4><p>在JDK 1.4之后提供了<strong>NIO</strong>，他的概念是<strong>同步非阻塞</strong>，也就是说如果你调用NIO接口去执行IO操作，其实还是同步等待的，但是在底层的IO操作上 ，会对系统内核发起非阻塞IO请求，以非阻塞的形式来执行IO。</p>
-<p>也就是说，如果底层数据没到位，那么内核返回异常信息，不会阻塞住，但是NIO接口内部会采用非阻塞方式过一会儿再次调用内核发起IO请求，直到成功为止。</p>
-<p>但是之所以说是同步非阻塞，这里的“同步”指的就是因为在你的Java代码调用NIO接口层面是同步的，你还是要同步等待底层IO操作真正完成了才可以返回，只不过在执行底层IO的时候采用了非阻塞的方式来执行罢了。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/04/21/Unix与Java的IO模型/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/">13</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1275,7 +1259,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-count">66</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
