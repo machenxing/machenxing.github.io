@@ -601,7 +601,6 @@
       </categories>
       <tags>
         <tag>对象</tag>
-        <tag>对象引用</tag>
       </tags>
   </entry>
   <entry>
@@ -745,10 +744,10 @@
         <category>多线程</category>
       </categories>
       <tags>
+        <tag>并发</tag>
         <tag>内存</tag>
         <tag>脏读</tag>
         <tag>锁</tag>
-        <tag>volatile</tag>
         <tag>happens-before</tag>
         <tag>synchronized</tag>
       </tags>
