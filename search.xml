@@ -32,6 +32,7 @@
         <tag>垃圾回收</tag>
         <tag>对象</tag>
         <tag>内存</tag>
+        <tag>CPU</tag>
       </tags>
   </entry>
   <entry>
@@ -261,6 +262,7 @@
         <tag>数据库</tag>
         <tag>索引</tag>
         <tag>数据结构</tag>
+        <tag>CPU</tag>
       </tags>
   </entry>
   <entry>
@@ -274,6 +276,7 @@
         <tag>Linux</tag>
         <tag>类</tag>
         <tag>线程</tag>
+        <tag>CPU</tag>
       </tags>
   </entry>
   <entry>
@@ -574,6 +577,7 @@
         <tag>内存</tag>
         <tag>线程</tag>
         <tag>数据结构</tag>
+        <tag>CPU</tag>
         <tag>锁</tag>
         <tag>缓存</tag>
         <tag>Redis</tag>
@@ -746,8 +750,8 @@
         <tag>内存</tag>
         <tag>脏读</tag>
         <tag>锁</tag>
-        <tag>synchronized</tag>
         <tag>happens-before</tag>
+        <tag>synchronized</tag>
       </tags>
   </entry>
   <entry>
