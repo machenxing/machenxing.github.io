@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT">
+  <meta name="keywords" content="MQ,">
 
 
 
@@ -79,13 +79,21 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="Star&#39;s Blog">
-<meta property="og:url" content="http://yoursite.com/archives/2018/12/page/2/index.html">
+<meta name="description" content="背景引入：很多同学看不懂kafka参数今天给大家聊一个很有意思的话题，大家知道很多公司都会基于Kafka作为MQ来开发一些复杂的大型系统。 而在使用Kafka的客户端编写代码与服务器交互的时候，是需要对客户端设置很多的参数的。 所以我就见过很多年轻的同学，可能刚刚加入团队，对Kafka这个技术其实并不是很了解。 此时就会导致他们看团队里的一些资深同事写的一些代码，会看不懂是怎么回事，不了解背后的含">
+<meta name="keywords" content="MQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kafka参数调优实战">
+<meta property="og:url" content="http://yoursite.com/2019/05/31/Kafka参数调优实战/index.html">
 <meta property="og:site_name" content="Star&#39;s Blog">
+<meta property="og:description" content="背景引入：很多同学看不懂kafka参数今天给大家聊一个很有意思的话题，大家知道很多公司都会基于Kafka作为MQ来开发一些复杂的大型系统。 而在使用Kafka的客户端编写代码与服务器交互的时候，是需要对客户端设置很多的参数的。 所以我就见过很多年轻的同学，可能刚刚加入团队，对Kafka这个技术其实并不是很了解。 此时就会导致他们看团队里的一些资深同事写的一些代码，会看不懂是怎么回事，不了解背后的含">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/05/31/Kafka参数调优实战/图1.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/05/31/Kafka参数调优实战/图2.jpg">
+<meta property="og:updated_time" content="2019-05-31T09:27:43.315Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Star&#39;s Blog">
+<meta name="twitter:title" content="Kafka参数调优实战">
+<meta name="twitter:description" content="背景引入：很多同学看不懂kafka参数今天给大家聊一个很有意思的话题，大家知道很多公司都会基于Kafka作为MQ来开发一些复杂的大型系统。 而在使用Kafka的客户端编写代码与服务器交互的时候，是需要对客户端设置很多的参数的。 所以我就见过很多年轻的同学，可能刚刚加入团队，对Kafka这个技术其实并不是很了解。 此时就会导致他们看团队里的一些资深同事写的一些代码，会看不懂是怎么回事，不了解背后的含">
+<meta name="twitter:image" content="http://yoursite.com/2019/05/31/Kafka参数调优实战/图1.jpg">
 
 
 
@@ -115,13 +123,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/archives/2018/12/page/2/">
+  <link rel="canonical" href="http://yoursite.com/2019/05/31/Kafka参数调优实战/">
 
 
 
 
 
-  <title>归档 | Star's Blog</title>
+  <title>Kafka参数调优实战 | Star's Blog</title>
   
 
 
@@ -140,7 +148,7 @@
     
   
 
-  <div class="container sidebar-position-left page-archive">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
@@ -276,75 +284,252 @@
           <div id="content" class="content">
             
 
+  <div id="posts" class="posts-expand">
+    
+
+  
+
   
   
   
-  <div class="post-block archive">
-    <div id="posts" class="posts-collapse">
-      <span class="archive-move-on"></span>
-
-      <span class="archive-page-counter">
-        
-        
-         
-          
-        好! 目前共计 69 篇日志。 继续努力。
-      </span>
-
-      
-
-        
-        
-        
-
-        
-          
-          <div class="collection-title">
-            <h1 class="archive-year" id="archive-year-2018">2018</h1>
-          </div>
-        
-        
-
-        
 
   <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/31/Kafka参数调优实战/">
 
-      <h2 class="post-title">
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
         
-            <a class="post-title-link" href="/2018/12/02/MySQL高性能优化原理/" itemprop="url">
-              
-                <span itemprop="name">MySQL高性能优化原理</span>
-              
-            </a>
         
-      </h2>
+          <h1 class="post-title" itemprop="name headline">Kafka参数调优实战</h1>
+        
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2018-12-02T19:42:56+08:00" content="2018-12-02">
-          12-02
-        </time>
-      </div>
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-31T17:13:15+08:00">
+                2019-05-31
+              </time>
+            
 
-    </header>
-  </article>
+            
 
+            
+          </span>
 
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/中间件/" itemprop="url" rel="index">
+                    <span itemprop="name">中间件</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
+      
 
+      
+        <h4 id="背景引入：很多同学看不懂kafka参数"><a href="#背景引入：很多同学看不懂kafka参数" class="headerlink" title="背景引入：很多同学看不懂kafka参数"></a>背景引入：很多同学看不懂kafka参数</h4><p>今天给大家聊一个很有意思的话题，大家知道很多公司都会基于Kafka作为MQ来开发一些复杂的大型系统。</p>
+<p>而在使用Kafka的客户端编写代码与服务器交互的时候，是需要对客户端设置很多的参数的。</p>
+<p>所以我就见过很多年轻的同学，可能刚刚加入团队，对Kafka这个技术其实并不是很了解。</p>
+<p>此时就会导致他们看团队里的一些资深同事写的一些代码，会看不懂是怎么回事，不了解背后的含义，这里面尤其是一些<strong>Kafka参数的设置</strong>。</p>
+<p>所以这篇文章，我们还是采用老规矩画图的形式，来聊聊Kafka生产端一些常见参数的设置，让大家下次看到一些Kafka客户端设置的参数时，不会再感到发怵。</p>
+<h4 id="一段Kafka生产端的示例代码"><a href="#一段Kafka生产端的示例代码" class="headerlink" title="一段Kafka生产端的示例代码"></a>一段Kafka生产端的示例代码</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Properties props = <span class="keyword">new</span> Properties();</span><br><span class="line">props.put(<span class="string">"bootstrap.servers"</span>, <span class="string">"localhost:9092"</span>); </span><br><span class="line">props.put(<span class="string">"key.serializer"</span>, <span class="string">"org.apache.kafka.common.serialization.StringSerializer"</span>);</span><br><span class="line">props.put(<span class="string">"value.serializer"</span>, <span class="string">"org.apache.kafka.common.serialization.StringSerializer"</span>);</span><br><span class="line">props.put(<span class="string">"buffer.memory"</span>, <span class="number">67108864</span>); </span><br><span class="line">props.put(<span class="string">"batch.size"</span>, <span class="number">131072</span>); </span><br><span class="line">props.put(<span class="string">"linger.ms"</span>, <span class="number">100</span>); </span><br><span class="line">props.put(<span class="string">"max.request.size"</span>, <span class="number">10485760</span>); </span><br><span class="line">props.put(<span class="string">"acks"</span>, <span class="string">"1"</span>); </span><br><span class="line">props.put(<span class="string">"retries"</span>, <span class="number">10</span>); </span><br><span class="line">props.put(<span class="string">"retry.backoff.ms"</span>, <span class="number">500</span>);</span><br><span class="line"></span><br><span class="line">KafkaProducer&lt;String, String&gt; producer = <span class="keyword">new</span> KafkaProducer&lt;String, String&gt;(props);</span><br></pre></td></tr></table></figure>
+<h4 id="内存缓冲的大小"><a href="#内存缓冲的大小" class="headerlink" title="内存缓冲的大小"></a>内存缓冲的大小</h4><p>首先我们看看“buffer.memory”这个参数是什么意思？</p>
+<p>Kafka的客户端发送数据到服务器，一般都是要经过缓冲的，也就是说，你通过KafkaProducer发送出去的消息都是先进入到客户端本地的内存缓冲里，然后把很多消息收集成一个一个的Batch，再发送到Broker上去的。</p>
+<img src="/2019/05/31/Kafka参数调优实战/图1.jpg" title="图1">
+<p>所以这个“buffer.memory”的本质就是用来约束KafkaProducer能够使用的内存缓冲的大小的，他的默认值是32MB。</p>
+<p>那么既然了解了这个含义，大家想一下，在生产项目里，这个参数应该怎么来设置呢？</p>
+<p>你可以先想一下，如果这个内存缓冲设置的过小的话，可能会导致一个什么问题？</p>
+<p>首先要明确一点，那就是在内存缓冲里大量的消息会缓冲在里面，形成一个一个的Batch，每个Batch里包含多条消息。</p>
+<p>然后KafkaProducer有一个Sender线程会把多个Batch打包成一个Request发送到Kafka服务器上去。</p>
+<img src="/2019/05/31/Kafka参数调优实战/图2.jpg" title="图2">
+<p>那么如果要是内存设置的太小，可能<strong>导致一个问题</strong>：消息快速的写入内存缓冲里面，但是Sender线程来不及把Request发送到Kafka服务器。</p>
+ <a id="more"></a> 
+<p>这样是不是会造成内存缓冲很快就被写满？一旦被写满，就会阻塞用户线程，不让继续往Kafka写消息了。</p>
+<p>所以对于“buffer.memory”这个参数应该结合自己的实际情况来进行压测，你需要测算一下在生产环境，你的用户线程会以每秒多少消息的频率来写入内存缓冲。</p>
+<p>比如说每秒300条消息，那么你就需要压测一下，假设内存缓冲就32MB，每秒写300条消息到内存缓冲，是否会经常把内存缓冲写满？经过这样的压测，你可以调试出来一个合理的内存大小。</p>
+<h4 id="多少数据打包为一个Batch合适？"><a href="#多少数据打包为一个Batch合适？" class="headerlink" title="多少数据打包为一个Batch合适？"></a>多少数据打包为一个Batch合适？</h4><p>接着你需要思考第二个问题，就是你的“batch.size”应该如何设置？这个东西是决定了你的每个Batch要存放多少数据就可以发送出去了。</p>
+<p>比如说你要是给一个Batch设置成是16KB的大小，那么里面凑够16KB的数据就可以发送了。</p>
+<p>这个参数的默认值是16KB，一般可以尝试把这个参数调节大一些，然后利用自己的生产环境发消息的负载来测试一下。</p>
+<p>比如说发送消息的频率就是每秒300条，那么如果比如“batch.size”调节到了32KB，或者64KB，是否可以提升发送消息的整体吞吐量。</p>
+<p>因为理论上来说，提升batch的大小，可以允许更多的数据缓冲在里面，那么一次Request发送出去的数据量就更多了，这样吞吐量可能会有所提升。</p>
+<p>但是这个东西也不能无限的大，过于大了之后，要是数据老是缓冲在Batch里迟迟不发送出去，那么岂不是你发送消息的延迟就会很高。</p>
+<p>比如说，一条消息进入了Batch，但是要等待5秒钟Batch才凑满了64KB，才能发送出去。那这条消息的延迟就是5秒钟。</p>
+<p>所以需要在这里按照生产环境的发消息的速率，调节不同的Batch大小自己测试一下最终出去的吞吐量以及消息的 延迟，设置一个最合理的参数。</p>
+<h4 id="要是一个Batch迟迟无法凑满怎么办？"><a href="#要是一个Batch迟迟无法凑满怎么办？" class="headerlink" title="要是一个Batch迟迟无法凑满怎么办？"></a>要是一个Batch迟迟无法凑满怎么办？</h4><p>要是一个Batch迟迟无法凑满，此时就需要引入另外一个参数了，“linger.ms”</p>
+<p>他的含义就是说一个Batch被创建之后，最多过多久，不管这个Batch有没有写满，都必须发送出去了。</p>
+<p>给大家举个例子，比如说batch.size是16kb，但是现在某个低峰时间段，发送消息很慢。</p>
+<p>这就导致可能Batch被创建之后，陆陆续续有消息进来，但是迟迟无法凑够16KB，难道此时就一直等着吗？</p>
+<p>当然不是，假设你现在设置“linger.ms”是50ms，那么只要这个Batch从创建开始到现在已经过了50ms了，哪怕他还没满16KB，也要发送他出去了。</p>
+<p>所以“linger.ms”决定了你的消息一旦写入一个Batch，最多等待这么多时间，他一定会跟着Batch一起发送出去。</p>
+<p>避免一个Batch迟迟凑不满，导致消息一直积压在内存里发送不出去的情况。<strong>这是一个很关键的参数。</strong></p>
+<p>这个参数一般要非常慎重的来设置，要配合batch.size一起来设置。</p>
+<p>举个例子，首先假设你的Batch是32KB，那么你得估算一下，正常情况下，一般多久会凑够一个Batch，比如正常来说可能20ms就会凑够一个Batch。</p>
+<p>那么你的linger.ms就可以设置为25ms，也就是说，正常来说，大部分的Batch在20ms内都会凑满，但是你的linger.ms可以保证，哪怕遇到低峰时期，20ms凑不满一个Batch，还是会在25ms之后强制Batch发送出去。</p>
+<p>如果要是你把linger.ms设置的太小了，比如说默认就是0ms，或者你设置个5ms，那可能导致你的Batch虽然设置了32KB，但是经常是还没凑够32KB的数据，5ms之后就直接强制Batch发送出去，这样也不太好其实，会导致你的Batch形同虚设，一直凑不满数据。</p>
+<h4 id="最大请求大小"><a href="#最大请求大小" class="headerlink" title="最大请求大小"></a>最大请求大小</h4><p>“max.request.size”这个参数决定了每次发送给Kafka服务器请求的最大大小，同时也会限制你一条消息的最大大小也不能超过这个参数设置的值，这个其实可以根据你自己的消息的大小来灵活的调整。</p>
+<p>给大家举个例子，你们公司发送的消息都是那种大的报文消息，每条消息都是很多的数据，一条消息可能都要20KB。</p>
+<p>此时你的batch.size是不是就需要调节大一些？比如设置个512KB？然后你的buffer.memory是不是要给的大一些？比如设置个128MB？</p>
+<p>只有这样，才能让你在大消息的场景下，还能使用Batch打包多条消息的机制。但是此时“max.request.size”是不是也得同步增加？</p>
+<p>因为可能你的一个请求是很大的，默认他是1MB，你是不是可以适当调大一些，比如调节到5MB？</p>
+<h4 id="重试机制"><a href="#重试机制" class="headerlink" title="重试机制"></a>重试机制</h4><p>“retries”和“retries.backoff.ms”决定了重试机制，也就是如果一个请求失败了可以重试几次，每次重试的间隔是多少毫秒。</p>
+<p>这个大家适当设置几次重试的机会，给一定的重试间隔即可，比如给100ms的重试间隔。</p>
+<h4 id="持久化机制"><a href="#持久化机制" class="headerlink" title="持久化机制"></a>持久化机制</h4><p>“acks”参数决定了发送出去的消息要采用什么样的持久化策略，这个涉及到了很多其他的概念，可以参考另一篇文章：</p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzU0OTk3ODQ3Ng==&amp;mid=2247485069&amp;idx=1&amp;sn=abd8ddc19fbb49c11c8ad9e1ffdff147&amp;chksm=fba6ee8eccd1679874d5bd19109ed8cb3daadf59dabe67c906f8caed0714ba2dda16f5a032ce&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">《简历写了会Kafka，面试官90%会让你讲讲acks参数对消息持久化的影响》</a>。</p>
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p>原文出处：微信公众号： 石杉的架构笔记</p>
+<p><a href="https://mp.weixin.qq.com/s/YLrGg-jx5ddmHECmdccppw" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/YLrGg-jx5ddmHECmdccppw</a></p>
+
+      
     </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>看官可在此打赏</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="Morning Star 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Morning Star 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/MQ/" rel="tag"># MQ</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/31/消息中间件消费到的消息处理失败怎么办？/" rel="next" title="消息中间件消费到的消息处理失败怎么办？">
+                <i class="fa fa-chevron-left"></i> 消息中间件消费到的消息处理失败怎么办？
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
-
-  
-  <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/archives/2018/12/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/archives/2018/12/">1</a><span class="page-number current">2</span>
-  </nav>
+  </article>
 
 
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -352,6 +537,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -372,8 +561,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
@@ -445,6 +643,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#背景引入：很多同学看不懂kafka参数"><span class="nav-number">1.</span> <span class="nav-text">背景引入：很多同学看不懂kafka参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#一段Kafka生产端的示例代码"><span class="nav-number">2.</span> <span class="nav-text">一段Kafka生产端的示例代码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内存缓冲的大小"><span class="nav-number">3.</span> <span class="nav-text">内存缓冲的大小</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#多少数据打包为一个Batch合适？"><span class="nav-number">4.</span> <span class="nav-text">多少数据打包为一个Batch合适？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#要是一个Batch迟迟无法凑满怎么办？"><span class="nav-number">5.</span> <span class="nav-text">要是一个Batch迟迟无法凑满怎么办？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最大请求大小"><span class="nav-number">6.</span> <span class="nav-text">最大请求大小</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重试机制"><span class="nav-number">7.</span> <span class="nav-text">重试机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#持久化机制"><span class="nav-number">8.</span> <span class="nav-text">持久化机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参考"><span class="nav-number">9.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -605,6 +819,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
