@@ -19,6 +19,7 @@
         <tag>分布式</tag>
         <tag>数据结构</tag>
         <tag>进程</tag>
+        <tag>MQ</tag>
       </tags>
   </entry>
   <entry>
@@ -159,6 +160,7 @@
       </categories>
       <tags>
         <tag>数据结构</tag>
+        <tag>MQ</tag>
       </tags>
   </entry>
   <entry>
@@ -222,6 +224,7 @@
       <tags>
         <tag>并发</tag>
         <tag>事务</tag>
+        <tag>MQ</tag>
         <tag>负载均衡</tag>
       </tags>
   </entry>
@@ -750,8 +753,8 @@
         <tag>内存</tag>
         <tag>脏读</tag>
         <tag>锁</tag>
-        <tag>happens-before</tag>
         <tag>synchronized</tag>
+        <tag>happens-before</tag>
       </tags>
   </entry>
   <entry>
