@@ -291,6 +291,203 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/07/Spring-Cloud各组件的作用/" itemprop="url">Spring Cloud各组件的作用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-07T17:45:54+08:00">
+                2018-12-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p><strong>概述</strong></p>
+<p>毫无疑问，Spring Cloud是目前微服务架构领域的翘楚，无数的书籍博客都在讲解这个技术。不过大多数讲解还停留在对Spring Cloud功能使用的层面，其底层的很多原理，很多人可能并不知晓。<strong>因此本文将通过大量的手绘图</strong>，给大家谈谈Spring Cloud微服务架构的底层原理。</p>
+<p>实际上，Spring Cloud是一个全家桶式的技术栈，包含了很多组件。本文先从其最核心的几个组件入手，来剖析一下其底层的工作原理。<strong>也就是Eureka、Ribbon、Feign、Hystrix、Zuul这几个组件。</strong></p>
+<h4 id="业务场景介绍"><a href="#业务场景介绍" class="headerlink" title="业务场景介绍"></a>业务场景介绍</h4><p>先来给大家说一个业务场景，假设咱们现在开发一个电商网站，要实现支付订单的功能，流程如下：</p>
+<ul>
+<li>创建一个订单之后，如果用户立刻支付了这个订单，我们需要将订单状态更新为“已支付”</li>
+<li>扣减相应的商品库存</li>
+<li>通知仓储中心，进行发货</li>
+<li>给用户的这次购物增加相应的积分</li>
+</ul>
+<p>针对上述流程，<strong>我们需要有订单服务、库存服务、仓储服务、积分服务</strong>。整个流程的大体思路如下：</p>
+<ul>
+<li>用户针对一个订单完成支付之后，就会去找订单服务，更新订单状态</li>
+<li>订单服务调用库存服务，完成相应功能</li>
+<li>订单服务调用仓储服务，完成相应功能</li>
+<li>订单服务调用积分服务，完成相应功能</li>
+</ul>
+<p><strong>至此，整个支付订单的业务流程结束</strong></p>
+<p>下图这张图，清晰表明了各服务间的调用过程：</p>
+<img src="/2018/12/07/Spring-Cloud各组件的作用/图1.jpg" title="图1">
+<p>有了业务场景之后，咱们就一起来看看Spring Cloud微服务架构中，这几个组件如何相互协作，各自发挥的作用以及其背后的原理。</p>
+<h4 id="核心组件：Eureka"><a href="#核心组件：Eureka" class="headerlink" title="核心组件：Eureka"></a>核心组件：Eureka</h4><p><strong>咱们来考虑第一个问题</strong>：订单服务想要调用库存服务、仓储服务，或者是积分服务，怎么调用？</p>
+<ul>
+<li>订单服务压根儿就不知道人家库存服务在哪台机器上啊！他就算想要发起一个请求，都不知道发送给谁，有心无力！</li>
+<li>这时候，就轮到Spring Cloud Eureka出场了。Eureka是微服务架构中的注册中心，专门负责服务的注册与发现。</li>
+</ul>
+<p> 咱们来看看下面的这张图，结合图来仔细剖析一下整个流程： </p>
+<img src="/2018/12/07/Spring-Cloud各组件的作用/图2.jpg" title="图2">
+<p>如上图所示，库存服务、仓储服务、积分服务中都有一个Eureka Client组件，这个组件专门负责将这个服务的信息注册到Eureka Server中。说白了，就是告诉Eureka Server，自己在哪台机器上，监听着哪个端口。而Eureka Server是一个注册中心，里面有一个注册表，保存了各服务所在的机器和端口号</p>
+<p>订单服务里也有一个Eureka Client组件，这个Eureka Client组件会找Eureka Server问一下：库存服务在哪台机器啊？监听着哪个端口啊？仓储服务呢？积分服务呢？然后就可以把这些相关信息从Eureka Server的注册表中拉取到自己本地缓存起来。</p>
+<p>这时如果订单服务想要调用库存服务，不就可以找自己本地的Eureka Client问一下库存服务在哪台机器？监听哪个端口吗？收到响应后，紧接着就可以发送一个请求过去，调用库存服务扣减库存的那个接口！同理，如果订单服务要调用仓储服务、积分服务，也是如法炮制。</p>
+<p>总结一下：</p>
+<ul>
+<li><strong>Eureka</strong> <strong>Client：</strong>负责将这个服务的信息注册到Eureka Server中</li>
+<li><strong>Eureka Server：</strong>注册中心，里面有一个注册表，保存了各个服务所在的机器和端口号</li>
+</ul>
+<h4 id="核心组件：Feign"><a href="#核心组件：Feign" class="headerlink" title="核心组件：Feign"></a>核心组件：Feign</h4><p>现在订单服务确实知道库存服务、积分服务、仓库服务在哪里了，同时也监听着哪些端口号了。<strong>但是新问题又来了：难道订单服务要自己写一大堆代码，跟其他服务建立网络连接，然后构造一个复杂的请求，接着发送请求过去，最后对返回的响应结果再写一大堆代码来处理吗？</strong></p>
+<p>这是上述流程翻译的代码片段，咱们一起来看看，体会一下这种绝望而无助的感受！！！</p>
+<p><strong>友情提示，前方高能：</strong></p>
+<img src="/2018/12/07/Spring-Cloud各组件的作用/图3.jpg" title="图3">
+<p>看完上面那一大段代码，有没有感到后背发凉、一身冷汗？实际上你进行服务间调用时，如果每次都手写代码，代码量比上面那段要多至少几倍，所以这个事儿压根儿就不是地球人能干的。</p>
+<p>既然如此，那怎么办呢？别急，Feign早已为我们提供好了优雅的解决方案。来看看如果用Feign的话，你的订单服务调用库存服务的代码会变成啥样？</p>
+<img src="/2018/12/07/Spring-Cloud各组件的作用/图4.jpg" title="图4">
+<p>看完上面的代码什么感觉？是不是感觉整个世界都干净了，又找到了活下去的勇气！没有底层的建立连接、构造请求、解析响应的代码，直接就是用注解定义一个 FeignClient接口，然后调用那个接口就可以了。人家Feign Client会在底层根据你的注解，跟你指定的服务建立连接、构造请求、发起靕求、获取响应、解析响应，等等。这一系列脏活累活，人家Feign全给你干了。</p>
+<p>那么问题来了，Feign是如何做到这么神奇的呢？很简单，<strong>Feign的一个关键机制就是使用了动态代理</strong>。咱们一起来看看下面的图，结合图来分析：</p>
+<ul>
+<li>首先，如果你对某个接口定义了@FeignClient注解，Feign就会针对这个接口创建一个动态代理</li>
+<li>接着你要是调用那个接口，本质就是会调用 Feign创建的动态代理，这是核心中的核心</li>
+<li>Feign的动态代理会根据你在接口上的@RequestMapping等注解，来动态构造出你要请求的服务的地址</li>
+<li>最后针对这个地址，发起请求、解析响应</li>
+</ul>
+<img src="/2018/12/07/Spring-Cloud各组件的作用/图5.jpg" title="图5">
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/12/07/Spring-Cloud各组件的作用/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/04/Tomcat-并发量配置以及优化/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1013,195 +1210,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/11/Redis-持久化/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/11/11/Redis-持久化/" itemprop="url">Redis 持久化</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-11T20:07:18+08:00">
-                2018-11-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>Redis 提供了多种不同级别的持久化方式：</p>
-<ul>
-<li>RDB 持久化可以在指定的时间间隔内生成数据集的时间点快照（point-in-time snapshot）。</li>
-<li>AOF 持久化记录服务器执行的所有写操作命令，并在服务器启动时，通过重新执行这些命令来还原数据集。 AOF 文件中的命令全部以 Redis 协议的格式来保存，新命令会被追加到文件的末尾。 Redis 还可以在后台对 AOF 文件进行重写（rewrite），使得 AOF 文件的体积不会超出保存数据集状态所需的实际大小。</li>
-<li>Redis 还可以同时使用 AOF 持久化和 RDB 持久化。 在这种情况下， 当 Redis 重启时， 它会优先使用 AOF 文件来还原数据集， 因为 AOF 文件保存的数据集通常比 RDB 文件所保存的数据集更完整。</li>
-<li>甚至可以关闭持久化功能，让数据只在服务器运行时存在。</li>
-</ul>
-<p>了解 RDB 持久化和 AOF 持久化之间的异同是非常重要的， 以下几个小节将详细地介绍这这两种持久化功能， 并对它们的相同和不同之处进行说明。</p>
-<h4 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h4><h5 id="RDB-快照"><a href="#RDB-快照" class="headerlink" title="RDB 快照"></a>RDB 快照</h5><p>在默认情况下， Redis 将数据库快照保存在名字为 <code>dump.rdb</code> 的二进制文件中。</p>
-<p>你可以对 Redis 进行设置， 让它在“ <code>N</code> 秒内数据集至少有 <code>M</code> 个改动”这一条件被满足时， 自动保存一次数据集。</p>
-<p>你也可以通过调用 <a href="http://doc.redisfans.com/server/save.html#save" target="_blank" rel="noopener"><em>SAVE</em></a> 或者 <a href="http://doc.redisfans.com/server/bgsave.html#bgsave" target="_blank" rel="noopener"><em>BGSAVE</em></a> ， 手动让 Redis 进行数据集保存操作。</p>
-<p>比如说， 以下设置会让 Redis 在满足“ <code>60</code> 秒内有至少有 <code>1000</code> 个键被改动”这一条件时， 自动保存一次数据集：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">save 60 1000</span><br></pre></td></tr></table></figure>
-<p>这种持久化方式被称为快照（snapshot）。</p>
-<h5 id="快照的运作方式"><a href="#快照的运作方式" class="headerlink" title="快照的运作方式"></a>快照的运作方式</h5><p>当 Redis 需要保存 <code>dump.rdb</code> 文件时， 服务器执行以下操作：</p>
-<ol>
-<li>Redis 调用 <code>fork()</code> ，同时拥有父进程和子进程。</li>
-<li>子进程将数据集写入到一个临时 RDB 文件中。</li>
-<li>当子进程完成对新 RDB 文件的写入时，Redis 用新 RDB 文件替换原来的 RDB 文件，并删除旧的 RDB 文件。</li>
-</ol>
-<p>这种工作方式使得 Redis 可以从写时复制（copy-on-write）机制中获益。</p>
-<h5 id="RDB-的优点"><a href="#RDB-的优点" class="headerlink" title="RDB 的优点"></a>RDB 的优点</h5><ul>
-<li>RDB 是一个非常紧凑（compact）的文件，它保存了 Redis 在某个时间点上的数据集。 这种文件非常适合用于进行备份： 比如说，你可以在最近的 24 小时内，每小时备份一次 RDB 文件，并且在每个月的每一天，也备份一个 RDB 文件。 这样的话，即使遇上问题，也可以随时将数据集还原到不同的版本。</li>
-<li>RDB 非常适用于灾难恢复（disaster recovery）：它只有一个文件，并且内容都非常紧凑，可以（在加密后）将它传送到别的数据中心，或者亚马逊 S3 中。</li>
-<li>RDB 可以最大化 Redis 的性能：父进程在保存 RDB 文件时唯一要做的就是 <code>fork</code> 出一个子进程，然后这个子进程就会处理接下来的所有保存工作，父进程无须执行任何磁盘 I/O 操作。</li>
-<li>RDB 在恢复大数据集时的速度比 AOF 的恢复速度要快。</li>
-</ul>
-<h5 id="RDB-的缺点"><a href="#RDB-的缺点" class="headerlink" title="RDB 的缺点"></a>RDB 的缺点</h5><ul>
-<li>如果你需要尽量避免在服务器故障时丢失数据，那么 RDB 不适合你。 虽然 Redis 允许你设置不同的保存点（save point）来控制保存 RDB 文件的频率， 但是， 因为RDB 文件需要保存整个数据集的状态， 所以它并不是一个轻松的操作。 因此你可能会至少 5 分钟才保存一次 RDB 文件。 在这种情况下， 一旦发生故障停机， 你就可能会丢失好几分钟的数据。</li>
-<li>每次保存 RDB 的时候，Redis 都要 <code>fork()</code> 出一个子进程，并由子进程来进行实际的持久化工作。 在数据集比较庞大时， <code>fork()</code> 可能会非常耗时，造成服务器在某某毫秒内停止处理客户端； 如果数据集非常巨大，并且 CPU 时间非常紧张的话，那么这种停止时间甚至可能会长达整整一秒。 虽然 AOF 重写也需要进行 <code>fork()</code> ，但无论 AOF 重写的执行间隔有多长，数据的耐久性都不会有任何损失。</li>
-</ul>
-<h4 id="AOF（append-only-file）"><a href="#AOF（append-only-file）" class="headerlink" title="AOF（append-only file）"></a>AOF（append-only file）</h4><p>快照功能并不是非常耐久（durable）： 如果 Redis 因为某些原因而造成故障停机， 那么服务器将丢失最近写入、且仍未保存到快照中的那些数据。</p>
-<p>尽管对于某些程序来说， 数据的耐久性并不是最重要的考虑因素， 但是对于那些追求完全耐久能力（full durability）的程序来说， 快照功能就不太适用了。</p>
-<p>从 1.1 版本开始， Redis 增加了一种完全耐久的持久化方式： AOF 持久化。</p>
-<p>你可以通过修改配置文件来打开 AOF 功能：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">appendonly yes</span><br></pre></td></tr></table></figure>
-<p>从现在开始， 每当 Redis 执行一个改变数据集的命令时（比如 <a href="http://doc.redisfans.com/string/set.html#set" target="_blank" rel="noopener"><em>SET</em></a>）， 这个命令就会被追加到 AOF 文件的末尾。</p>
-<p>这样的话， 当 Redis 重新启时， 程序就可以通过重新执行 AOF 文件中的命令来达到重建数据集的目的。</p>
-<h5 id="AOF-重写"><a href="#AOF-重写" class="headerlink" title="AOF 重写"></a>AOF 重写</h5><p>因为 AOF 的运作方式是不断地将命令追加到文件的末尾， 所以随着写入命令的不断增加， AOF 文件的体积也会变得越来越大。</p>
-<p>举个例子， 如果你对一个计数器调用了 100 次 <a href="http://doc.redisfans.com/string/incr.html#incr" target="_blank" rel="noopener"><em>INCR</em></a> ， 那么仅仅是为了保存这个计数器的当前值， AOF 文件就需要使用 100 条记录（entry）。</p>
-<p>然而在实际上， 只使用一条 <a href="http://doc.redisfans.com/string/set.html#set" target="_blank" rel="noopener"><em>SET</em></a> 命令已经足以保存计数器的当前值了， 其余 99 条记录实际上都是多余的。</p>
-<p>为了处理这种情况， Redis 支持一种有趣的特性： 可以在不打断服务客户端的情况下， 对 AOF 文件进行重建（rebuild）。</p>
-<p>执行 <a href="http://doc.redisfans.com/server/bgrewriteaof.html#bgrewriteaof" target="_blank" rel="noopener"><em>BGREWRITEAOF</em></a> 命令， Redis 将生成一个新的 AOF 文件， 这个文件包含重建当前数据集所需的最少命令。</p>
-<p>Redis 2.2 需要自己手动执行 <a href="http://doc.redisfans.com/server/bgrewriteaof.html#bgrewriteaof" target="_blank" rel="noopener"><em>BGREWRITEAOF</em></a> 命令； Redis 2.4 则可以自动触发 AOF 重写， 具体信息请查看 2.4 的示例配置文件。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/11/11/Redis-持久化/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1254,7 +1262,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">67</span>
+                  <span class="site-state-item-count">68</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
