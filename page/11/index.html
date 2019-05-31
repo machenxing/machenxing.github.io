@@ -291,6 +291,202 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/01/为什么分布式一定要有Redis/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/01/为什么分布式一定要有Redis/" itemprop="url">为什么分布式一定要有Redis?</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-01T12:22:28+08:00">
+                2018-09-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>大部分写业务的程序员，在实际开发中使用 Redis 的时候，只会 Set Value 和 Get Value 两个操作，对 Redis 整体缺乏一个认知。 </p>
+<p>本文围绕以下几点进行阐述：</p>
+<ul>
+<li><strong>为什么使用 Redis</strong></li>
+<li><strong>使用 Redis 有什么缺点</strong></li>
+<li><strong>单线程的 Redis 为什么这么快</strong></li>
+<li><strong>Redis 的数据类型，以及每种数据类型的使用场景</strong></li>
+<li><strong>Redis 的过期策略以及内存淘汰机制</strong></li>
+<li><strong>Redis 和数据库双写一致性问题</strong></li>
+<li><strong>如何应对缓存穿透和缓存雪崩问题</strong></li>
+<li><strong>如何解决 Redis 的并发竞争 Key 问题</strong></li>
+</ul>
+<h4 id="为什么使用-Redis"><a href="#为什么使用-Redis" class="headerlink" title="为什么使用 Redis"></a>为什么使用 Redis</h4><p>我觉得在项目中使用 Redis，主要是从两个角度去考虑：性能和并发。</p>
+<p>当然，Redis 还具备可以做分布式锁等其他功能，但是如果只是为了分布式锁这些其他功能，完全还有其他中间件，如 ZooKeeper 等代替，并不是非要使用 Redis。因此，这个问题主要从性能和并发两个角度去答。点击<a href="https://mp.weixin.qq.com/s?__biz=MzA3MjMwMzg2Nw==&amp;mid=2247483698&amp;idx=1&amp;sn=d7e19e501b7d428f3f73fcc4f5f7e322&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">这里</a>查看Redis面试题汇总。</p>
+<h5 id="性能"><a href="#性能" class="headerlink" title="性能"></a><strong>性能</strong></h5><p>如下图所示，我们在碰到需要执行耗时特别久，且结果不频繁变动的 SQL，就特别适合将运行结果放入缓存。这样，后面的请求就去缓存中读取，使得请求能够迅速响应。</p>
+<img src="/2018/09/01/为什么分布式一定要有Redis/图1.jpg">
+<p><strong>题外话：</strong>忽然想聊一下这个迅速响应的标准。根据交互效果的不同，这个响应时间没有固定标准。</p>
+<p><strong>不过曾经有人这么告诉我：</strong>“在理想状态下，我们的页面跳转需要在瞬间解决，对于页内操作则需要在刹那间解决。另外，超过一弹指的耗时操作要有进度提示，并且可以随时中止或取消，这样才能给用户最好的体验。”</p>
+<p>那么瞬间、刹那、一弹指具体是多少时间呢？</p>
+<p><strong><em>根据《摩诃僧祗律》记载：</em></strong></p>
+<p><strong><em>一刹那者为一念，二十念为一瞬，二十瞬为一弹指，二十弹指为一罗预，二十罗预为一须臾，一日一夜有三十须臾。</em></strong></p>
+<p>那么，经过周密的计算，一瞬间为 0.36 秒、一刹那有 0.018 秒、一弹指长达 7.2 秒。</p>
+<h5 id="并发"><a href="#并发" class="headerlink" title="并发"></a><strong>并发</strong></h5><p>如下图所示，在大并发的情况下，所有的请求直接访问数据库，数据库会出现连接异常。</p>
+<p>这个时候，就需要使用 Redis 做一个缓冲操作，让请求先访问到 Redis，而不是直接访问数据库。点击<a href="https://mp.weixin.qq.com/s?__biz=MzA3MjMwMzg2Nw==&amp;mid=2247483698&amp;idx=1&amp;sn=d7e19e501b7d428f3f73fcc4f5f7e322&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">这里</a>查看Redis面试题汇总。</p>
+<img src="/2018/09/01/为什么分布式一定要有Redis/图2.jpg">
+<h4 id="使用-Redis-有什么缺点"><a href="#使用-Redis-有什么缺点" class="headerlink" title="使用 Redis 有什么缺点"></a>使用 Redis 有什么缺点</h4><p>大家用 Redis 这么久，这个问题是必须要了解的，基本上使用 Redis 都会碰到一些问题，常见的也就几个。</p>
+<p>回答主要是四个问题：</p>
+<ul>
+<li><strong>缓存和数据库双写一致性问题</strong></li>
+<li><strong>缓存雪崩问题</strong></li>
+<li><strong>缓存击穿问题</strong></li>
+<li><strong>缓存的并发竞争问题</strong></li>
+</ul>
+<p>这四个问题，我个人觉得在项目中是常遇见的，具体解决方案，后文给出。</p>
+<h4 id="单线程的-Redis-为什么这么快"><a href="#单线程的-Redis-为什么这么快" class="headerlink" title="单线程的 Redis 为什么这么快"></a>单线程的 Redis 为什么这么快</h4><p>这个问题是对 Redis 内部机制的一个考察。根据我的面试经验，很多人都不知道 Redis 是单线程工作模型。所以，这个问题还是应该要复习一下的。</p>
+<p>回答主要是以下三点：</p>
+<ul>
+<li><strong>纯内存操作</strong></li>
+<li><strong>单线程操作，避免了频繁的上下文切换</strong></li>
+<li><strong>采用了非阻塞 I/O 多路复用机制</strong></li>
+</ul>
+<p><strong>题外话：</strong>我们现在要仔细的说一说 I/O 多路复用机制，因为这个说法实在是太通俗了，通俗到一般人都不懂是什么意思。</p>
+<p><strong>打一个比方：</strong>小曲在 S 城开了一家快递店，负责同城快送服务。小曲因为资金限制，雇佣了一批快递员，然后小曲发现资金不够了，只够买一辆车送快递。</p>
+<h5 id="经营方式一"><a href="#经营方式一" class="headerlink" title="经营方式一"></a><strong>经营方式一</strong></h5><p>客户每送来一份快递，小曲就让一个快递员盯着，然后快递员开车去送快递。</p>
+<p>慢慢的小曲就发现了这种经营方式存在下述问题：</p>
+<ul>
+<li>几十个快递员基本上时间都花在了抢车上了，大部分快递员都处在闲置状态，谁抢到了车，谁就能去送快递。</li>
+<li>随着快递的增多，快递员也越来越多，小曲发现快递店里越来越挤，没办法雇佣新的快递员了。</li>
+<li>快递员之间的协调很花时间。</li>
+</ul>
+<p>综合上述缺点，小曲痛定思痛，提出了下面的经营方式。 </p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/09/01/为什么分布式一定要有Redis/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/30/遍历集合时删除元素，到底发生了什么/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -941,162 +1137,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/08/彻底理解HashMap/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/08/彻底理解HashMap/" itemprop="url">彻底理解HashMap</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-08T19:33:35+08:00">
-                2018-07-08
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java基础/" itemprop="url" rel="index">
-                    <span itemprop="name">Java基础</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p><strong>摘要：</strong></p>
-<p>　　HashMap是Map族中最为常用的一种，也是 Java Collection Framework 的重要成员。本文首先给出了 HashMap 的实质并概述了其与 Map、HashSet 的关系，紧接着给出了 HashMap 在 JDK 中的定义，并结合源码分析了其四种构造方式。最后，通过对 HashMap 的数据结构、实现原理、源码实现三个方面的剖析，深入到它底层 Hash 存储机制，解释了其底层数组长度总是 2 的 n 次方的原因，也揭示了其快速存取、扩容及扩容后的重哈希的原理与实现。</p>
-<p><strong>友情提示：</strong></p>
-<p>　　本文所有关于HashMap的源码都是基于 <strong>JDK 1.6</strong> 的，不同 JDK 版本之间也许会有些许差异，但不影响我们对 HashMap 的数据结构、原理等整体的把握和了解。</p>
-<h4 id="HashMap-概述"><a href="#HashMap-概述" class="headerlink" title="HashMap 概述"></a>HashMap 概述</h4><p>　　Map 是 Key-Value 对映射的抽象接口，该映射不包括重复的键，即一个键对应一个值。HashMap 是 Java Collection Framework 的重要成员，也是Map族(如下图所示)中我们最为常用的一种。简单地说，HashMap 是基于哈希表的 Map 接口的实现，以 Key-Value 的形式存在，即存储的对象是 Entry (同时包含了 Key 和 Value) 。在HashMap中，其会根据hash算法来计算key-value的存储位置并进行快速存取。特别地，<strong>HashMap最多只允许一条Entry的键为Null(多条会覆盖)，但允许多条Entry的值为Null。</strong>此外，HashMap 是 Map 的一个<strong>非同步</strong>的实现。 </p>
-<img src="/2018/07/08/彻底理解HashMap/图1.jpg" title="图1">
-<p>　　同样地，HashSet 也是 Java Collection Framework 的重要成员，是 Set 接口的常用实现类，但其与 HashMap 有很多相似之处。对于 HashSet 而言，其采用 Hash 算法决定元素在Set中的存储位置，这样可以保证元素的快速存取；对于 HashMap 而言，其将 key-value 当成一个整体(Entry 对象)来处理，其也采用同样的 Hash 算法去决定 key-value 的存储位置从而保证键值对的快速存取。<strong>虽然 HashMap 和 HashSet 实现的接口规范不同，但是它们底层的 Hash 存储机制完全相同。实际上，HashSet 本身就是在 HashMap 的基础上实现的。</strong>因此，通过对 HashMap 的数据结构、实现原理、源码实现三个方面了解，我们不但可以进一步掌握其底层的 Hash 存储机制，也有助于对 HashSet 的了解。</p>
-<p>　　必须指出的是，虽然容器号称存储的是 Java 对象，但实际上并不会真正将 Java 对象放入容器中，只是在容器中保留这些对象的引用。也就是说，Java 容器实际上包含的是引用变量，而这些引用变量指向了我们要实际保存的 Java 对象。</p>
-<h4 id="HashMap-在-JDK-中的定义"><a href="#HashMap-在-JDK-中的定义" class="headerlink" title="HashMap 在 JDK 中的定义"></a>HashMap 在 JDK 中的定义</h4><p>　　HashMap实现了Map接口，并继承 AbstractMap 抽象类，其中 Map 接口定义了键值映射规则。和 AbstractCollection抽象类在 Collection 族的作用类似， AbstractMap 抽象类提供了 Map 接口的骨干实现，以最大限度地减少实现Map接口所需的工作。HashMap 在JDK中的定义为：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HashMap</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">AbstractMap</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">implements</span> <span class="title">Map</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt;, <span class="title">Cloneable</span>, <span class="title">Serializable</span></span>&#123;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="HashMap-的构造函数"><a href="#HashMap-的构造函数" class="headerlink" title="HashMap 的构造函数"></a>HashMap 的构造函数</h4><p>　　HashMap 一共提供了四个构造函数，其中 默认无参的构造函数 和 参数为Map的构造函数 为 Java Collection Framework 规范的推荐实现，其余两个构造函数则是 HashMap 专门提供的。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/07/08/彻底理解HashMap/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1149,7 +1189,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">69</span>
+                  <span class="site-state-item-count">70</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1160,7 +1200,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
