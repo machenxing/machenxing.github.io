@@ -205,8 +205,8 @@
         <category>数据库</category>
       </categories>
       <tags>
-        <tag>数据库</tag>
         <tag>一致性</tag>
+        <tag>数据库</tag>
         <tag>分布式</tag>
         <tag>事务</tag>
       </tags>
@@ -461,8 +461,8 @@
         <category>数据库</category>
       </categories>
       <tags>
-        <tag>数据库</tag>
         <tag>一致性</tag>
+        <tag>数据库</tag>
         <tag>分布式</tag>
         <tag>事务</tag>
       </tags>
@@ -546,8 +546,8 @@
         <category>服务器</category>
       </categories>
       <tags>
-        <tag>数据库</tag>
         <tag>一致性</tag>
+        <tag>数据库</tag>
         <tag>缓存</tag>
       </tags>
   </entry>
@@ -560,7 +560,6 @@
       </categories>
       <tags>
         <tag>类</tag>
-        <tag>加载器</tag>
       </tags>
   </entry>
   <entry>
@@ -747,8 +746,8 @@
         <tag>内存</tag>
         <tag>脏读</tag>
         <tag>锁</tag>
-        <tag>happens-before</tag>
         <tag>synchronized</tag>
+        <tag>happens-before</tag>
       </tags>
   </entry>
   <entry>
