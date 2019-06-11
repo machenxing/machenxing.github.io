@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="并发,负载均衡,缓存,Redis,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="面对一个热点缓存，咱们的攻城狮兄弟应该如何设计系统架构，才能抗住瞬间高峰的粉丝流量！ 也希望能借着这种热点话题，帮大家重新复习一下热点缓存架构设计相关的技术要点！ 话不多说，进入正题！ 为什么要用缓存集群其实使用缓存集群的时候，最怕的就是热key、大value这两种情况，那啥叫热key大value呢？ 简单来说，热key，就是你的缓存集群中的某个key瞬间被数万甚至十万的并发请求打爆。大value">
+<meta name="keywords" content="并发,负载均衡,缓存,Redis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="热点缓存集群架构设计">
+<meta property="og:url" content="http://yoursite.com/2019/06/11/热点缓存集群架构设计/index.html">
+<meta property="og:site_name" content="Star&#39;s Blog">
+<meta property="og:description" content="面对一个热点缓存，咱们的攻城狮兄弟应该如何设计系统架构，才能抗住瞬间高峰的粉丝流量！ 也希望能借着这种热点话题，帮大家重新复习一下热点缓存架构设计相关的技术要点！ 话不多说，进入正题！ 为什么要用缓存集群其实使用缓存集群的时候，最怕的就是热key、大value这两种情况，那啥叫热key大value呢？ 简单来说，热key，就是你的缓存集群中的某个key瞬间被数万甚至十万的并发请求打爆。大value">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/06/11/热点缓存集群架构设计/图1.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/06/11/热点缓存集群架构设计/图2.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/06/11/热点缓存集群架构设计/图3.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/06/11/热点缓存集群架构设计/图4.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/06/11/热点缓存集群架构设计/图5.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/06/11/热点缓存集群架构设计/图6.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/06/11/热点缓存集群架构设计/图7.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/06/11/热点缓存集群架构设计/图8.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/06/11/热点缓存集群架构设计/图9.jpg">
+<meta property="og:updated_time" content="2019-06-11T13:35:19.792Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="热点缓存集群架构设计">
+<meta name="twitter:description" content="面对一个热点缓存，咱们的攻城狮兄弟应该如何设计系统架构，才能抗住瞬间高峰的粉丝流量！ 也希望能借着这种热点话题，帮大家重新复习一下热点缓存架构设计相关的技术要点！ 话不多说，进入正题！ 为什么要用缓存集群其实使用缓存集群的时候，最怕的就是热key、大value这两种情况，那啥叫热key大value呢？ 简单来说，热key，就是你的缓存集群中的某个key瞬间被数万甚至十万的并发请求打爆。大value">
+<meta name="twitter:image" content="http://yoursite.com/2019/06/11/热点缓存集群架构设计/图1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/11/热点缓存集群架构设计/">
+
+
+
+
+
+  <title>热点缓存集群架构设计 | Star's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Star's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Keep learning, Keep improving</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/11/热点缓存集群架构设计/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">热点缓存集群架构设计</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-11T21:14:42+08:00">
+                2019-06-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/系统架构/" itemprop="url" rel="index">
+                    <span itemprop="name">系统架构</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>面对一个热点缓存，咱们的攻城狮兄弟应该如何设计系统架构，才能抗住瞬间高峰的粉丝流量！</p>
+<p>也希望能借着这种热点话题，帮大家重新复习一下热点缓存架构设计相关的技术要点！</p>
+<p>话不多说，进入正题！</p>
+<h4 id="为什么要用缓存集群"><a href="#为什么要用缓存集群" class="headerlink" title="为什么要用缓存集群"></a>为什么要用缓存集群</h4><p>其实使用缓存集群的时候，最怕的就是热key、大value这两种情况，那啥叫热key大value呢？</p>
+<p>简单来说，<strong>热key</strong>，就是你的缓存集群中的某个key瞬间被数万甚至十万的并发请求打爆。<strong>大value</strong>，就是你的某个key对应的value可能有GB级的大小，导致查询value的时候导致网络相关的故障问题。</p>
+<p>我们先来看看下面一幅图，假设你手头有个系统，他本身是集群部署的，然后后面有一套缓存集群，这个集群不管你用redis cluster，还是memcached，或者是公司自研缓存集群，都可以。</p>
+<img src="/2019/06/11/热点缓存集群架构设计/图1.jpg" title="图1">
+<p>那么，这套系统用缓存集群干什么呢？</p>
+<p>很简单，在缓存里放一些平时不怎么变动的数据，然后用户在查询大量的平时不怎么变动的数据的时候，不就可以直接从缓存里走了吗？</p>
+<p>缓存集群的并发能力是很强的，而且读缓存的性能是很高的。举个例子，假设你每秒有2万请求，但是其中90%都是读请求，那么每秒1.8万请求都是在读一些不太变化的数据，而不是写数据。</p>
+<p>那此时你把这些数据都放在数据库里，然后每秒发送2万请求到数据库上读写数据，你觉得合适吗？</p>
+<p>当然不合适了，如果你要用数据库承载每秒2万请求的话，那么不好意思，你很可能就得搞分库分表 + 读写分离。</p>
+<p>比如你得分3个主库，承载每秒2000的写入请求，然后每个主库挂3个从库，一共9个从库承载每秒1.8万的读请求。</p>
+<p>这样的话，你可能就需要一共是12台高配置的数据库服务器，这是很耗费钱的，成本非常高，很不合适。</p>
+<p>大家看看下面的图，来体会下这种情况。</p>
+<img src="/2019/06/11/热点缓存集群架构设计/图2.jpg" title="图2">
+<p>因此，我们完全可以把平时不太变化的数据放在缓存集群里，缓存集群可以采用2主2从，主节点用来写入缓存，从节点用来读缓存。</p>
+<p>以缓存集群的性能，2个从节点完全可以用来承载每秒1.8万的大量读请求，然后3个数据库主库就是承载每秒2000的写请求和少量其他读请求就OK了。</p>
+<p>这样一来，你耗费的机器瞬间变成了<strong>4台缓存机器 + 3台数据库机器 = 7台机器</strong>，是不是比之前的12台机器减少了很大的资源开销？</p>
+<p>没错，缓存其实在系统架构里是非常重要的组成部分。很多时候，对于那些很少变化但是大量高并发读的数据，通过缓存集群来抗高并发读，是非常合适的。</p>
+<p>我们看看下面的图，体会一下这个过程。</p>
+<img src="/2019/06/11/热点缓存集群架构设计/图3.jpg" title="图3">
+<p>需要说明的是，这里所有的机器数量、并发请求量都是一个示例，大家主要是体会一下这个意思就好，其目的主要是给一些不太熟悉缓存相关技术的同学一点背景性的阐述，让这些同学能够理解在系统里用缓存集群承载读请求是什么意思。</p>
+<h4 id="20万用户同时访问一个热点缓存"><a href="#20万用户同时访问一个热点缓存" class="headerlink" title="20万用户同时访问一个热点缓存"></a>20万用户同时访问一个热点缓存</h4><p>好了，背景已经给大家解释清楚，现在就可以给大家说说今天重点要讨论的问题：<strong>热点缓存</strong>。</p>
+<p>我们来做一个假设，现在有10个缓存节点来抗大量的读请求。正常情况下，读请求应该是均匀的落在10个缓存节点上的，对吧！</p>
+<p>这10个缓存节点，每秒承载1万请求是差不多的。</p>
+<p>然后我们再做一个假设，你一个节点承载2万请求是极限，所以一般你就限制一个节点正常承载1万请求就ok了，稍微留一点buffer出来。</p>
+<p>好，所谓的热点缓存问题是什么意思呢？很简单，就是突然因为莫名的原因，出现大量的用户访问同一条缓存数据。</p>
+<p>比如林志玲突然宣布结婚，这时是不是会引发短时间内每秒都数十万用户去查看这条热点新闻？</p>
+<p>假设这条新闻就是一个缓存，对应一个缓存key，就存在一台缓存机器上，此时瞬时假设有20万请求奔向那一台机器上的一个key。</p>
+<p>此时会如何？我们看看下面的图，来体会一下这种绝望的感受。</p>
+ <a id="more"></a> 
+<img src="/2019/06/11/热点缓存集群架构设计/图4.jpg" title="图4">
+<p>很明显了，我们刚才假设的是一个缓存Slave节点最多每秒就是2万的请求，当然实际缓存单机承载5万~10万读请求也是可能的，这里就是一个假设。</p>
+<p>结果每秒突然奔过来20万请求到这台机器上，会怎么样？很简单，上面图里那台被20万请求指向的缓存机器会过度操劳而宕机的。</p>
+<p>那么如果缓存集群开始出现机器的宕机，此时会如何？</p>
+<p>此时读请求发现读不到数据，会从数据库里提取原始数据，然后放入剩余的其他缓存机器里去。但是接踵而来的每秒20万请求，会再次压垮其他的缓存机器。</p>
+<p>以此类推，最终导致缓存集群全盘崩溃，引发系统整体宕机。</p>
+<p>咱们看看下面的图，再感受一下这个恐怖的现场。</p>
+<img src="/2019/06/11/热点缓存集群架构设计/图5.jpg" title="图5">
+<h4 id="基于流式计算技术的缓存热点自动发现"><a href="#基于流式计算技术的缓存热点自动发现" class="headerlink" title="基于流式计算技术的缓存热点自动发现"></a>基于流式计算技术的缓存热点自动发现</h4><p>其实这里关键的一点，就是对于这种热点缓存，你的系统需要能够在热点缓存突然发生的时候，直接发现他，然后瞬间立马实现毫秒级的自动负载均衡。</p>
+<p>那么我们就先来说说，你如何自动发现热点缓存问题？</p>
+<p>首先你要知道，一般出现缓存热点的时候，你的每秒并发肯定是很高的，可能每秒都几十万甚至上百万的请求量过来，这都是有可能的。</p>
+<p>所以，此时完全可以基于大数据领域的流式计算技术来进行实时数据访问次数的统计，比如storm、spark streaming、flink。</p>
+<p>一旦在实时数据访问次数统计的过程中，比如发现一秒之内，某条数据突然访问次数超过了1000，就直接立马把这条数据判定为是热点数据，可以将这个发现出来的热点数据写入比如zookeeper中。</p>
+<p>当然，你的系统如何判定热点数据，可以根据自己的业务还有经验值来就可以了。</p>
+<p>大家看看下面这张图，看看整个流程是如何进行的。</p>
+<img src="/2019/06/11/热点缓存集群架构设计/图6.jpg" title="图6">
+<p>这里肯定有人会问，那你的流式计算系统在进行数据访问次数统计的时候，会不会也存在说单台机器被请求每秒几十万次的问题呢？</p>
+<p>答案是：<strong>否</strong></p>
+<p>因为流式计算技术，尤其是storm这种系统，他可以做到同一条数据的请求过来，先分散在很多机器里进行本地计算，最后再汇总局部计算结果到一台机器进行全局汇总。</p>
+<p>所以几十万请求可以先分散在比如100台机器上，每台机器统计了这条数据的几千次请求。</p>
+<p>然后100条局部计算好的结果汇总到一台机器做全局计算即可，所以基于流式计算技术来进行统计是不会有热点问题的。</p>
+<img src="/2019/06/11/热点缓存集群架构设计/图7.jpg" title="图7">
+<h4 id="热点缓存自动加载为JVM本地缓存"><a href="#热点缓存自动加载为JVM本地缓存" class="headerlink" title="热点缓存自动加载为JVM本地缓存"></a>热点缓存自动加载为JVM本地缓存</h4><p>我们自己的系统可以对<strong>zookeeper</strong>指定的热点缓存对应的<strong>znode</strong>进行监听，如果有变化他立马就可以感知到了。</p>
+<p>此时系统层就可以立马把相关的缓存数据从数据库加载出来，然后直接放在自己系统内部的本地缓存里即可。</p>
+<p>这个本地缓存，你用ehcache、hashmap，其实都可以，一切看自己的业务需求。我们这里主要说的就是将缓存集群里的集中式缓存，直接变成每个系统自己本地实现缓存即可，每个系统本地是无法缓存过多数据的。</p>
+<p>因为一般这种普通系统单实例部署机器可能就一个4核8G的机器，留给本地缓存的空间是很少的，所以用来放这种热点数据的本地缓存是最合适的，刚刚好。</p>
+<p>假设你的系统层集群部署了100台机器，那么好了，此时你100台机器瞬间在本地都会有一份热点缓存的副本。</p>
+<p>然后接下来对热点缓存的读操作，直接系统本地缓存读出来就给返回了，不用再走缓存集群了。</p>
+<p>这样的话，也不可能允许每秒20万的读请求到达缓存机器的一台机器上读一个热点缓存了，而是变成100台机器每台机器承载数千请求，那么那数千请求就直接从机器本地缓存返回数据了，这是没有问题的。</p>
+<p>我们再来画一幅图，一起来看看这个过程：</p>
+<img src="/2019/06/11/热点缓存集群架构设计/图8.jpg" title="图8">
+<h4 id="限流熔断保护"><a href="#限流熔断保护" class="headerlink" title="限流熔断保护"></a>限流熔断保护</h4><p>除此之外，在每个系统内部，其实还应该专门加一个对热点数据访问的限流熔断保护措施。</p>
+<p>每个系统实例内部，都可以加一个熔断保护机制，假设缓存集群最多每秒承载4万读请求，那么你一共有100个系统实例。</p>
+<p>你自己就该限制好，每个系统实例每秒最多请求缓存集群读操作不超过400次，一超过就可以熔断掉，不让请求缓存集群，直接返回一个空白信息，然后用户稍后会自行再次重新刷新页面之类的。</p>
+<p>通过系统层自己直接加限流熔断保护措施，可以很好的保护后面的缓存集群、数据库集群之类的不要被打死。</p>
+<p>再来一幅图，一起来看看：</p>
+<img src="/2019/06/11/热点缓存集群架构设计/图9.jpg" title="图9">
+<h4 id="本文总结"><a href="#本文总结" class="headerlink" title="本文总结"></a>本文总结</h4><p>具体要不要在系统里实现这种复杂的缓存热点优化架构呢？这个还要看你们自己的系统有没有这种场景了。</p>
+<p>如果你的系统有热点缓存问题，那么就要实现类似本文的复杂热点缓存支撑架构。但是如果没有的话，那么也别过度设计，其实你的系统可能根本不需要这么复杂的架构。</p>
+<p>如果是后者，那么大伙儿就权当看看本文，了解一下对应的架构思想好了。</p>
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p>原文出处：微信公众号：石杉的架构笔记</p>
+<p><a href="https://mp.weixin.qq.com/s/31mCDLZip4LbeiU0E_E4tw" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/31mCDLZip4LbeiU0E_E4tw</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>看官可在此打赏</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="Morning Star 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Morning Star 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/并发/" rel="tag"># 并发</a>
+          
+            <a href="/tags/负载均衡/" rel="tag"># 负载均衡</a>
+          
+            <a href="/tags/缓存/" rel="tag"># 缓存</a>
+          
+            <a href="/tags/Redis/" rel="tag"># Redis</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/02/epoll-的本质/" rel="next" title="epoll 的本质">
+                <i class="fa fa-chevron-left"></i> epoll 的本质
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="Morning Star">
+            
+              <p class="site-author-name" itemprop="name">Morning Star</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">72</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/machenxing" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#为什么要用缓存集群"><span class="nav-number">1.</span> <span class="nav-text">为什么要用缓存集群</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#20万用户同时访问一个热点缓存"><span class="nav-number">2.</span> <span class="nav-text">20万用户同时访问一个热点缓存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于流式计算技术的缓存热点自动发现"><span class="nav-number">3.</span> <span class="nav-text">基于流式计算技术的缓存热点自动发现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#热点缓存自动加载为JVM本地缓存"><span class="nav-number">4.</span> <span class="nav-text">热点缓存自动加载为JVM本地缓存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#限流熔断保护"><span class="nav-number">5.</span> <span class="nav-text">限流熔断保护</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#本文总结"><span class="nav-number">6.</span> <span class="nav-text">本文总结</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Morning Star</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
