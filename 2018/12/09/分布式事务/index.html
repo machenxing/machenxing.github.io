@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="一致性,数据库,分布式,事务,">
+  <meta name="keywords" content="数据库,一致性,分布式,事务,">
 
 
 
@@ -80,7 +80,7 @@
 
 
 <meta name="description" content="考虑支付重构的时候，自然想到原本属于一个本地事务中的处理，现在要跨应用了要怎么处理。拿充值订单举个栗子吧，假设：原本订单模块和账户模块是放在一起的，现在需要做服务拆分，拆分成订单服务，账户服务。原本收到充值回调后，可以将修改订单状态和增加金币放在一个mysql事务中完成的，但是呢，因为服务拆分了，就面临着需要协调2个服务才能完成这个事务。  所以就带出来，我们今天要分享和讨论的话题是：怎么解决分布">
-<meta name="keywords" content="一致性,数据库,分布式,事务">
+<meta name="keywords" content="数据库,一致性,分布式,事务">
 <meta property="og:type" content="article">
 <meta property="og:title" content="分布式事务">
 <meta property="og:url" content="http://yoursite.com/2018/12/09/分布式事务/index.html">
@@ -659,9 +659,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/一致性/" rel="tag"># 一致性</a>
-          
             <a href="/tags/数据库/" rel="tag"># 数据库</a>
+          
+            <a href="/tags/一致性/" rel="tag"># 一致性</a>
           
             <a href="/tags/分布式/" rel="tag"># 分布式</a>
           
@@ -769,7 +769,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">73</span>
+                  <span class="site-state-item-count">74</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
