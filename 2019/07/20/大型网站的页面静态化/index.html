@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Redis,缓存,负载均衡,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言我们小伙伴们在访问淘宝、网易等大型网站时有没有考虑到，网站首页、商品详情页以及新闻详情页面是如何处理的？怎么能够支撑这么大流量的访问呢？ 很多小伙伴们就会提出他们都采用了静态化的方案，这样用户请求直接获取静态数据html，就不需要访问数据库了，性能就会大大提高；而且提高网站SEO优化。 那今天就带着大家聊一下静态化。把之前工作场景中静态化方案遇到的问题，以及如何演变的，分享给小伙伴。 方案一：">
+<meta name="keywords" content="Redis,缓存,负载均衡">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大型网站的页面静态化">
+<meta property="og:url" content="http://yoursite.com/2019/07/20/大型网站的页面静态化/index.html">
+<meta property="og:site_name" content="Star&#39;s Blog">
+<meta property="og:description" content="前言我们小伙伴们在访问淘宝、网易等大型网站时有没有考虑到，网站首页、商品详情页以及新闻详情页面是如何处理的？怎么能够支撑这么大流量的访问呢？ 很多小伙伴们就会提出他们都采用了静态化的方案，这样用户请求直接获取静态数据html，就不需要访问数据库了，性能就会大大提高；而且提高网站SEO优化。 那今天就带着大家聊一下静态化。把之前工作场景中静态化方案遇到的问题，以及如何演变的，分享给小伙伴。 方案一：">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/07/20/大型网站的页面静态化/图1.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/20/大型网站的页面静态化/图2.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/20/大型网站的页面静态化/图3.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/07/20/大型网站的页面静态化/图4.jpg">
+<meta property="og:updated_time" content="2019-07-20T13:04:40.451Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="大型网站的页面静态化">
+<meta name="twitter:description" content="前言我们小伙伴们在访问淘宝、网易等大型网站时有没有考虑到，网站首页、商品详情页以及新闻详情页面是如何处理的？怎么能够支撑这么大流量的访问呢？ 很多小伙伴们就会提出他们都采用了静态化的方案，这样用户请求直接获取静态数据html，就不需要访问数据库了，性能就会大大提高；而且提高网站SEO优化。 那今天就带着大家聊一下静态化。把之前工作场景中静态化方案遇到的问题，以及如何演变的，分享给小伙伴。 方案一：">
+<meta name="twitter:image" content="http://yoursite.com/2019/07/20/大型网站的页面静态化/图1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/07/20/大型网站的页面静态化/">
+
+
+
+
+
+  <title>大型网站的页面静态化 | Star's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Star's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Keep learning, Keep improving</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/20/大型网站的页面静态化/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">大型网站的页面静态化</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-20T20:47:47+08:00">
+                2019-07-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/系统架构/" itemprop="url" rel="index">
+                    <span itemprop="name">系统架构</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>我们小伙伴们在访问淘宝、网易等大型网站时有没有考虑到，网站首页、商品详情页以及新闻详情页面是如何处理的？怎么能够支撑这么大流量的访问呢？</p>
+<p>很多小伙伴们就会提出他们都采用了<strong>静态化</strong>的方案，这样用户请求直接获取静态数据html，就不需要访问数据库了，性能就会大大提高；而且提高网站SEO优化。</p>
+<p>那今天就带着大家聊一下静态化。把之前工作场景中静态化方案遇到的问题，以及如何演变的，分享给小伙伴。</p>
+<h4 id="方案一：网页静态HTML化"><a href="#方案一：网页静态HTML化" class="headerlink" title="方案一：网页静态HTML化"></a>方案一：网页静态HTML化</h4><p>这个方案是最早使用的方案，我们就拿CMS系统举例，类似网易的新闻网站</p>
+<p>核心流程图:</p>
+<img src="/2019/07/20/大型网站的页面静态化/图1.jpg" title="图1">
+<p>上图的核心思想：</p>
+<blockquote>
+<p>1）管理后台调用新闻服务创建文章成功后，发送消息到消息队列</p>
+<p>2）静态服务监听消息，把文章静态化，也就是生成html文件</p>
+<p>3）在静态服务器上面安装一个文件同步工具，此工具的功能可以做到只同步有变动的文件，即做增量同步（老顾用久没用了，忘了工具的名称）</p>
+<p>4）通过同步工具把html文件同步到所有的web服务器上面</p>
+</blockquote>
+<p>这样的话就达到了，用户访问一些变化不大的页面时，是直接访问的html文件，直接在web服务器那边直接返回，不需要在访问数据库了，系统吞吐量比较高。</p>
+<p>这个方案的问题：</p>
+<p><strong>1、网页布局样式僵化，无法修改</strong></p>
+<blockquote>
+<p>如果产品经理觉得新闻详情页面的布局要调整一下，现在的不够美观，或者加个其他模块，那就坑爹了，我们需要把所有的已经静态html化的文章全部重新静态化。这个是不现实的，因为像网易这么大的体量，新闻量是很大的，会被搞死。</p>
+</blockquote>
+<p><strong>2、页面会出现暂时间不一致</strong></p>
+<blockquote>
+<p>会出现用户刚刚再看最新的新闻，刷新一下又不存在了。这个是因为同步工具在同步到web服务器是要有时间的，同步到web服务器A上面了，但web服务器B还没有来得及同步。用户在访问的时候通过<strong>nginx进行负载均衡，随机把请求分配给web服务器</strong>的导致的。当然可以调整nginx负载均衡策略去解决。</p>
+</blockquote>
+<p><strong>3、Html文件太多，无法维护</strong></p>
+<blockquote>
+<p>这个是很明显的问题，html文件会越来越多，对存储空间要求很大，而且每台web服务器都一样，浪费磁盘空间；将来迁移维护也会带来很大的麻烦。</p>
+</blockquote>
+<p><strong>4、同步工具的不稳定</strong></p>
+<blockquote>
+<p>因为文件一旦多之后，同步工具稳定性就出现了问题</p>
+</blockquote>
+<p>这个方案应该是比较传统的（不推荐）</p>
+<h4 id="方案二：伪静态化"><a href="#方案二：伪静态化" class="headerlink" title="方案二：伪静态化"></a>方案二：伪静态化</h4><p><strong>什么是伪静态？</strong></p>
+<p>举个例子：我们一般访问一个文章，一般的链接地址为：<a href="http://www.xxx.com/news?id=1代表请求id为1的文章。**不过这种链接方式对SEO不是太友好（SEO对网站来说太重要了）**；所以一般进行改造：http://www.xxx.com/news/1.html" target="_blank" rel="noopener">http://www.xxx.com/news?id=1代表请求id为1的文章。**不过这种链接方式对SEO不是太友好（SEO对网站来说太重要了）**；所以一般进行改造：http://www.xxx.com/news/1.html</a> 这样看上去就是个静态页面。一般我们可以<strong>采用nginx对url进行rewrite</strong>。小伙伴如何有兴趣可以自行了解，比较简单。</p>
+<p><strong>之所以是伪静态其实也是需要动态处理的。</strong></p>
+<p>针对方案一上面问题，方案进一步的演化，如下图</p>
+<img src="/2019/07/20/大型网站的页面静态化/图2.jpg" title="图2">
+<p>此方案的核心思想</p>
+<blockquote>
+<p>1）管理后台调用新闻服务创建文章成功后，发送消息到消息队列</p>
+<p>2）缓存服务监听消息，把文章内容缓存到缓存服务器上面</p>
+<p>3）用户发起请求，web服务器根据id，直接查询缓存服务器</p>
+<p>4）获取数据返回给用户</p>
+</blockquote>
+<p>此方案就解决了方案一的一个大问题，就是html文件多的问题，因为不需要生成html，而且用缓存的方式，解决不需要访问数据库，提升系统吞吐量。</p>
+<p>不过此方案的问题：</p>
+<blockquote>
+<p>1、<strong>网页布局样式维护成本比较高</strong>，因为此方案照样是把所有的内容放到了缓存中，如果需要修改布局，需要重新设置缓存。</p>
+<p>2、分布式缓存压力比较大，一旦缓存故障就导致所有请求会查询数据库，导致系统崩溃</p>
+</blockquote>
+<p>还有个小问题，就是实时数据处理，就是页面中如价格，库存需要到后台读取的。当然小伙伴也许就会说，也可以处理啊，用户把商品内容请求到后，然后在用浏览器发送异步的ajax请求获得商品数量就好了啊。这样就是无形的增加了一次请求。（此问题可以忽略）</p>
+<p>此方案类似很多公司都在使用，如：同程旅游等</p>
+ <a id="more"></a> 
+<h4 id="方案三：布局样式模板化"><a href="#方案三：布局样式模板化" class="headerlink" title="方案三：布局样式模板化"></a>方案三：布局样式模板化</h4><p>针对方案二的问题，我们可以采用openresty技术方案进行，利用http模板插件lua脚本进行解决，这里老顾不会介绍openresty+lua技术，有兴趣的小伙伴，可以到访问<a href="https://www.roncoo.com/view/139" target="_blank" rel="noopener">https://www.roncoo.com/view/139</a> 这个视频课程。</p>
+<p>如下图：</p>
+<img src="/2019/07/20/大型网站的页面静态化/图3.jpg" title="图3">
+<p>这里说明一下上图中我们小伙伴不需要全部都要了解，这个是比较全的商品详情页的解决方案，<strong>涉及到了三级缓存这个概念，在这里老顾就不深入讲三级缓存了</strong>。</p>
+<p>我们主要看的是上面怎么会有两层ngnix，分发层和应用层，这个是什么意思？</p>
+<h4 id="应用层nginx"><a href="#应用层nginx" class="headerlink" title="应用层nginx"></a>应用层nginx</h4><p>老顾先介绍一下应用层nginx是什么意思？nginx一般被用做负载均衡，其实nginx还有很多的功能，尤其他的<strong>openresty扩展 + lua脚本语言结合起来可以完成很多功能</strong>，小伙伴可以理解为lua脚本语言就是类似java语言，可以动态处理业务，如：本地缓存处理，远程http访问，访问redis等。</p>
+<p><strong>应用层nginx就是利用了http模板 + 缓存通过lua脚本完成的网页渲染</strong></p>
+<p><strong>http模板</strong></p>
+<blockquote>
+<p>1）应用层nginx通过lua脚本语言先获取本地商品数据，然后和http模板进行渲染，形成最终商品详情页返回给用户</p>
+<p>2）如果应用层nginx本地的缓存没有此商品数据，就通过lua脚本发起http请求访问web服务器，获取商品数据。</p>
+<p>3）web服务器会向redis或本机的ehcache请求商品数据（这里涉及三级缓存概念），如果存在此商品数据，直接返回给用户；如果不存在则请求微服务访问数据库</p>
+</blockquote>
+<p>这个思路就是通过http模板，<strong>解决了方案二中的布局样式的问题，如果需要调整布局，只要改一下模板就行了，非常方便</strong>。<strong>也解决了实时性问题。</strong>这边涉及到的nginx本地缓存其实就是为了保证不需要访问数据库，提升系统吞吐量。小伙伴只要了解一下思路，如果不了解openresty和lua可以自行上网了解，也可以联系老顾。</p>
+<h4 id="分发层ngnix"><a href="#分发层ngnix" class="headerlink" title="分发层ngnix"></a>分发层ngnix</h4><p>为什么上面还有一层分发层呢？这个是因为大型网站的商品数太多了，应用层nginx的本地缓存是有限的，<strong>不可能把所有的商品数据缓存在同一个服务器的本地缓存</strong>；一台应用层nginx只能缓存部分商品数据，说到这里小伙伴是不是应该就知道为什么了吧？<strong>就是利用hash一致性算法，根据商品id路由分发到同一个应用层ngnix服务器。</strong></p>
+<img src="/2019/07/20/大型网站的页面静态化/图4.jpg" title="图4">
+<p><strong>分发层ngnix的作用就是hash策略的负载均衡，保证了商品id路由到固定的应用层服务器。</strong></p>
+<p><strong>三级缓存保证了系统的稳定性，即使redis缓存崩溃，还有其他2个缓存保障。</strong></p>
+<p><strong>总结：</strong></p>
+<ol>
+<li><strong>方案三是比较完整的方案，很多大厂都在使用，能够承受亿级流量，但系统比较复杂。</strong></li>
+<li><strong>如果对实时性要求不高，布局样式调整不频繁，可以考虑方案二，系统比较简单</strong></li>
+</ol>
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p>原文出处：</p>
+<p><a href="https://www.toutiao.com/i6671093883025228301/?group_id=6671093883025228301" target="_blank" rel="noopener">https://www.toutiao.com/i6671093883025228301/?group_id=6671093883025228301</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>看官可在此打赏</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="Morning Star 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Morning Star 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Redis/" rel="tag"># Redis</a>
+          
+            <a href="/tags/缓存/" rel="tag"># 缓存</a>
+          
+            <a href="/tags/负载均衡/" rel="tag"># 负载均衡</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/20/消息中间件的面试四连炮/" rel="next" title="消息中间件的面试四连炮">
+                <i class="fa fa-chevron-left"></i> 消息中间件的面试四连炮
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="Morning Star">
+            
+              <p class="site-author-name" itemprop="name">Morning Star</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">78</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/machenxing" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#方案一：网页静态HTML化"><span class="nav-number">2.</span> <span class="nav-text">方案一：网页静态HTML化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#方案二：伪静态化"><span class="nav-number">3.</span> <span class="nav-text">方案二：伪静态化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#方案三：布局样式模板化"><span class="nav-number">4.</span> <span class="nav-text">方案三：布局样式模板化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#应用层nginx"><span class="nav-number">5.</span> <span class="nav-text">应用层nginx</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分发层ngnix"><span class="nav-number">6.</span> <span class="nav-text">分发层ngnix</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Morning Star</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
