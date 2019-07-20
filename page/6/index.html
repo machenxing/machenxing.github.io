@@ -291,6 +291,208 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/16/Spring-Cloud-自己的服务网关-Gateway/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/16/Spring-Cloud-自己的服务网关-Gateway/" itemprop="url">Spring Cloud 自己的服务网关 Gateway</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-16T21:42:59+08:00">
+                2018-12-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>Spring 官方最终还是按捺不住推出了自己的网关组件：Spring Cloud Gateway ，相比之前我们使用的 Zuul（1.x） 它有哪些优势呢？Zuul（1.x） 基于 Servlet，使用阻塞 API，它不支持任何长连接，如 WebSockets，Spring Cloud Gateway 使用非阻塞 API，支持 WebSockets，支持限流等新特性</p>
+<h4 id="Spring-Cloud-Gateway"><a href="#Spring-Cloud-Gateway" class="headerlink" title="Spring Cloud Gateway"></a>Spring Cloud Gateway</h4><p>Spring Cloud Gateway 是 Spring Cloud 的一个全新项目，该项目是基于 Spring 5.0，Spring Boot 2.0 和 Project Reactor 等技术开发的网关，它旨在为微服务架构提供一种简单有效的统一的 API 路由管理方式。</p>
+<p>Spring Cloud Gateway 作为 Spring Cloud 生态系统中的网关，目标是替代 Netflix Zuul，其不仅提供统一的路由方式，并且基于 Filter 链的方式提供了网关基本的功能，例如：安全，监控/指标，和限流。</p>
+<p><strong>相关概念:</strong></p>
+<ul>
+<li>Route（路由）：这是网关的基本构建块。它由一个 ID，一个目标 URI，一组断言和一组过滤器定义。如果断言为真，则路由匹配。</li>
+<li>Predicate（断言）：这是一个 Java 8 的 Predicate。输入类型是一个 ServerWebExchange。我们可以使用它来匹配来自 HTTP 请求的任何内容，例如 headers 或参数。</li>
+<li>Filter（过滤器）：这是<code>org.springframework.cloud.gateway.filter.GatewayFilter</code>的实例，我们可以使用它修改请求和响应。</li>
+</ul>
+<p><strong>工作流程：</strong></p>
+<img src="/2018/12/16/Spring-Cloud-自己的服务网关-Gateway/图1.png" title="图1">
+<p>客户端向 Spring Cloud Gateway 发出请求。如果 Gateway Handler Mapping 中找到与请求相匹配的路由，将其发送到 Gateway Web Handler。Handler 再通过指定的过滤器链来将请求发送到我们实际的服务执行业务逻辑，然后返回。<br>过滤器之间用虚线分开是因为过滤器可能会在发送代理请求之前（“pre”）或之后（“post”）执行业务逻辑。</p>
+<p>Spring Cloud Gateway 的特征：</p>
+<ul>
+<li>基于 Spring Framework 5，Project Reactor 和 Spring Boot 2.0</li>
+<li>动态路由</li>
+<li>Predicates 和 Filters 作用于特定路由</li>
+<li>集成 Hystrix 断路器</li>
+<li>集成 Spring Cloud DiscoveryClient</li>
+<li>易于编写的 Predicates 和 Filters</li>
+<li>限流</li>
+<li>路径重写</li>
+</ul>
+<h4 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h4><p>Spring Cloud Gateway 网关路由有两种配置方式：</p>
+<ul>
+<li>在配置文件 yml 中配置</li>
+<li>通过<code>@Bean</code>自定义 RouteLocator，在启动主类 Application 中配置</li>
+</ul>
+<p>这两种方式是等价的，建议使用 yml 方式进配置。</p>
+<p>使用 Spring Cloud Finchley 版本，Finchley 版本依赖于 Spring Boot 2.0.6.RELEASE。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.0.6.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">relativePath</span>/&gt;</span> <span class="comment">&lt;!-- lookup parent from repository --&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>Finchley.SR2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>经测试 Finchley.RELEASE 有 bug 多次请求会报空指针异常，SR2 是 Spring Cloud 的最新版本。</p>
+</blockquote>
+<p>添加项目需要使用的依赖包</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-gateway<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Spring Cloud Gateway 是使用 netty+webflux 实现因此不需要再引入 web 模块。</p>
+<p>我们先来测试一个最简单的请求转发。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line"><span class="attr">  port:</span> <span class="number">8080</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line"><span class="attr">  cloud:</span></span><br><span class="line"><span class="attr">    gateway:</span></span><br><span class="line"><span class="attr">      routes:</span></span><br><span class="line"><span class="attr">      - id:</span> <span class="string">neo_route</span></span><br><span class="line"><span class="attr">        uri:</span> <span class="attr">http://www.ityouknow.com</span></span><br><span class="line"><span class="attr">        predicates:</span></span><br><span class="line"><span class="bullet">        -</span> <span class="string">Path=/spring-cloud</span></span><br></pre></td></tr></table></figure>
+<p>各字段含义如下：</p>
+<ul>
+<li>id：我们自定义的路由 ID，保持唯一</li>
+<li>uri：目标服务地址</li>
+<li>predicates：路由条件，Predicate 接受一个输入参数，返回一个布尔值结果。该接口包含多种默认方法来将 Predicate 组合成其他复杂的逻辑（比如：与，或，非）。</li>
+<li>filters：过滤规则，本示例暂时没用。</li>
+</ul>
+<p>转发功能同样可以通过代码来实现，我们可以在启动类 GateWayApplication 中添加方法 <code>customRouteLocator()</code> 来定制转发规则。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GateWayApplication</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(GateWayApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> RouteLocator <span class="title">customRouteLocator</span><span class="params">(RouteLocatorBuilder builder)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> builder.routes()</span><br><span class="line">                .route(<span class="string">"path_route"</span>, r -&gt; r.path(<span class="string">"/about"</span>)</span><br><span class="line">                        .uri(<span class="string">"http://ityouknow.com"</span>))</span><br><span class="line">                .build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面配置了一个 id 为 path_route 的路由，当访问地址<code>http://localhost:8080/about</code>时会自动转发到地址：<code>http://www.ityouknow.com/about</code>和上面的转发效果一样，只是这里转发的是以<code>项目地址/about</code>格式的请求地址。</p>
+<p>上面两个示例中 uri 都是指向了我的个人网站，在实际项目使用中可以将 uri 指向对外提供服务的项目地址，统一对外输出接口。</p>
+<p>以上便是 Spring Cloud Gateway 最简单的两个请求示例，Spring Cloud Gateway 还有更多实用的功能接下来我们一一介绍。</p>
+<h4 id="路由规则"><a href="#路由规则" class="headerlink" title="路由规则"></a>路由规则</h4><p>Spring Cloud Gateway 的功能很强大，我们仅仅通过 Predicates 的设计就可以看出来，前面我们只是使用了 predicates 进行了简单的条件匹配，其实 Spring Cloud Gataway 帮我们内置了很多 Predicates 功能。</p>
+<p>Spring Cloud Gateway 是通过 Spring WebFlux 的 <code>HandlerMapping</code> 做为底层支持来匹配到转发路由，Spring Cloud Gateway 内置了很多 Predicates 工厂，这些 Predicates 工厂通过不同的 HTTP 请求参数来匹配，多个 Predicates 工厂可以组合使用。</p>
+<h5 id="Predicate"><a href="#Predicate" class="headerlink" title="Predicate"></a>Predicate</h5><p>Predicate 来源于 Java 8，是 Java 8 中引入的一个函数，Predicate 接受一个输入参数，返回一个布尔值结果。该接口包含多种默认方法来将 Predicate 组合成其他复杂的逻辑（比如：与，或，非）。可以用于接口请求参数校验、判断新老数据是否有变化需要进行更新操作。and–与、or–或、negate–非</p>
+<p>在 Spring Cloud Gateway 中 Spring 利用 Predicate 的特性实现了各种路由匹配规则，有通过 Header、请求参数等不同的条件来进行作为条件匹配到对应的路由。网上有一张图总结了 Spring Cloud 内置的几种 Predicate 的实现。</p>
+<img src="/2018/12/16/Spring-Cloud-自己的服务网关-Gateway/图2.jpg" title="图2">
+<p>说白了 Predicate 就是为了实现一组匹配规则，方便让请求过来找到对应的 Route 进行处理，接下来我们介绍Spring Cloud GateWay 内置几种 Predicate 的使用。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/12/16/Spring-Cloud-自己的服务网关-Gateway/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/14/MySQL数据库开发规范/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1109,193 +1311,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/04/Tomcat-并发量配置以及优化/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/04/Tomcat-并发量配置以及优化/" itemprop="url">Tomcat 并发量配置以及优化</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-04T19:40:16+08:00">
-                2018-12-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/服务器/" itemprop="url" rel="index">
-                    <span itemprop="name">服务器</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>为提高Tomcat性能，可从以下两个方面进行优化配置</p>
-<p><strong>首先</strong>,修改tomcat/conf/server.xml配置文件。</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Executor</span> <span class="attr">name</span>=<span class="string">"tomcatThreadPool"</span> <span class="attr">namePrefix</span>=<span class="string">"catalina-exec-"</span>  </span></span><br><span class="line"><span class="tag">   <span class="attr">maxThreads</span>=<span class="string">"500"</span> <span class="attr">minSpareThreads</span>=<span class="string">"400"</span> /&gt;</span>   </span><br><span class="line">     </span><br><span class="line">   <span class="tag">&lt;<span class="name">Connector</span> <span class="attr">executor</span>=<span class="string">"tomcatThreadPool"</span>   </span></span><br><span class="line"><span class="tag">   <span class="attr">port</span>=<span class="string">"80"</span> <span class="attr">protocol</span>=<span class="string">"HTTP/1.1"</span>     </span></span><br><span class="line"><span class="tag">   <span class="attr">connectionTimeout</span>=<span class="string">"20000"</span> <span class="attr">enableLookups</span>=<span class="string">"false"</span>   </span></span><br><span class="line"><span class="tag">   <span class="attr">redirectPort</span>=<span class="string">"8443"</span> <span class="attr">URIEncoding</span>=<span class="string">"UTF-8"</span> <span class="attr">acceptCount</span>=<span class="string">"1000"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
-<p><strong>其次</strong>，修改{tomcat_home}/bin/catalina.bat或者是{tomcat_home}/bin/catalina.sh配置文件为以下。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">rem ---------------------------------------------------------------------------</span><br><span class="line">rem Guess CATALINA_HOME <span class="keyword">if</span> not defined</span><br><span class="line">之间的位置,不要加到那些<span class="keyword">if</span>里面去了,否则不一定会生效.</span><br><span class="line"><span class="built_in">set</span> JAVA_OPTS=-Xms1024m -Xmx1024m -XX:PermSize=128M -XX:MaxPermSize=256m</span><br><span class="line">如果有疑问.可以用</span><br><span class="line"><span class="built_in">echo</span> %JAVA_OPTS%&gt;d:\JAVA_OPTS.log</span><br></pre></td></tr></table></figure>
-<h4 id="修改Tomcat内存分配"><a href="#修改Tomcat内存分配" class="headerlink" title="修改Tomcat内存分配"></a>修改Tomcat内存分配</h4><p>JVM参数配置， 这个会导致严重的stop world时间。 如果你想应用响应平缓， 一般看你的应用对于临时内存的需求， 一般来说， -Xmn128-256m就够了， 这个要看你的停顿时间的计算， 你把gc的收集打印出来，再研究下， 最大停顿时间。 这个我的BLOG说的比较详细。 你去看看吧。 </p>
-<p>-Xss128k 这个参数， 建议你设置成256k, 不然容易造成不够用， 特别是你的程序有比较多的递归行为。 比如排序。 </p>
-<p>另外如果想提高内存的性能，可以看看大内存设置。不是很好操作， 我没有测试过。 </p>
-<p>在性能提升上， 我建议你使用Linux kernel 2.6.22+版本， JAVA6 是不是32位的不是很要紧。这个提升是非常大的。 </p>
-<p>Heap Size 最大不要超过可用物理内存的80％，一般的要将-Xms和-Xmx选项设置为相同堆内存分配 (访问量比较大时设为一致)。</p>
-<p>JVM初始分配的内存由-Xms指定，默认是物理内存的1/64；JVM最大分配的内存由-Xmx指定，默认是物理内存的1/4。默认空余堆内存小于 40%时，JVM就会增大堆直到-Xmx的最大限制；空余堆内存大于70%时，JVM会减少堆直到-Xms的最小限制。因此服务器一般设置-Xms、 -Xmx相等以避免在每次GC 后调整堆的大小。 </p>
-<h5 id="非堆内存分配"><a href="#非堆内存分配" class="headerlink" title="非堆内存分配"></a>非堆内存分配</h5><p>JVM使用-XX:PermSize设置非堆内存初始值，默认是物理内存的1/64；由XX:MaxPermSize设置最大非堆内存的大小，默认是物理内存的1/4。 </p>
-<h5 id="JVM内存限制-最大值"><a href="#JVM内存限制-最大值" class="headerlink" title="JVM内存限制(最大值)"></a>JVM内存限制(最大值)</h5><p>首先JVM内存限制于实际的最大物理内存，假设物理内存无限大的话，JVM内存的最大值跟操作系统有很大的关系。简单的说就32位 处理器虽然可控内存空间有4GB,但是具体的操作系统会给一个限制，这个限制一般是2GB-3GB（一般来说Windows系统下为1.5G- 2G，Linux系统下为2G-3G），而64bit以上的处理器就不会有限制了。(使用java命令测试出支持的最大值)。</p>
-<h4 id="修改连接数、线程数"><a href="#修改连接数、线程数" class="headerlink" title="修改连接数、线程数"></a>修改连接数、线程数</h4><p>主要修改了maxThreads、acceptCount。Google资料说“如果要加大并发连接数，应同时加大这两个参数。</p>
-<p>Tomcat的线程数量有待商榷。 thread太多，导致切换过多，性能下降严重。这个数量应该是你单个机器的承载能力， 压力测试下得出的结果。 不可任意加大。一般情况下， 256－512个已经非常高的数值了。 </p>
-<p><strong>Tomcat的server.xml中Context元素的以下参数应该怎么配合适 ?</strong></p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Connector</span> <span class="attr">port</span>=<span class="string">"8080"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">maxThreads</span>=<span class="string">"150"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">minSpareThreads</span>=<span class="string">"25"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">maxSpareThreads</span>=<span class="string">"75"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">acceptCount</span>=<span class="string">"100"</span> </span></span><br><span class="line"><span class="tag">/&gt;</span></span><br></pre></td></tr></table></figure>
-<p><strong>（第一种方法）</strong></p>
-<p>maxThreads=”150” 表示最多同时处理150个连接 ；</p>
-<p>minSpareThreads=”25” 表示即使没有人使用也开这么多空线程等待 ；</p>
-<p>maxSpareThreads=”75” 表示如果最多可以空75个线程，例如某时刻有80人访问，之后没有人访问了，则tomcat不会保留80个空线程，而是关闭5个空的；</p>
-<p>acceptCount=”100” 当同时连接的人数达到maxThreads时，还可以接收排队的连接，超过这个连接的则直接返回拒绝连接。 </p>
-<p>根据你的配置建议 </p>
-<p>maxThreads=”500” </p>
-<p>minSpareThreads=”100” 如果你的网站经常访问量都很大的话，缺省就开比较大 </p>
-<p>maxSpareThreads=”300” </p>
-<p>acceptCount=”100” </p>
-<p>这只是说你的服务器可以支持这么多用户，但还要看你安装了哪些东西，还有你的程序是否足够高效率。</p>
-<p><strong>(第二种方法)</strong></p>
-<p><strong>1.如何加大tomcat连接数</strong></p>
-<p>在tomcat配置文件server.xml中的配置中，和连接数相关的参数有：</p>
-<p>minProcessors：最小空闲连接线程数，用于提高系统处理性能，默认值为10；</p>
-<p>maxProcessors：最大连接线程数，即：并发处理的最大请求数，默认值为75</p>
-<p>acceptCount：允许的最大连接数，应大于等于maxProcessors，默认值为100</p>
-<p>enableLookups：是否反查域名，取值为：true或false。为了提高处理能力，应设置为false；</p>
-<p>connectionTimeout：网络连接超时，单位：毫秒。设置为0表示永不超时，这样设置有隐患的。通常可设置为30000毫秒。</p>
-<p>其中和最大连接数相关的参数为maxProcessors和acceptCount。如果要加大并发连接数，应同时加大这两个参数。</p>
-<p>web server允许的最大连接数还受制于操作系统的内核参数设置，通常Windows是2000个左右，Linux是1000个左右。Unix中如何设置这些参数，请参阅Unix常用监控和管理命令。</p>
-<p>tomcat4中的配置示例：</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Connector</span> <span class="attr">port</span>=<span class="string">"8080"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">minProcessors</span>=<span class="string">"10"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">maxProcessors</span>=<span class="string">"1024"</span></span></span><br><span class="line"><span class="tag"><span class="attr">enableLookups</span>=<span class="string">"false"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">redirectPort</span>=<span class="string">"8443"</span></span></span><br><span class="line"><span class="tag"><span class="attr">acceptCount</span>=<span class="string">"1024"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">debug</span>=<span class="string">"0"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">connectionTimeout</span>=<span class="string">"30000"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
-<p>对于其他端口的侦听配置，以此类推。</p>
-<p><strong>2. tomcat中如何禁止列目录下的文件</strong></p>
-<p>在{tomcat_home}/conf/web.xml中，把listings参数设置成false即可，如下：</p>
-<p>…</p>
-<p>listings</p>
-<p>false</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1348,7 +1363,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">76</span>
+                  <span class="site-state-item-count">77</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

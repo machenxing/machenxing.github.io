@@ -291,6 +291,193 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/04/Tomcat-并发量配置以及优化/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/04/Tomcat-并发量配置以及优化/" itemprop="url">Tomcat 并发量配置以及优化</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-04T19:40:16+08:00">
+                2018-12-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>为提高Tomcat性能，可从以下两个方面进行优化配置</p>
+<p><strong>首先</strong>,修改tomcat/conf/server.xml配置文件。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Executor</span> <span class="attr">name</span>=<span class="string">"tomcatThreadPool"</span> <span class="attr">namePrefix</span>=<span class="string">"catalina-exec-"</span>  </span></span><br><span class="line"><span class="tag">   <span class="attr">maxThreads</span>=<span class="string">"500"</span> <span class="attr">minSpareThreads</span>=<span class="string">"400"</span> /&gt;</span>   </span><br><span class="line">     </span><br><span class="line">   <span class="tag">&lt;<span class="name">Connector</span> <span class="attr">executor</span>=<span class="string">"tomcatThreadPool"</span>   </span></span><br><span class="line"><span class="tag">   <span class="attr">port</span>=<span class="string">"80"</span> <span class="attr">protocol</span>=<span class="string">"HTTP/1.1"</span>     </span></span><br><span class="line"><span class="tag">   <span class="attr">connectionTimeout</span>=<span class="string">"20000"</span> <span class="attr">enableLookups</span>=<span class="string">"false"</span>   </span></span><br><span class="line"><span class="tag">   <span class="attr">redirectPort</span>=<span class="string">"8443"</span> <span class="attr">URIEncoding</span>=<span class="string">"UTF-8"</span> <span class="attr">acceptCount</span>=<span class="string">"1000"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+<p><strong>其次</strong>，修改{tomcat_home}/bin/catalina.bat或者是{tomcat_home}/bin/catalina.sh配置文件为以下。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">rem ---------------------------------------------------------------------------</span><br><span class="line">rem Guess CATALINA_HOME <span class="keyword">if</span> not defined</span><br><span class="line">之间的位置,不要加到那些<span class="keyword">if</span>里面去了,否则不一定会生效.</span><br><span class="line"><span class="built_in">set</span> JAVA_OPTS=-Xms1024m -Xmx1024m -XX:PermSize=128M -XX:MaxPermSize=256m</span><br><span class="line">如果有疑问.可以用</span><br><span class="line"><span class="built_in">echo</span> %JAVA_OPTS%&gt;d:\JAVA_OPTS.log</span><br></pre></td></tr></table></figure>
+<h4 id="修改Tomcat内存分配"><a href="#修改Tomcat内存分配" class="headerlink" title="修改Tomcat内存分配"></a>修改Tomcat内存分配</h4><p>JVM参数配置， 这个会导致严重的stop world时间。 如果你想应用响应平缓， 一般看你的应用对于临时内存的需求， 一般来说， -Xmn128-256m就够了， 这个要看你的停顿时间的计算， 你把gc的收集打印出来，再研究下， 最大停顿时间。 这个我的BLOG说的比较详细。 你去看看吧。 </p>
+<p>-Xss128k 这个参数， 建议你设置成256k, 不然容易造成不够用， 特别是你的程序有比较多的递归行为。 比如排序。 </p>
+<p>另外如果想提高内存的性能，可以看看大内存设置。不是很好操作， 我没有测试过。 </p>
+<p>在性能提升上， 我建议你使用Linux kernel 2.6.22+版本， JAVA6 是不是32位的不是很要紧。这个提升是非常大的。 </p>
+<p>Heap Size 最大不要超过可用物理内存的80％，一般的要将-Xms和-Xmx选项设置为相同堆内存分配 (访问量比较大时设为一致)。</p>
+<p>JVM初始分配的内存由-Xms指定，默认是物理内存的1/64；JVM最大分配的内存由-Xmx指定，默认是物理内存的1/4。默认空余堆内存小于 40%时，JVM就会增大堆直到-Xmx的最大限制；空余堆内存大于70%时，JVM会减少堆直到-Xms的最小限制。因此服务器一般设置-Xms、 -Xmx相等以避免在每次GC 后调整堆的大小。 </p>
+<h5 id="非堆内存分配"><a href="#非堆内存分配" class="headerlink" title="非堆内存分配"></a>非堆内存分配</h5><p>JVM使用-XX:PermSize设置非堆内存初始值，默认是物理内存的1/64；由XX:MaxPermSize设置最大非堆内存的大小，默认是物理内存的1/4。 </p>
+<h5 id="JVM内存限制-最大值"><a href="#JVM内存限制-最大值" class="headerlink" title="JVM内存限制(最大值)"></a>JVM内存限制(最大值)</h5><p>首先JVM内存限制于实际的最大物理内存，假设物理内存无限大的话，JVM内存的最大值跟操作系统有很大的关系。简单的说就32位 处理器虽然可控内存空间有4GB,但是具体的操作系统会给一个限制，这个限制一般是2GB-3GB（一般来说Windows系统下为1.5G- 2G，Linux系统下为2G-3G），而64bit以上的处理器就不会有限制了。(使用java命令测试出支持的最大值)。</p>
+<h4 id="修改连接数、线程数"><a href="#修改连接数、线程数" class="headerlink" title="修改连接数、线程数"></a>修改连接数、线程数</h4><p>主要修改了maxThreads、acceptCount。Google资料说“如果要加大并发连接数，应同时加大这两个参数。</p>
+<p>Tomcat的线程数量有待商榷。 thread太多，导致切换过多，性能下降严重。这个数量应该是你单个机器的承载能力， 压力测试下得出的结果。 不可任意加大。一般情况下， 256－512个已经非常高的数值了。 </p>
+<p><strong>Tomcat的server.xml中Context元素的以下参数应该怎么配合适 ?</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Connector</span> <span class="attr">port</span>=<span class="string">"8080"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">maxThreads</span>=<span class="string">"150"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">minSpareThreads</span>=<span class="string">"25"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">maxSpareThreads</span>=<span class="string">"75"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">acceptCount</span>=<span class="string">"100"</span> </span></span><br><span class="line"><span class="tag">/&gt;</span></span><br></pre></td></tr></table></figure>
+<p><strong>（第一种方法）</strong></p>
+<p>maxThreads=”150” 表示最多同时处理150个连接 ；</p>
+<p>minSpareThreads=”25” 表示即使没有人使用也开这么多空线程等待 ；</p>
+<p>maxSpareThreads=”75” 表示如果最多可以空75个线程，例如某时刻有80人访问，之后没有人访问了，则tomcat不会保留80个空线程，而是关闭5个空的；</p>
+<p>acceptCount=”100” 当同时连接的人数达到maxThreads时，还可以接收排队的连接，超过这个连接的则直接返回拒绝连接。 </p>
+<p>根据你的配置建议 </p>
+<p>maxThreads=”500” </p>
+<p>minSpareThreads=”100” 如果你的网站经常访问量都很大的话，缺省就开比较大 </p>
+<p>maxSpareThreads=”300” </p>
+<p>acceptCount=”100” </p>
+<p>这只是说你的服务器可以支持这么多用户，但还要看你安装了哪些东西，还有你的程序是否足够高效率。</p>
+<p><strong>(第二种方法)</strong></p>
+<p><strong>1.如何加大tomcat连接数</strong></p>
+<p>在tomcat配置文件server.xml中的配置中，和连接数相关的参数有：</p>
+<p>minProcessors：最小空闲连接线程数，用于提高系统处理性能，默认值为10；</p>
+<p>maxProcessors：最大连接线程数，即：并发处理的最大请求数，默认值为75</p>
+<p>acceptCount：允许的最大连接数，应大于等于maxProcessors，默认值为100</p>
+<p>enableLookups：是否反查域名，取值为：true或false。为了提高处理能力，应设置为false；</p>
+<p>connectionTimeout：网络连接超时，单位：毫秒。设置为0表示永不超时，这样设置有隐患的。通常可设置为30000毫秒。</p>
+<p>其中和最大连接数相关的参数为maxProcessors和acceptCount。如果要加大并发连接数，应同时加大这两个参数。</p>
+<p>web server允许的最大连接数还受制于操作系统的内核参数设置，通常Windows是2000个左右，Linux是1000个左右。Unix中如何设置这些参数，请参阅Unix常用监控和管理命令。</p>
+<p>tomcat4中的配置示例：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Connector</span> <span class="attr">port</span>=<span class="string">"8080"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">minProcessors</span>=<span class="string">"10"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">maxProcessors</span>=<span class="string">"1024"</span></span></span><br><span class="line"><span class="tag"><span class="attr">enableLookups</span>=<span class="string">"false"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">redirectPort</span>=<span class="string">"8443"</span></span></span><br><span class="line"><span class="tag"><span class="attr">acceptCount</span>=<span class="string">"1024"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">debug</span>=<span class="string">"0"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">connectionTimeout</span>=<span class="string">"30000"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+<p>对于其他端口的侦听配置，以此类推。</p>
+<p><strong>2. tomcat中如何禁止列目录下的文件</strong></p>
+<p>在{tomcat_home}/conf/web.xml中，把listings参数设置成false即可，如下：</p>
+<p>…</p>
+<p>listings</p>
+<p>false</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/02/MySQL高性能优化原理/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1015,239 +1202,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/11/Java并发之Condition/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/11/11/Java并发之Condition/" itemprop="url">Java并发之Condition</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-11T17:52:32+08:00">
-                2018-11-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/多线程/" itemprop="url" rel="index">
-                    <span itemprop="name">多线程</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>在java中，对于任意一个java对象，它都拥有一组定义在<em>java.lang.Object</em>上监视器方法，包括<em>wait()，wait(long timeout)，notify()，notifyAll()，</em>这些方法配合synchronized关键字一起使用可以实现等待/通知模式。</p>
-<p><em>wait()、notify()和notifyAll()方法是本地方法，并且为final方法，无法被重写。</em></p>
-<p><em>调用某个对象的wait()方法能让当前线程阻塞，并且当前线程必须拥有此对象的monitor（即锁）</em></p>
-<p><em>调用某个对象的notify()方法能够唤醒一个正在等待这个对象的monitor的线程，如果有多个线程都在等待这个对象的monitor，则只能唤醒其中一个线程；</em></p>
-<p><em>调用notifyAll()方法能够唤醒所有正在等待这个对象的monitor的线程；</em></p>
-<p><strong>notify()和notifyAll()方法只是唤醒等待该对象的monitor的线程，并不决定哪个线程能够获取到monitor。</strong></p>
-<p>同样，Condition接口也提供了类似Object监视器的方法，通过与Lock配合来实现等待/通知模式。</p>
-<p>为了更好的了解Condition的特性，我们来对比一下两者的使用方式以及功能特性：</p>
-<table>
-<thead>
-<tr>
-<th>对比项</th>
-<th>Object监视器</th>
-<th>Condition</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>前置条件</td>
-<td>获取对象的锁</td>
-<td>调用Lock.lock获取锁，调用Lock.newCondition获取Condition对象</td>
-</tr>
-<tr>
-<td>调用方式</td>
-<td>直接调用，比如object.notify()</td>
-<td>直接调用，比如condition.await()</td>
-</tr>
-<tr>
-<td>等待队列的个数</td>
-<td>一个</td>
-<td>多个</td>
-</tr>
-<tr>
-<td>当前线程释放锁进入等待状态</td>
-<td>支持</td>
-<td>支持</td>
-</tr>
-<tr>
-<td>当前线程释放锁进入等待状态，在等待状态中不响应中断</td>
-<td>不支持</td>
-<td>支持</td>
-</tr>
-<tr>
-<td>当前线程释放锁并进入超时等待状态</td>
-<td>支持</td>
-<td>支持</td>
-</tr>
-<tr>
-<td>当前线程释放锁并进入等待状态直到将来的某个时间</td>
-<td>不支持</td>
-<td>支持</td>
-</tr>
-<tr>
-<td>唤醒等待队列中的一个线程</td>
-<td>支持</td>
-<td>支持</td>
-</tr>
-<tr>
-<td>唤醒等待队列中的全部线程</td>
-<td>支持</td>
-<td>支持</td>
-</tr>
-</tbody>
-</table>
-<h4 id="Condition的概念"><a href="#Condition的概念" class="headerlink" title="Condition的概念"></a>Condition的概念</h4><p>synchronized关键字，它配合Object的wait()、notify()系列方法可以实现等待/通知模式。</p>
-<p>对于Lock，通过Condition也可以实现等待/通知模式。</p>
-<p>AQS同步器维护了<strong>一个</strong>同步队列，其实还维护了<strong>多个</strong>等待队列，<strong>两种队列均为FIFO队列</strong></p>
-<p>Condition是一个接口，Condition接口的实现类是Lock（AQS）中的ConditionObject。</p>
-<p>Lock接口中有个 newCondition()方法，通过这个方法可以获得Condition对象（其实就是ConditionObject）。<br>因此，<strong>通过Lock对象可以获得Condition对象。</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Lock lock  = <span class="keyword">new</span> ReentrantLock();</span><br><span class="line">Condition c1 = lock.newCondition();</span><br><span class="line">Condition c2 = lock.newCondition();</span><br></pre></td></tr></table></figure>
-<h4 id="Condition的实现分析"><a href="#Condition的实现分析" class="headerlink" title="Condition的实现分析"></a>Condition的实现分析</h4><h5 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h5><p>ConditionObject类是AQS的内部类，实现了Condition接口。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConditionObject</span> <span class="keyword">implements</span> <span class="title">Condition</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">transient</span> Node firstWaiter;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">transient</span> Node lastWaiter;</span><br><span class="line">        ...</span><br></pre></td></tr></table></figure>
-<p>可以看到，等待队列和同步队列一样，使用的都是同步器AQS中的节点类Node。<br>同样拥有首节点和尾节点，<br>每个Condition对象都包含着一个FIFO队列。<br>结构图：</p>
-<img src="/2018/11/11/Java并发之Condition/图1.jpg" title="图1">
-<h5 id="等待"><a href="#等待" class="headerlink" title="等待"></a>等待</h5><p>调用 Condition 的 await() 方法会使线程进入等待队列，并释放锁，线程状态变为等待状态。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">await</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">            Node node = addConditionWaiter();</span><br><span class="line">            <span class="comment">//释放同步状态（锁）</span></span><br><span class="line">            <span class="keyword">int</span> savedState = fullyRelease(node);</span><br><span class="line">            <span class="keyword">int</span> interruptMode = <span class="number">0</span>;</span><br><span class="line">            <span class="comment">//判断节点是否放入同步对列</span></span><br><span class="line">            <span class="keyword">while</span> (!isOnSyncQueue(node)) &#123;</span><br><span class="line">                <span class="comment">//阻塞</span></span><br><span class="line">                LockSupport.park(<span class="keyword">this</span>);</span><br><span class="line">                <span class="comment">//如果已经中断了，则退出</span></span><br><span class="line">                <span class="keyword">if</span> ((interruptMode = checkInterruptWhileWaiting(node)) != <span class="number">0</span>)</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</span><br><span class="line">                interruptMode = REINTERRUPT;</span><br><span class="line">            <span class="keyword">if</span> (node.nextWaiter != <span class="keyword">null</span>) <span class="comment">// clean up if cancelled</span></span><br><span class="line">                unlinkCancelledWaiters();</span><br><span class="line">            <span class="keyword">if</span> (interruptMode != <span class="number">0</span>)</span><br><span class="line">                reportInterruptAfterWait(interruptMode);</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
-<p>分析上述方法的大概过程：</p>
-<ol>
-<li>将当前线程创建为节点，加入等待队列。</li>
-<li>释放锁，唤醒同步队列中的后继节点。</li>
-<li>while 循环判断节点是否放入同步队列；如果没有放入则阻塞继续 while 循环（如果已经中断则退出）；如果放入则退出 while 循环执行后面的判断。</li>
-<li>退出 while 说明节点已经在同步队列中，调用 acquireQueued() 方法加入同步状态竞争。</li>
-<li>竞争到锁后从 await() 方法返回，即退出该方法。</li>
-</ol>
-<img src="/2018/11/11/Java并发之Condition/图2.jpg" title="图2">
-<p>addConditionWaiter() 方法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">addConditionWaiter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            Node t = lastWaiter;</span><br><span class="line">            <span class="keyword">if</span> (t != <span class="keyword">null</span> &amp;&amp; t.waitStatus != Node.CONDITION) &#123;</span><br><span class="line">                <span class="comment">//清除条件队列中所有状态不为Condition的节点</span></span><br><span class="line">                unlinkCancelledWaiters();</span><br><span class="line">                t = lastWaiter;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//将该线程创建节点，放入等待队列</span></span><br><span class="line">            Node node = <span class="keyword">new</span> Node(Thread.currentThread(), Node.CONDITION);</span><br><span class="line">            <span class="keyword">if</span> (t == <span class="keyword">null</span>)</span><br><span class="line">                firstWaiter = node;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                t.nextWaiter = node;</span><br><span class="line">            lastWaiter = node;</span><br><span class="line">            <span class="keyword">return</span> node;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
-<p>过程分析：同步队列的首节点移动到等待队列。加入尾节点之前会清除所有状态不为 Condition 的节点。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/11/11/Java并发之Condition/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1300,7 +1254,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">76</span>
+                  <span class="site-state-item-count">77</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
