@@ -291,6 +291,169 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/03/Java虚拟机的类加载机制/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/03/Java虚拟机的类加载机制/" itemprop="url">Java虚拟机的类加载机制</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-03T16:59:51+08:00">
+                2018-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java虚拟机/" itemprop="url" rel="index">
+                    <span itemprop="name">Java虚拟机</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>Java程序的运行时需要JVM支持的，而在JVM的运行过程中，需要把所有的Java类加载到虚拟机中才能运行。本文介绍了JVM的类加载机制。</p>
+<h4 id="类的生命周期与加载时机"><a href="#类的生命周期与加载时机" class="headerlink" title="类的生命周期与加载时机"></a><strong>类的生命周期与加载时机</strong></h4><h5 id="类的生命周期"><a href="#类的生命周期" class="headerlink" title="类的生命周期"></a><strong>类的生命周期</strong></h5><p>一个类从被加载到虚拟机内存中开始，到被卸载出内存为止，整个生命周期包括了 加载、验证、准备、解析、初始化、使用和卸载7个阶段。其中 验证、准备、解析 3部分统称为链接，如下图：</p>
+<img src="/2018/09/03/Java虚拟机的类加载机制/图1.jpg">
+<p>整个顺序并不是完全固定的，其中解析阶段可以在初始化之后再开始，这样便可以实现Java的运行时绑定（动态绑定）机制。 </p>
+<p><strong>类的加载时机</strong></p>
+<p>JVM虚拟机规范并没有对类的加载时机做出严格的要求，只规定了以下五种情况需要立刻触发类的初始化：</p>
+<p>其余条件下，可以由JVM虚拟机自行决定何时去加载一个类。</p>
+<ol>
+<li><ul>
+<li>遇到new,getstatic,putstatic和invokestatic这四个字节码指令时，如果类没有进行过初始化，则需要先触发其初始化。</li>
+<li>使用反射机制对类进行调用的时候，如果类没有进行过初始化，则需要先触发其初始化。</li>
+<li>当初始化一个类时，如果其父类还没有进行过初始化，则需要先触发其父类的初始化。</li>
+<li>虚拟机启动时，用户需要指定一个要执行的主类（包含main方法），此时会先初始化这个类</li>
+<li>使用JDK1.7的动态语言支持时，如果一个<code>MethodHandle</code>实例最后的解析结果包含<code>REF_getStatic</code>,<code>REF_putStatic</code>,<code>REF_invokeStatic</code>的方法句柄，且这个方法句柄对应的类没有初始化，则需要先对其进行初始化。</li>
+</ul>
+</li>
+</ol>
+<h4 id="主动引用和被动引用"><a href="#主动引用和被动引用" class="headerlink" title="主动引用和被动引用"></a><strong>主动引用和被动引用</strong></h4><p>上面五种条件也被称为对类的<strong>主动引用</strong>，除此之外其他引用类的方式都不会触发初始化，即类的<strong>被动引用</strong>，举个例子：</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/09/03/Java虚拟机的类加载机制/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/01/为什么分布式一定要有Redis/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -967,181 +1130,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/16/详细的Nginx简易教程/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/16/详细的Nginx简易教程/" itemprop="url">详细的Nginx简易教程</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-16T15:11:31+08:00">
-                2018-07-16
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/服务器/" itemprop="url" rel="index">
-                    <span itemprop="name">服务器</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h4 id="什么是Nginx"><a href="#什么是Nginx" class="headerlink" title="什么是Nginx?"></a>什么是Nginx?</h4><p>Nginx (engine x) 是一款轻量级的Web 服务器 、反向代理服务器及电子邮件（IMAP/POP3）代理服务器。</p>
-<h4 id="什么是反向代理？"><a href="#什么是反向代理？" class="headerlink" title="什么是反向代理？"></a>什么是反向代理？</h4><p>反向代理（Reverse Proxy）方式是指以代理服务器来接受internet上的连接请求，然后将请求转发给内部网络上的服务器，并将从服务器上得到的结果返回给internet上请求连接的客户端，此时代理服务器对外就表现为一个反向代理服务器。</p>
-<img src="/2018/07/16/详细的Nginx简易教程/图1.jpg">
-<h4 id="安装与使用"><a href="#安装与使用" class="headerlink" title="安装与使用"></a>安装与使用</h4><h5 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h5><p>nginx官网下载地址：<a href="http://nginx.org" target="_blank" rel="noopener">http://nginx.org</a> ，发布版本分为 Linux 和 windows 版本。</p>
-<p>也可以下载源码，编译后运行。</p>
-<h5 id="从源代码编译-Nginx"><a href="#从源代码编译-Nginx" class="headerlink" title="从源代码编译 Nginx"></a>从源代码编译 Nginx</h5><p>把源码解压缩之后，在终端里运行如下命令：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ./configure</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br></pre></td></tr></table></figure>
-<p> 默认情况下，Nginx 会被安装在 /usr/local/nginx。通过设定编译选项，你可以改变这个设定。</p>
-<h5 id="Windows-安装"><a href="#Windows-安装" class="headerlink" title="Windows 安装"></a>Windows 安装</h5><p>为了安装 Nginx / Win32，需先下载它。然后解压之，然后运行即可。下面以 C 盘根目录为例说明下：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> C:</span><br><span class="line"><span class="built_in">cd</span> C: ginx-0.8.54   start nginx</span><br></pre></td></tr></table></figure>
-<p> Nginx / Win32 是运行在一个控制台程序，而非 windows 服务方式的。服务器方式目前还是开发尝试中。</p>
-<h4 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h4><p>nginx 的使用比较简单，就是几条命令。</p>
-<h5 id="常用到的命令如下："><a href="#常用到的命令如下：" class="headerlink" title="常用到的命令如下："></a>常用到的命令如下：</h5><ul>
-<li>nginx -s stop ：快速关闭Nginx，可能不保存相关信息，并迅速终止web服务。</li>
-<li>nginx -s quit ：平稳关闭Nginx，保存相关信息，有安排的结束web服务。</li>
-<li>nginx -s reload ：因改变了Nginx相关配置，需要重新加载配置而重载。</li>
-<li>nginx -s reopen ：重新打开日志文件。</li>
-<li>nginx -c filename ：为 Nginx 指定一个配置文件，来代替缺省的。</li>
-<li>nginx -t ：不运行，而仅仅测试配置文件。nginx 将检查配置文件的语法的正确性，并尝试打开配置文件中所引用到的文件。</li>
-<li>nginx -v：显示 nginx 的版本。</li>
-<li>nginx -V：显示 nginx 的版本，编译器版本和配置参数。</li>
-</ul>
-<p>如果不想每次都敲命令，可以在nginx安装目录下新添一个启动批处理文件startup.bat，双击即可运行。内容如下：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line">rem 如果启动前已经启动nginx并记录下pid文件，会<span class="built_in">kill</span>指定进程</span><br><span class="line">nginx.exe -s stop</span><br><span class="line"></span><br><span class="line">rem 测试配置文件语法正确性</span><br><span class="line">nginx.exe -t -c conf/nginx.conf</span><br><span class="line"></span><br><span class="line">rem 显示版本信息</span><br><span class="line">nginx.exe -v</span><br><span class="line"></span><br><span class="line">rem 按照指定配置去启动nginx</span><br><span class="line">nginx.exe -c conf/nginx.conf</span><br></pre></td></tr></table></figure>
-<p>如果是运行在 Linux 下，写一个 shell 脚本，大同小异。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/07/16/详细的Nginx简易教程/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/11/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><span class="page-number current">12</span><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><a class="extend next" rel="next" href="/page/13/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/11/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><span class="page-number current">12</span><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="extend next" rel="next" href="/page/13/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1189,7 +1182,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-count">76</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

@@ -291,6 +291,216 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/23/Spring-Cloud参数优化/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/23/Spring-Cloud参数优化/" itemprop="url">Spring Cloud参数优化</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-23T18:03:28+08:00">
+                2018-12-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>相信不少朋友都在自己公司使用Spring Cloud框架来构建微服务架构，毕竟现在这是非常火的一门技术。</p>
+<p>如果只是用户量很少的传统IT系统，使用Spring Cloud可能还暴露不出什么问题。</p>
+<p>如果是较多用户量，高峰每秒高达上万并发请求的互联网公司的系统，使用Spring Cloud技术就有一些问题需要注意了。</p>
+<h4 id="并发量大引起系统问题"><a href="#并发量大引起系统问题" class="headerlink" title="并发量大引起系统问题"></a>并发量大引起系统问题</h4><p>新系统上线后，一开始用户规模很小，注册用户量小几十万，日活几千用户。</p>
+<p>每天都有新的数据进入数据库的表中，就这么日积月累的，没想到数据规模居然慢慢吞吞增长到了单表几百万。</p>
+<p>这个时候呢，看起来也没太大的毛病，就是有用户反映，系统有些操作，会感觉卡顿几秒钟，会刷不出来页面。</p>
+<p>这是为啥呢？</p>
+<ul>
+<li><p>核心原因是单表数据量大了一些，达到了几百万。</p>
+</li>
+<li><p>有个别服务，跑的SQL比较复杂，一大堆的多表关联。</p>
+</li>
+<li><p>并且还没有设计好索引，或者是设计了索引，但无奈一些小弟写了上百行的大SQL，SQL实在太复杂了，那么一个SQL跑出来好几秒肯定是正常的。</p>
+</li>
+</ul>
+<p>如果大家对微服务框架有点了解的话，应该知道，比如Feign + Ribbon组成的服务调用框架，是有接口调用超时这一说的，有一些参数可以设置接口调用的超时时间。</p>
+<p>如果你调用一个接口，好几秒刷不出来，人家就超时异常返回，用户就刷不出来页面了。</p>
+<p>一般碰到这种事情，一大坨屎一样的SQL摆在那儿，写SQL的人过一个月自己都看不懂了，80%的工程师看着都不愿意去花时间重写和优化。</p>
+<p>一是修改的人力成本太高，二是谁敢负担这责任呢？</p>
+<p>系统跑的好好的，就是慢了点而已，结果你硬是乱改一通，重构，把系统核心业务流程搞挂了怎么办？</p>
+<p>所以，那些兄弟第一反应是：增加超时时间啊！接口慢点可以，但是别超时不响应啊！</p>
+<p>咱们让接口执行个几秒把结果返回，用户不就可以刷出来页面了！不用重构系统了啊！轻松+愉快！</p>
+<p>如何增加呢？很简单，看下面的参数就知道了：</p>
+<img src="/2018/12/23/Spring-Cloud参数优化/图1.jpg" title="图1">
+<p>了解Spring Cloud组件作用的程序猿应该知道Spring Cloud里一般会用hystrix的线程池来执行接口调用的请求。</p>
+<p>不了解的话，请参看这篇博客<a href="https://machenxing.github.io/2018/12/07/Spring-Cloud%E5%90%84%E7%BB%84%E4%BB%B6%E7%9A%84%E4%BD%9C%E7%94%A8/" target="_blank" rel="noopener">Spring Cloud各组件的作用</a>。</p>
+<p>所以设置超时一般设置两个地方，<strong>feign和ribbon那块的超时，还有hystrix那块的超时。其中后者那块的超时一般必须大于前者。</strong></p>
+<p>优化了参数后，看上去效果不错，用户虽然觉得有的页面慢是慢点，但是起码过几秒能刷出来。</p>
+<p>这个时候，日活几千的用户量，压根儿没什么并发可言，高峰期每秒最多一二十并发请求罢了。</p>
+<p>大家看看下面这张图，感受一下现场氛围：</p>
+<img src="/2018/12/23/Spring-Cloud参数优化/图2.jpg" title="图2">
+<p>随着业务的发展，用户量蹭蹭蹭的直线增长。</p>
+<p>当高峰期每秒的并发请求居然达到了近万的时候，研发团队紧张的各种扩容服务，一台变两台，两台变四台。</p>
+<p>然后数据库主从架构挂上去，读写分离是必须的，否则单个数据库服务器哪能承载那么大的请求！多搞几个从库，扛一下大量的读请求，这样基本就扛住了。</p>
+<p>在这个过程中，经常会发现高峰期，系统的某个功能页面，突然就整个hang死了，就是没法再响应任何请求！所有用户刷新这个页面全部都是无法响应！</p>
+<p>这是为什么呢？原因很简单啊！一个服务A的实例里，专门调用服务B的那个线程池里的线程，总共可能就几十个。每个线程调用服务B都会卡住5秒钟。</p>
+<p>那如果每秒钟过来几百个请求这个服务实例呢？一下子那个线程池里的线程就全部hang死了，没法再响应任何请求了。</p>
+<p>大家来看看下面这张图，再直观的感受一下这个无助的过程！</p>
+<img src="/2018/12/23/Spring-Cloud参数优化/图3.jpg" title="图3">
+<p>这个时候咋办？兄弟们只能祭出程序员最古老的法宝，重启机器！</p>
+<p>遇到页面刷不出来，只能重启机器，相当于短暂的初始化了一下机器内的资源。</p>
+<p>然后接着运行一段时间，又卡死，再次重启！真是令人崩溃啊！用户们的体验是极差的，老板的心情是愤怒的！</p>
+<p>其实这个问题本身不大，但如果对Spring Cloud没有高并发场景的真实经验，确实可能会搞出些莫名其妙的问题。</p>
+<p>比如，明明应该去优化服务接口性能，结果硬是调大了超时时间。结果导致并发量高了，对那个服务的调用直接hang死，系统的核心页面刷不出来，影响用户体验了，这怪谁呢？</p>
+<h4 id="优化的过程"><a href="#优化的过程" class="headerlink" title="优化的过程"></a>优化的过程</h4><h5 id="优化服务"><a href="#优化服务" class="headerlink" title="优化服务"></a>优化服务</h5><p><strong>关键点，优化图中核心服务B的性能</strong>。互联网公司，核心业务逻辑，面向C端用户高并发的请求，不要用上百行的大SQL，多表关联，那样单表几百万行数据量的话，会导致一下执行好几秒。</p>
+<p>其实最佳的方式，就是对数据库就执行简单的单表查询和更新，然后复杂的业务逻辑全部放在java系统中来执行，比如一些关联，或者是计算之类的工作。</p>
+<p>这一步干完了之后，那个核心服务B的响应速度就已经优化成几十毫秒了，是不是很开心？从几秒变成了几十毫秒！</p>
+<h5 id="合理设置超时时间"><a href="#合理设置超时时间" class="headerlink" title="合理设置超时时间"></a>合理设置超时时间</h5><p>那个超时的时间，也就是上面那段ribbon和hystrix的超时时间设置。</p>
+<p>奉劝各位同学，不要因为系统接口的性能过差而懒惰，搞成几秒甚至几十秒的超时，<strong>一般超时定义在1秒以内，是比较通用以及合理的。</strong></p>
+<p>为什么这么说？</p>
+<p>因为一个接口，理论的最佳响应速度应该在200ms以内，或者慢点的接口就几百毫秒。</p>
+<p><strong>如果一个接口响应时间达到1秒+，建议考虑用缓存、索引、NoSQL等各种你能想到的技术手段，优化一下性能。</strong></p>
+<p><strong>否则你要是胡乱设置超时时间是几秒，甚至几十秒，万一下游服务偶然出了点问题响应时间长了点呢？那你这个线程池里的线程立马全部卡死！</strong> </p>
+<p>这两步解决之后，其实系统表现就正常了，核心服务B响应速度很快，而且超时时间也在1秒以内，不会出现hystrix线程池频繁卡死的情况了。</p>
+<h5 id="合理的重试"><a href="#合理的重试" class="headerlink" title="合理的重试"></a>合理的重试</h5><p>如果你要是超时时间设置成了1秒，如果就是因为偶然发生的网络抖动，导致接口某次调用就是在1.5秒呢？这个是经常发生的，因为网络的问题，接口调用偶然超时。</p>
+<p>所以此时配合着超时时间，一般都会设置一个合理的重试，如下所示：</p>
+<img src="/2018/12/23/Spring-Cloud参数优化/图4.jpg" title="图4">
+<p>设置这段重试之后，Spring Cloud中的Feign + Ribbon的组合，在进行服务调用的时候，如果发现某台机器超时请求失败，会自动重试这台机器，如果还是不行会换另外一台机器重试。</p>
+<h5 id="保障接口幂等性"><a href="#保障接口幂等性" class="headerlink" title="保障接口幂等性"></a>保障接口幂等性</h5><p>系统架构中，<strong>只要涉及到了重试，那么必须上接口的幂等性保障机制</strong>。</p>
+<p>否则的话，试想一下，你要是对一个接口重试了好几次，结果人家重复插入了多条数据，该怎么办呢？</p>
+<p>其实幂等性保证本身并不复杂，根据业务来，常见的方案：</p>
+<ul>
+<li>可以在数据库里建一个唯一索引，插入数据的时候如果唯一索引冲突了就不会插入重复数据</li>
+<li>或者是通过redis里放一个唯一id值，然后每次要插入数据，都通过redis判断一下，那个值如果已经存在了，那么就不要插入重复数据了。</li>
+</ul>
+<p>类似这样的方案还有一些。总之，<strong>要保证一个接口被多次调用的时候，不能插入重复的数据。</strong></p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>最终优化后的系统表现大概是长下面这样子的。</p>
+<img src="/2018/12/23/Spring-Cloud参数优化/图5.jpg" title="图5">
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p>本文出自微信公众号：石杉的架构笔记</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/23/JVM与Linux的内存关系分析/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1076,216 +1286,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/14/MySQL数据库开发规范/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/14/MySQL数据库开发规范/" itemprop="url">MySQL数据库开发规范</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-14T20:58:10+08:00">
-                2018-12-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <ol>
-<li><p>所有的数据库对象名称必须使用小写字母并用下划线分割（MySQL大小写敏感，名称要见名知意，最好不超过32字符）</p>
-</li>
-<li><p>所有的数据库对象名称禁止使用MySQL保留关键字（如 desc、range、match、delayed 等 ）</p>
-</li>
-<li><p>临时库表必须以tmp为前缀并以日期为后缀（tmp_）</p>
-</li>
-<li><p>备份库和库必须以bak为前缀并以日期为后缀(bak_)</p>
-</li>
-<li><p>所有存储相同数据的列名和列类型必须一致。（在多个表中的字段如user_id，它们类型必须一致）</p>
-</li>
-<li><p>mysql5.5之前默认的存储的引擎是myisam，没有特殊要求，所有的表必须使用innodb（innodb好处支持失误，行级锁，高并发下性能更好，对多核，大内存，ssd等硬件支持更好）</p>
-</li>
-<li><p>数据库和表的字符集尽量统一使用utf8（字符集必须统一，避免由于字符集转换产生的乱码，汉字utf8下占3个字节）</p>
-</li>
-<li><p>所有表和字段都要添加注释COMMENT，从一开始就进行数据字典的维护</p>
-</li>
-<li><p>尽量控制单表数据量的大小在500w以内，超过500w可以使用历史数据归档，分库分表来实现（500万行并不是MySQL数据库的限制。过大对于修改表结构，备份，恢复都会有很大问题。MySQL没有对存储有限制，取决于存储设置和文件系统）</p>
-</li>
-<li><p>谨慎使用mysql分区表（分区表在物理上表现为多个文件，在逻辑上表现为一个表）</p>
-</li>
-<li><p>谨慎选择分区键，跨分区查询效率可能更低</p>
-</li>
-<li><p>建议使用物理分表的方式管理大数据</p>
-</li>
-<li><p>尽量做到冷热数据分离，减小表的宽度（mysql限制最多存储4096列，行数没有限制，但是每一行的字节总数不能超过65535。列限制好处：减少磁盘io，保证热数据的内存缓存命中率，避免读入无用的冷数据）</p>
-</li>
-<li><p>禁止在表中建立预留字段（无法确认存储的数据类型，对预留字段类型进行修改，会对表进行锁定）</p>
-</li>
-<li><p>禁止在数据中存储图片，文件二进制数据（使用文件服务器）</p>
-</li>
-<li><p>禁止在线上做数据库压力测试</p>
-</li>
-<li><p>禁止从开发环境，测试环境直接连生产环境数据库</p>
-</li>
-<li><p>限制每张表上的索引数量，建议单表索引不超过5个（索引会增加查询效率，但是会降低插入和更新的速度）</p>
-</li>
-<li><p>避免建立冗余索引和重复索引（冗余：index（a,b,c) index(a,b) index(a)）</p>
-</li>
-<li><p>禁止给表中的每一列都建立单独的索引</p>
-</li>
-<li><p>每个innodb表必须有一个主键，选择自增id（不能使用更新频繁的列作为主键，不适用UUID,MD5,HASH,字符串列作为主键）</p>
-</li>
-<li><p>区分度最高的列放在联合索引的最左侧</p>
-</li>
-<li><p>尽量把字段长度小的列放在联合索引的最左侧</p>
-</li>
-<li><p>尽量避免使用外键（禁止使用物理外键，建议使用逻辑外键）</p>
-</li>
-<li><p>优先选择符合存储需要的最小数据类型</p>
-</li>
-<li><p>优先使用无符号的整形来存储</p>
-</li>
-<li><p>优先选择存储最小的数据类型（varchar(N),N代表的是字符数，而不是字节数，N代表能存储多少个汉字）</p>
-</li>
-<li><p>避免使用Text或是Blob类型</p>
-</li>
-<li><p>避免使用ENUM数据类型（修改ENUM值需要使用ALTER语句，ENUM类型的ORDER BY操作效率低，需要额外操作，禁止使用书值作为ENUM的枚举值</p>
-</li>
-<li><p>尽量把所有的字段定义为NOT NULL（索引NULL需要额外的空间来保存，所以需要暂用更多的内存，进行比较和计算要对NULL值做特别的处理）</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/12/14/MySQL数据库开发规范/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </li></ol></div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1333,7 +1338,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-count">76</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
