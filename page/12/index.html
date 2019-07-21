@@ -291,6 +291,155 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/17/大话数据结构——栈和队列/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/17/大话数据结构——栈和队列/" itemprop="url">大话数据结构——栈和队列</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-17T10:49:56+08:00">
+                2018-09-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据结构/" itemprop="url" rel="index">
+                    <span itemprop="name">数据结构</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文在阅读大话数据结构这本书的基础上，结合<strong>java语言</strong>的特点，来理解<strong>栈和队列</strong>。</p>
+<h4 id="栈与队列的定义"><a href="#栈与队列的定义" class="headerlink" title="栈与队列的定义"></a>栈与队列的定义</h4><p><strong>栈</strong>是限定仅在表尾进行插入和删除操作的线性表。（类似弹夹中的子弹）<br><strong>队列</strong>是只允许在一端进行插入操作、而在另一端进行删除操作的线性表。（类似等待客服电话排队）</p>
+<h4 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h4><p>栈本身也是一种线性表，除了删除和添加改名为pop(弹)和push(压)，抽象功能没有特别的地方。需要注意一点是java的sdk继承vector实现的stack，相关操作使用synchronized，具有安全性。</p>
+<h4 id="栈的顺序存储结构-顺序栈"><a href="#栈的顺序存储结构-顺序栈" class="headerlink" title="栈的顺序存储结构(顺序栈)"></a>栈的顺序存储结构(顺序栈)</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 基于数组实现的顺序栈</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> &lt;E&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Stack</span>&lt;<span class="title">E</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Object[] data = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">private</span> Object e;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> maxSize=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> top=-<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 构造函数：根据给定的size初始化栈</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Stack()&#123;</span><br><span class="line">        <span class="keyword">this</span>(<span class="number">10</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Stack</span><span class="params">(<span class="keyword">int</span> initSize)</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(initSize&gt;=<span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">this</span>.maxSize=initSize;</span><br><span class="line">            data = <span class="keyword">new</span> Object[initSize];</span><br><span class="line">            top=-<span class="number">1</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"初始化大小不能小于0"</span>+initSize);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//判断栈是否为空</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isEmpty</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> top == -<span class="number">1</span> ? <span class="keyword">true</span> : <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//元素进栈</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">push</span><span class="params">(E e)</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (top == maxSize-<span class="number">1</span>)&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"栈已满，元素无法入栈！"</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            data[++top]=e;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//查看栈顶元素</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">peek</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(top==-<span class="number">1</span>)&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"栈为空！"</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">return</span> data[top];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//元素出栈</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">pop</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(top==-<span class="number">1</span>)&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"栈为空！"</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            Object elem=data[top];</span><br><span class="line">            data[top--]=<span class="keyword">null</span>;</span><br><span class="line">            <span class="keyword">return</span> elem;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//返回对象在堆栈中的位置，以1为基数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">search</span><span class="params">(E e)</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i=top;</span><br><span class="line">        <span class="keyword">while</span>(top!=-<span class="number">1</span>)&#123;</span><br><span class="line">            <span class="keyword">if</span>(peek()!=e)&#123;</span><br><span class="line">                top--;</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> result = top+<span class="number">1</span>;</span><br><span class="line">        top=i;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//查看栈的大小</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSize</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> top+<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//清空栈</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span></span>&#123;</span><br><span class="line">        Arrays.fill(data,<span class="keyword">null</span>);</span><br><span class="line">        top=-<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Stack&lt;String&gt; stack=<span class="keyword">new</span> Stack&lt;&gt;();</span><br><span class="line">        System.out.println(<span class="string">"stack.maxSize="</span>+stack.maxSize);</span><br><span class="line">        System.out.println(<span class="string">"stack.size="</span>+stack.getSize());</span><br><span class="line">        System.out.println(<span class="string">"stack is empty?"</span>+stack.isEmpty());</span><br><span class="line">        stack.push(<span class="string">"a"</span>);</span><br><span class="line">        stack.push(<span class="string">"b"</span>);</span><br><span class="line">        stack.push(<span class="string">"c"</span>);</span><br><span class="line">        stack.push(<span class="string">"d"</span>);</span><br><span class="line">        stack.push(<span class="string">"e"</span>);</span><br><span class="line">        System.out.println(<span class="string">"stack.size="</span>+stack.getSize());</span><br><span class="line">        System.out.println(<span class="string">"stack is empty?"</span>+stack.isEmpty());</span><br><span class="line">        System.out.println(stack.pop());</span><br><span class="line">        System.out.println(stack.peek());</span><br><span class="line">        System.out.println(stack.pop());</span><br><span class="line">        System.out.println(<span class="string">"stack.size="</span>+stack.getSize());</span><br><span class="line">        System.out.println(<span class="string">"stack is empty?"</span>+stack.isEmpty());</span><br><span class="line">        stack.clear();</span><br><span class="line">        System.out.println(<span class="string">"---------------after clear---------------"</span>);</span><br><span class="line">        System.out.println(<span class="string">"queue is empty?"</span>+stack.isEmpty());</span><br><span class="line">        System.out.println(<span class="string">"queue.size="</span>+stack.getSize());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/09/17/大话数据结构——栈和队列/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/15/大话数据结构——串/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -913,202 +1062,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/01/为什么分布式一定要有Redis/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/01/为什么分布式一定要有Redis/" itemprop="url">为什么分布式一定要有Redis?</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-01T12:22:28+08:00">
-                2018-09-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>大部分写业务的程序员，在实际开发中使用 Redis 的时候，只会 Set Value 和 Get Value 两个操作，对 Redis 整体缺乏一个认知。 </p>
-<p>本文围绕以下几点进行阐述：</p>
-<ul>
-<li><strong>为什么使用 Redis</strong></li>
-<li><strong>使用 Redis 有什么缺点</strong></li>
-<li><strong>单线程的 Redis 为什么这么快</strong></li>
-<li><strong>Redis 的数据类型，以及每种数据类型的使用场景</strong></li>
-<li><strong>Redis 的过期策略以及内存淘汰机制</strong></li>
-<li><strong>Redis 和数据库双写一致性问题</strong></li>
-<li><strong>如何应对缓存穿透和缓存雪崩问题</strong></li>
-<li><strong>如何解决 Redis 的并发竞争 Key 问题</strong></li>
-</ul>
-<h4 id="为什么使用-Redis"><a href="#为什么使用-Redis" class="headerlink" title="为什么使用 Redis"></a>为什么使用 Redis</h4><p>我觉得在项目中使用 Redis，主要是从两个角度去考虑：性能和并发。</p>
-<p>当然，Redis 还具备可以做分布式锁等其他功能，但是如果只是为了分布式锁这些其他功能，完全还有其他中间件，如 ZooKeeper 等代替，并不是非要使用 Redis。因此，这个问题主要从性能和并发两个角度去答。点击<a href="https://mp.weixin.qq.com/s?__biz=MzA3MjMwMzg2Nw==&amp;mid=2247483698&amp;idx=1&amp;sn=d7e19e501b7d428f3f73fcc4f5f7e322&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">这里</a>查看Redis面试题汇总。</p>
-<h5 id="性能"><a href="#性能" class="headerlink" title="性能"></a><strong>性能</strong></h5><p>如下图所示，我们在碰到需要执行耗时特别久，且结果不频繁变动的 SQL，就特别适合将运行结果放入缓存。这样，后面的请求就去缓存中读取，使得请求能够迅速响应。</p>
-<img src="/2018/09/01/为什么分布式一定要有Redis/图1.jpg">
-<p><strong>题外话：</strong>忽然想聊一下这个迅速响应的标准。根据交互效果的不同，这个响应时间没有固定标准。</p>
-<p><strong>不过曾经有人这么告诉我：</strong>“在理想状态下，我们的页面跳转需要在瞬间解决，对于页内操作则需要在刹那间解决。另外，超过一弹指的耗时操作要有进度提示，并且可以随时中止或取消，这样才能给用户最好的体验。”</p>
-<p>那么瞬间、刹那、一弹指具体是多少时间呢？</p>
-<p><strong><em>根据《摩诃僧祗律》记载：</em></strong></p>
-<p><strong><em>一刹那者为一念，二十念为一瞬，二十瞬为一弹指，二十弹指为一罗预，二十罗预为一须臾，一日一夜有三十须臾。</em></strong></p>
-<p>那么，经过周密的计算，一瞬间为 0.36 秒、一刹那有 0.018 秒、一弹指长达 7.2 秒。</p>
-<h5 id="并发"><a href="#并发" class="headerlink" title="并发"></a><strong>并发</strong></h5><p>如下图所示，在大并发的情况下，所有的请求直接访问数据库，数据库会出现连接异常。</p>
-<p>这个时候，就需要使用 Redis 做一个缓冲操作，让请求先访问到 Redis，而不是直接访问数据库。点击<a href="https://mp.weixin.qq.com/s?__biz=MzA3MjMwMzg2Nw==&amp;mid=2247483698&amp;idx=1&amp;sn=d7e19e501b7d428f3f73fcc4f5f7e322&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">这里</a>查看Redis面试题汇总。</p>
-<img src="/2018/09/01/为什么分布式一定要有Redis/图2.jpg">
-<h4 id="使用-Redis-有什么缺点"><a href="#使用-Redis-有什么缺点" class="headerlink" title="使用 Redis 有什么缺点"></a>使用 Redis 有什么缺点</h4><p>大家用 Redis 这么久，这个问题是必须要了解的，基本上使用 Redis 都会碰到一些问题，常见的也就几个。</p>
-<p>回答主要是四个问题：</p>
-<ul>
-<li><strong>缓存和数据库双写一致性问题</strong></li>
-<li><strong>缓存雪崩问题</strong></li>
-<li><strong>缓存击穿问题</strong></li>
-<li><strong>缓存的并发竞争问题</strong></li>
-</ul>
-<p>这四个问题，我个人觉得在项目中是常遇见的，具体解决方案，后文给出。</p>
-<h4 id="单线程的-Redis-为什么这么快"><a href="#单线程的-Redis-为什么这么快" class="headerlink" title="单线程的 Redis 为什么这么快"></a>单线程的 Redis 为什么这么快</h4><p>这个问题是对 Redis 内部机制的一个考察。根据我的面试经验，很多人都不知道 Redis 是单线程工作模型。所以，这个问题还是应该要复习一下的。</p>
-<p>回答主要是以下三点：</p>
-<ul>
-<li><strong>纯内存操作</strong></li>
-<li><strong>单线程操作，避免了频繁的上下文切换</strong></li>
-<li><strong>采用了非阻塞 I/O 多路复用机制</strong></li>
-</ul>
-<p><strong>题外话：</strong>我们现在要仔细的说一说 I/O 多路复用机制，因为这个说法实在是太通俗了，通俗到一般人都不懂是什么意思。</p>
-<p><strong>打一个比方：</strong>小曲在 S 城开了一家快递店，负责同城快送服务。小曲因为资金限制，雇佣了一批快递员，然后小曲发现资金不够了，只够买一辆车送快递。</p>
-<h5 id="经营方式一"><a href="#经营方式一" class="headerlink" title="经营方式一"></a><strong>经营方式一</strong></h5><p>客户每送来一份快递，小曲就让一个快递员盯着，然后快递员开车去送快递。</p>
-<p>慢慢的小曲就发现了这种经营方式存在下述问题：</p>
-<ul>
-<li>几十个快递员基本上时间都花在了抢车上了，大部分快递员都处在闲置状态，谁抢到了车，谁就能去送快递。</li>
-<li>随着快递的增多，快递员也越来越多，小曲发现快递店里越来越挤，没办法雇佣新的快递员了。</li>
-<li>快递员之间的协调很花时间。</li>
-</ul>
-<p>综合上述缺点，小曲痛定思痛，提出了下面的经营方式。 </p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/09/01/为什么分布式一定要有Redis/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1161,7 +1114,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">79</span>
+                  <span class="site-state-item-count">80</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
