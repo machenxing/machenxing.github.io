@@ -291,6 +291,163 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/09/MD5算法/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/09/MD5算法/" itemprop="url">MD5算法</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-09T19:35:03+08:00">
+                2018-05-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/算法/" itemprop="url" rel="index">
+                    <span itemprop="name">算法</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>Message Digest Algorithm MD5（中文名为消息摘要算法）为计算机安全领域广泛使用的一种散列函数，用以提供消息的完整性保护，用于确保信息传输完整一致 。 </p>
+<h4 id="MD5算法的特点"><a href="#MD5算法的特点" class="headerlink" title="MD5算法的特点"></a>MD5算法的特点</h4><p>1、压缩性：任意长度的数据，算出的MD5值长度都是固定的。</p>
+<p>2、容易计算：从原数据计算出MD5值很容易。</p>
+<p>3、抗修改性：对原数据进行任何改动，哪怕只修改1个字节，所得到的MD5值都有很大区别。</p>
+<p>4、强抗碰撞：已知原数据和其MD5值，想找到一个具有相同MD5值的数据（即伪造数据）是非常困难的。</p>
+<h4 id="MD5应用"><a href="#MD5应用" class="headerlink" title="MD5应用"></a>MD5应用</h4><h5 id="一致性验证"><a href="#一致性验证" class="headerlink" title="一致性验证"></a>一致性验证</h5><p>MD5的典型应用是对一段信息（Message）产生信息摘要（Message-Digest），以防止被篡改。 MD5将整个文件当作一个大文本信息，通过其不可逆的字符串变换算法，产生了这个唯一的MD5信息摘要。 我们常常在某些软件下载站点的某软件信息中看到其MD5值，它的作用就在于我们可以在下载该软件后，对下载回来的文件用专门的软件（如Windows MD5 Check等）做一次MD5校验，以确保我们获得的文件与该站点提供的文件为同一文件。 具体来说文件的MD5值就像是这个文件的数字指纹。每个文件的MD5值是不同的，如果任何人对文件做了任何改动，其MD5值也就是对应的“数字指纹”就会发生变化。比如下载服务器针对一个文件预先提供一个MD5值，用户下载完该文件后，用我这个算法重新计算下载文件的MD5值，通过比较这两个值是否相同，就能判断下载的文件是否出错，或者说下载的文件是否被篡改了。 </p>
+<p>利用MD5算法来进行文件校验的方案被大量应用到软件下载站、论坛数据库、系统文件安全等方面。</p>
+<h5 id="数字签名"><a href="#数字签名" class="headerlink" title="数字签名"></a>数字签名</h5><p>MD5的典型应用是对一段Message(字节串)产生fingerprint指纹，以防止被“篡改”。举个例子，你将一段话写在一个叫 readme.txt文件中，并对这个readme.txt产生一个MD5的值并记录在案，然后你可以传播这个文件给别人，别人如果修改了文件中的任何内容，你对这个文件重新计算MD5时就会发现（两个MD5值不相同）。如果再有一个第三方的认证机构，用MD5还可以防止文件作者的“抵赖”，这就是所谓的数字签名应用。 </p>
+<h5 id="安全访问认证"><a href="#安全访问认证" class="headerlink" title="安全访问认证"></a>安全访问认证</h5><p>MD5还广泛用于操作系统的登陆认证上，如系统登录密码、数字签名等诸多方面。如在Unix系统中用户的密码是以MD5（或其它类似的算法）经Hash运算后存储在文件系统中。当用户登录的时候，系统把用户输入的密码进行MD5 Hash运算，然后再去和保存在文件系统中的MD5值进行比较，进而确定输入的密码是否正确。通过这样的步骤，系统在并不知道用户密码的明码的情况下就可以确定用户登录系统的合法性。这可以避免用户的密码被具有系统管理员权限的用户知道。MD5将任意长度的“字节串”映射为一个128bit的大整数，并且是通过该128bit反推原始字符串是困难的，换句话说就是，即使你看到源程序和算法描述，也无法将一个MD5的值变换回原始的字符串，从数学原理上说，是因为原始的字符串有无穷多个，这有点象不存在反函数的数学函数。 </p>
+<h4 id="算法原理"><a href="#算法原理" class="headerlink" title="算法原理"></a>算法原理</h4><p>对MD5算法简要的叙述可以为：MD5以512位分组来处理输入的信息，且每一分组又被划分为16个32位子分组，经过了一系列的处理后，算法的输出由四个32位分组组成，将这四个32位分组级联后将生成一个128位散列值。总体流程如下图所示， 表示第i个分组，每次的运算都由前一轮的128位结果值和第i块512bit值进行运算。</p>
+<p><img src="https://gss0.bdstatic.com/-4o3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike80%2C5%2C5%2C80%2C26/sign=5f537e77f636afc31a013737d27080a1/c75c10385343fbf2ee0d9594b17eca8065388f67.jpg" alt="img"> </p>
+<h4 id="弱点"><a href="#弱点" class="headerlink" title="弱点"></a>弱点</h4><p>2004年8月17日的美国加州圣巴巴拉的国际密码学会议（Crypto’2004）上，来自中国山东大学的王小云教授做了破译MD5、HAVAL-128、 MD4和RIPEMD算法的报告，公布了MD系列算法的破解结果。宣告了固若金汤的世界通行密码标准MD5的堡垒轰然倒塌，引发了密码学界的轩然大波。(注意:并非是真正的破解，只是加速了杂凑冲撞）所谓杂凑冲撞指两个完全不同的讯息经杂凑函数计算得出完全相同的杂凑值。根据鸽巢原理，以有长度限制的杂凑函数计算没有长度限制的讯息是必然会有冲撞情况出现的。</p>
+<p>MD5不可逆的原因是其是一种散列函数，使用的是hash算法，在计算过程中原文的部分信息是丢失了的，一个MD5理论上的确是可能对应无数多个原文的，因为MD5是有限多个的而原文可以是无数多个。比如主流使用的MD5将任意长度的“字节串映射为一个128bit的大整数。也就是一共有2^128种可能，大概是3.4*10^38，这个数字是有限多个的，而但是世界上可以被用来加密的原文则会有无数的可能性。不过需要注意的一点是，尽量这是一个理论上的有限对无限，不过问题是这个无限在现实生活中并不完全成立，因为一方面现实中原文的长度往往是有限的（以常用的密码为例，一般人都在20位以内），另一方面目前想要发现两段原文对应同一个MD5（专业的说这叫杂凑冲撞）值非常困难，因此某种意义上来说，在一定范围内想构建MD5值与原文的一一对应关系是完全有可能的。所以对于MD5目前最有效的攻击方式就是<a href="https://link.zhihu.com/?target=http%3A//baike.baidu.com/link%3Furl%3DqoP2cvBtCuXxOyXRkXTCwrGk3D4ZYjXvGWr6ysxoQZCc7rD_ZerAnEUB_dkRDarUgLx4H2_xqHYCJ35AI-YVe_" target="_blank" rel="noopener">彩虹表</a>，具体详情你可以通过链接了解。</p>
+<p>1、md5就是32个十六进制数，其信息量是2的128次方。任意一个长度超过16字节的字符串，它的变数就已经超过这个值，所以肯定是不可逆的；</p>
+<p>2、MD5相当于超损压缩；</p>
+<p>3、王小云教授做的不是根据密文能得到原文的这种破解，他只是能伪造一个跟原文不一样值使得这个值的MD5值跟原文的MD5值一样，并不能准确的找到这个值，即：只能找到a和b使md5(a)=md5(b) 并不能明确原值是a还是b；</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/07/test/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -702,7 +859,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">78</span>
+                  <span class="site-state-item-count">79</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
