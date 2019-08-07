@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="网络编程,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="首先我们分别画图来看看，BIO、NIO、AIO，分别是什么？ BIO传统的网络通讯模型，就是BIO，同步阻塞IO 它其实就是服务端创建一个ServerSocket， 然后就是客户端用一个Socket去连接服务端的那个ServerSocket， ServerSocket接收到了一个的连接请求就创建一个Socket和一个线程去跟那个Socket进行通讯。 接着客户端和服务端就进行阻塞式的通信，客户端发">
+<meta name="keywords" content="网络编程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java NIO面试题剖析">
+<meta property="og:url" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/index.html">
+<meta property="og:site_name" content="Star&#39;s Blog">
+<meta property="og:description" content="首先我们分别画图来看看，BIO、NIO、AIO，分别是什么？ BIO传统的网络通讯模型，就是BIO，同步阻塞IO 它其实就是服务端创建一个ServerSocket， 然后就是客户端用一个Socket去连接服务端的那个ServerSocket， ServerSocket接收到了一个的连接请求就创建一个Socket和一个线程去跟那个Socket进行通讯。 接着客户端和服务端就进行阻塞式的通信，客户端发">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/图1.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/图2.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/图3.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/图4.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/图5.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/图6.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/图7.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/图8.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/图9.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/图10.jpg">
+<meta property="og:updated_time" content="2019-08-07T12:47:23.197Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java NIO面试题剖析">
+<meta name="twitter:description" content="首先我们分别画图来看看，BIO、NIO、AIO，分别是什么？ BIO传统的网络通讯模型，就是BIO，同步阻塞IO 它其实就是服务端创建一个ServerSocket， 然后就是客户端用一个Socket去连接服务端的那个ServerSocket， ServerSocket接收到了一个的连接请求就创建一个Socket和一个线程去跟那个Socket进行通讯。 接着客户端和服务端就进行阻塞式的通信，客户端发">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/图1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/">
+
+
+
+
+
+  <title>Java NIO面试题剖析 | Star's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Star's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Keep learning, Keep improving</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java NIO面试题剖析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-07T19:44:04+08:00">
+                2019-08-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>首先我们分别<strong>画图来看看，BIO、NIO、AIO，分别是什么？</strong></p>
+<h4 id="BIO"><a href="#BIO" class="headerlink" title="BIO"></a>BIO</h4><p>传统的网络通讯模型，就是BIO，同步阻塞IO</p>
+<p>它其实就是服务端创建一个ServerSocket， 然后就是客户端用一个Socket去连接服务端的那个ServerSocket， ServerSocket接收到了一个的连接请求就创建一个Socket和一个线程去跟那个Socket进行通讯。</p>
+<p>接着客户端和服务端就进行阻塞式的通信，客户端发送一个请求，服务端Socket进行处理后返回响应。</p>
+<p>在响应返回前，客户端那边就阻塞等待，上门事情也做不了。</p>
+<p>这种方式的缺点：每次一个客户端接入，都需要在服务端创建一个线程来服务这个客户端</p>
+<p>这样大量客户端来的时候，就会造成服务端的线程数量可能达到了几千甚至几万，这样就可能会造成服务端过载过高，最后崩溃死掉。</p>
+<p><strong>BIO模型图</strong></p>
+<img src="/2019/08/07/Java-NIO面试题剖析/图1.jpg" title="图1">
+<p><strong>Acceptor</strong></p>
+<p>传统的IO模型的网络服务的设计模式中有俩种比较经典的设计模式：一个是多线程， 一种是依靠线程池来进行处理。</p>
+<p>如果是基于多线程的模式来的话，就是这样的模式，这种也是Acceptor线程模型。</p>
+<img src="/2019/08/07/Java-NIO面试题剖析/图2.jpg" title="图2">
+<h4 id="NIO"><a href="#NIO" class="headerlink" title="NIO"></a>NIO</h4><p>NIO是一种同步非阻塞IO, 基于Reactor模型来实现的。</p>
+<p>其实相当于就是一个线程处理大量的客户端的请求，通过一个线程轮询大量的channel，每次就获取一批有事件的channel，然后对每个请求启动一个线程处理即可。</p>
+<p>这里的核心就是非阻塞，就那个selector一个线程就可以不停轮询channel，所有客户端请求都不会阻塞，直接就会进来，大不了就是等待一下排着队而已。</p>
+<p>这里面<strong>优化BIO的核心</strong>就是，一个客户端并不是时时刻刻都有数据进行交互，没有必要死耗着一个线程不放，所以客户端选择了让线程歇一歇，只有客户端有相应的操作的时候才发起通知，创建一个线程来处理请求。</p>
+<p><strong>NIO：模型图</strong></p>
+<img src="/2019/08/07/Java-NIO面试题剖析/图3.jpg" title="图3">
+<p><strong>Reactor模型</strong></p>
+<img src="/2019/08/07/Java-NIO面试题剖析/图4.jpg" title="图4">
+<h4 id="AIO"><a href="#AIO" class="headerlink" title="AIO"></a>AIO</h4><p>AIO：异步非阻塞IO，基于Proactor模型实现。</p>
+<p>每个连接发送过来的请求，都会绑定一个Buffer，然后通知操作系统去完成异步的读，这个时间你就可以去做其他的事情</p>
+<p>等到操作系统完成读之后，就会调用你的接口，给你操作系统异步读完的数据。这个时候你就可以拿到数据进行处理，将数据往回写</p>
+<p>在往回写的过程，同样是给操作系统一个Buffer，让操作系统去完成写，写完了来通知你。</p>
+<p>这俩个过程都有buffer存在，数据都是通过buffer来完成读写。</p>
+<p>这里面的主要的区别在于将数据写入的缓冲区后，就不去管它，剩下的去交给操作系统去完成。</p>
+<p>操作系统写回数据也是一样，写到Buffer里面，写完后通知客户端来进行读取数据。</p>
+<p><strong>AIO：模型图</strong></p>
+<a id="more"></a> 
+<img src="/2019/08/07/Java-NIO面试题剖析/图5.jpg" title="图5">
+<p>聊完了BIO，NIO，AIO的区别之后，现在我们再结合这三个模型来说下同步和阻塞的一些问题。</p>
+<h4 id="同步阻塞"><a href="#同步阻塞" class="headerlink" title="同步阻塞"></a>同步阻塞</h4><h5 id="为什么说BIO是同步阻塞的呢？"><a href="#为什么说BIO是同步阻塞的呢？" class="headerlink" title="为什么说BIO是同步阻塞的呢？"></a>为什么说BIO是同步阻塞的呢？</h5><p>其实这里说的不是针对网络通讯模型而言，而是针对磁盘文件读写IO操作来说的。</p>
+<p>因为用BIO的流读写文件，例如FileInputStrem，是说你发起个IO请求直接hang死，卡在那里，必须等着搞完了这次IO才能返回。</p>
+<h4 id="同步非阻塞"><a href="#同步非阻塞" class="headerlink" title="同步非阻塞:"></a>同步非阻塞:</h4><h5 id="为什么说NIO为啥是同步非阻塞？"><a href="#为什么说NIO为啥是同步非阻塞？" class="headerlink" title="为什么说NIO为啥是同步非阻塞？"></a>为什么说NIO为啥是同步非阻塞？</h5><p>因为无论多少客户端都可以接入服务端，客户端接入并不会耗费一个线程，只会创建一个连接然后注册到selector上去，这样你就可以去干其他你想干的其他事情了</p>
+<p>一个selector线程不断的轮询所有的socket连接，发现有事件了就通知你，然后你就启动一个线程处理一个请求即可，这个过程的话就是非阻塞的。</p>
+<p>但是这个处理的过程中，你还是要先读取数据，处理，再返回的，这是个同步的过程。</p>
+<h4 id="异步非阻塞"><a href="#异步非阻塞" class="headerlink" title="异步非阻塞"></a>异步非阻塞</h4><h5 id="为什么说AIO是异步非阻塞？"><a href="#为什么说AIO是异步非阻塞？" class="headerlink" title="为什么说AIO是异步非阻塞？"></a>为什么说AIO是异步非阻塞？</h5><p>通过AIO发起个文件IO操作之后，你立马就返回可以干别的事儿了，接下来你也不用管了，操作系统自己干完了IO之后，告诉你说ok了</p>
+<p>当你基于AIO的api去读写文件时， 当你发起一个请求之后，剩下的事情就是交给了操作系统</p>
+<p>当读写完成后， 操作系统会来回调你的接口， 告诉你操作完成</p>
+<p>在这期间不需要等待， 也不需要去轮询判断操作系统完成的状态，你可以去干其他的事情。</p>
+<p>同步就是自己还得主动去轮询操作系统，异步就是操作系统反过来通知你。所以来说， AIO就是异步非阻塞的。</p>
+<h4 id="NIO核心组件详细讲解"><a href="#NIO核心组件详细讲解" class="headerlink" title="NIO核心组件详细讲解"></a>NIO核心组件详细讲解</h4><p>学习NIO先来搞清楚一些相关的概念</p>
+<h5 id="NIO通讯有哪些相关组件，对应的作用都是什么，之间有哪些联系？"><a href="#NIO通讯有哪些相关组件，对应的作用都是什么，之间有哪些联系？" class="headerlink" title="NIO通讯有哪些相关组件，对应的作用都是什么，之间有哪些联系？"></a>NIO通讯有哪些相关组件，对应的作用都是什么，之间有哪些联系？</h5><p><strong>多路复用机制实现Selector</strong></p>
+<p>首先我们来了解下传统的Socket网络通讯模型。</p>
+<p><strong>传统Socket通讯原理图</strong></p>
+<img src="/2019/08/07/Java-NIO面试题剖析/图6.jpg" title="图6">
+<h5 id="为什么传统的socket不支持海量连接？"><a href="#为什么传统的socket不支持海量连接？" class="headerlink" title="为什么传统的socket不支持海量连接？"></a>为什么传统的socket不支持海量连接？</h5><p>每次一个客户端接入，都是要在服务端创建一个线程来服务这个客户端的</p>
+<p>这会导致大量的客户端的时候，服务端的线程数量可能达到几千甚至几万，几十万，这会导致服务器端程序负载过高，不堪重负，最终系统崩溃死掉。</p>
+<p>接着来看下NIO是如何基于Selector实现多路复用机制支持的海量连接。</p>
+<p><strong>NIO原理图</strong></p>
+<img src="/2019/08/07/Java-NIO面试题剖析/图7.jpg" title="图7">
+<h5 id="多路复用机制是如何支持海量连接？"><a href="#多路复用机制是如何支持海量连接？" class="headerlink" title="多路复用机制是如何支持海量连接？"></a>多路复用机制是如何支持海量连接？</h5><p>NIO的线程模型对Socket发起的连接不需要每个都创建一个线程，完全可以使用一个Selector来多路复用监听N多个Channel是否有请求，该请求是对应的连接请求，还是发送数据的请求</p>
+<p>这里面是基于操作系统底层的Select通知机制的，一个Selector不断的轮询多个Channel，这样避免了创建多个线程</p>
+<p>只有当莫个Channel有对应的请求的时候才会创建线程，可能说1000个请求， 只有100个请求是有数据交互的</p>
+<p>这个时候可能server端就提供10个线程就能够处理这些请求。这样的话就可以避免了创建大量的线程。</p>
+<p><strong>NIO如何通过Buffer来缓冲数据的</strong></p>
+<h5 id="NIO中的Buffer是个什么东西-？"><a href="#NIO中的Buffer是个什么东西-？" class="headerlink" title="NIO中的Buffer是个什么东西 ？"></a>NIO中的Buffer是个什么东西 ？</h5><img src="/2019/08/07/Java-NIO面试题剖析/图8.jpg" title="图8">
+<p>学习NIO，首当其冲就是要了解所谓的Buffer缓冲区，这个东西是NIO里比较核心的一个部分</p>
+<p>一般来说，如果你要通过NIO写数据到文件或者网络，或者是从文件和网络读取数据出来此时就需要通过Buffer缓冲区来进行。Buffer的使用一般有如下几个步骤：</p>
+<p>写入数据到Buffer，调用flip()方法，从Buffer中读取数据，调用clear()方法或者compact()方法。</p>
+<h5 id="Buffer中对应的Position，-Mark，-Capacity，Limit都啥？"><a href="#Buffer中对应的Position，-Mark，-Capacity，Limit都啥？" class="headerlink" title="Buffer中对应的Position， Mark， Capacity，Limit都啥？"></a>Buffer中对应的Position， Mark， Capacity，Limit都啥？</h5><img src="/2019/08/07/Java-NIO面试题剖析/图9.jpg" title="图9">
+<ul>
+<li><p><strong>capacity</strong>：缓冲区容量的大小，就是里面包含的数据大小。</p>
+</li>
+<li><p><strong>limit</strong>：对buffer缓冲区使用的一个限制，从这个index开始就不能读取数据了。</p>
+</li>
+<li><p><strong>position</strong>：代表着数组中可以开始读写的index， 不能大于limit。</p>
+</li>
+<li><p><strong>mark</strong>：是类似路标的东西，在某个position的时候，设置一下mark，此时就可以设置一个标记</p>
+</li>
+</ul>
+<p>  后续调用reset()方法可以把position复位到当时设置的那个mark上。去把position或limit调整为小于mark的值时，就丢弃这个mark</p>
+<p>  如果使用的是Direct模式创建的Buffer的话，就会减少中间缓冲直接使用DirectorBuffer来进行数据的存储。</p>
+<p><strong>如何通过Channel和FileChannel读取Buffer数据写入磁盘</strong></p>
+<h5 id="NIO中，Channel是什么？"><a href="#NIO中，Channel是什么？" class="headerlink" title="NIO中，Channel是什么？"></a>NIO中，Channel是什么？</h5><p>Channel是NIO中的数据通道，类似流，但是又有些不同</p>
+<p>Channel既可从中读取数据，又可以从写数据到通道中，但是流的读写通常是单向的。</p>
+<p>Channel可以异步的读写。Channel中的数据总是要先读到一个Buffer中，或者从缓冲区中将数据写到通道中。</p>
+<img src="/2019/08/07/Java-NIO面试题剖析/图10.jpg" title="图10">
+<h5 id="FileChannel的作用是什么？"><a href="#FileChannel的作用是什么？" class="headerlink" title="FileChannel的作用是什么？"></a>FileChannel的作用是什么？</h5><p>Buffer有不同的类型，同样Channel也有好几个类型。</p>
+<ul>
+<li>FileChannel</li>
+<li>DatagramChannel</li>
+<li>SocketChannel</li>
+<li>ServerSocketChannel</li>
+</ul>
+<p>这些通道涵盖了UDP 和 TCP 网络IO，以及文件IO。而FileChannel就是文件IO对应的管道， 在读取文件的时候会用到这个管道。</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结:"></a>总结:</h4><p>​    通过本篇文章，主要是分析了常见的NIO的一些问题：</p>
+<ul>
+<li>BIO， NIO， AIO各自的特点</li>
+</ul>
+<ul>
+<li><p>什么同步阻塞，同步非阻塞，异步非阻塞</p>
+</li>
+<li><p>为什么NIO能够应对支持海量的请求</p>
+</li>
+</ul>
+<ul>
+<li>NIO相关组件的原理</li>
+</ul>
+<ul>
+<li>NIO通讯的简单案例</li>
+</ul>
+<p>本文仅仅是介绍了一下网络通讯的一些原理</p>
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p>本文转载自： 石杉的架构笔记</p>
+<p><a href="https://mp.weixin.qq.com/s/YIcXaH7AWLJbPjnTUwnlyQ" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/YIcXaH7AWLJbPjnTUwnlyQ</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>看官可在此打赏</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="Morning Star 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Morning Star 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/网络编程/" rel="tag"># 网络编程</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/21/用户表分库分表方案/" rel="next" title="用户表分库分表方案">
+                <i class="fa fa-chevron-left"></i> 用户表分库分表方案
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="Morning Star">
+            
+              <p class="site-author-name" itemprop="name">Morning Star</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">81</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/machenxing" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#BIO"><span class="nav-number">1.</span> <span class="nav-text">BIO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NIO"><span class="nav-number">2.</span> <span class="nav-text">NIO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AIO"><span class="nav-number">3.</span> <span class="nav-text">AIO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#同步阻塞"><span class="nav-number">4.</span> <span class="nav-text">同步阻塞</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#为什么说BIO是同步阻塞的呢？"><span class="nav-number">4.1.</span> <span class="nav-text">为什么说BIO是同步阻塞的呢？</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#同步非阻塞"><span class="nav-number">5.</span> <span class="nav-text">同步非阻塞:</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#为什么说NIO为啥是同步非阻塞？"><span class="nav-number">5.1.</span> <span class="nav-text">为什么说NIO为啥是同步非阻塞？</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#异步非阻塞"><span class="nav-number">6.</span> <span class="nav-text">异步非阻塞</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#为什么说AIO是异步非阻塞？"><span class="nav-number">6.1.</span> <span class="nav-text">为什么说AIO是异步非阻塞？</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NIO核心组件详细讲解"><span class="nav-number">7.</span> <span class="nav-text">NIO核心组件详细讲解</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#NIO通讯有哪些相关组件，对应的作用都是什么，之间有哪些联系？"><span class="nav-number">7.1.</span> <span class="nav-text">NIO通讯有哪些相关组件，对应的作用都是什么，之间有哪些联系？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#为什么传统的socket不支持海量连接？"><span class="nav-number">7.2.</span> <span class="nav-text">为什么传统的socket不支持海量连接？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#多路复用机制是如何支持海量连接？"><span class="nav-number">7.3.</span> <span class="nav-text">多路复用机制是如何支持海量连接？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NIO中的Buffer是个什么东西-？"><span class="nav-number">7.4.</span> <span class="nav-text">NIO中的Buffer是个什么东西 ？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Buffer中对应的Position，-Mark，-Capacity，Limit都啥？"><span class="nav-number">7.5.</span> <span class="nav-text">Buffer中对应的Position， Mark， Capacity，Limit都啥？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NIO中，Channel是什么？"><span class="nav-number">7.6.</span> <span class="nav-text">NIO中，Channel是什么？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#FileChannel的作用是什么？"><span class="nav-number">7.7.</span> <span class="nav-text">FileChannel的作用是什么？</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">8.</span> <span class="nav-text">总结:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参考"><span class="nav-number">9.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Morning Star</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
