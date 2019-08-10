@@ -291,6 +291,218 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/21/阿里云Redis开发规范/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/04/21/阿里云Redis开发规范/" itemprop="url">阿里云Redis开发规范</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-21T14:22:09+08:00">
+                2019-04-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h4 id="键值设计"><a href="#键值设计" class="headerlink" title="键值设计"></a>键值设计</h4><h5 id="key名设计"><a href="#key名设计" class="headerlink" title="key名设计"></a>key名设计</h5><ul>
+<li>(1)【建议】: 可读性和可管理性</li>
+</ul>
+<p>以业务名(或数据库名)为前缀(防止key冲突)，用冒号分隔，比如业务名:表名:id</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ugc:video:1</span><br></pre></td></tr></table></figure>
+<ul>
+<li>(2)【建议】：简洁性</li>
+</ul>
+<p>保证语义的前提下，控制key的长度，当key较多时，内存占用也不容忽视，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">user:&#123;uid&#125;:friends:messages:&#123;mid&#125;简化为u:&#123;uid&#125;:fr:m:&#123;mid&#125;。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>(3)【强制】：不要包含特殊字符</li>
+</ul>
+<p>反例：包含空格、换行、单双引号以及其他转义字符</p>
+<p><a href="https://mp.weixin.qq.com/s?spm=a2c4e.11153940.blogcont531067.11.fdaf744aJsGIwe&amp;__biz=Mzg2NTEyNzE0OA==&amp;mid=2247483663&amp;idx=1&amp;sn=7c4ad441eaec6f0ff38d1c6a097b1fa4&amp;chksm=ce5f9e8cf928179a2c74227da95bec575bdebc682e8630b5b1bb2071c0a1b4be6f98d67c37ca&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">详细解析</a></p>
+<h5 id="value设计"><a href="#value设计" class="headerlink" title="value设计"></a>value设计</h5><ul>
+<li>(1)【强制】：拒绝bigkey(防止网卡流量、慢查询)</li>
+</ul>
+<p>string类型控制在10KB以内，hash、list、set、zset元素个数不要超过5000。</p>
+<p>反例：一个包含200万个元素的list。</p>
+<p>非字符串的bigkey，不要使用del删除，使用hscan、sscan、zscan方式渐进式删除，同时要注意防止bigkey过期时间自动删除问题(例如一个200万的zset设置1小时过期，会触发del操作，造成阻塞，而且该操作不会不出现在慢查询中(latency可查))</p>
+<p><a href="https://mp.weixin.qq.com/s?spm=a2c4e.11153940.blogcont531067.14.fdaf744aJsGIwe&amp;__biz=Mzg2NTEyNzE0OA==&amp;mid=2247483677&amp;idx=1&amp;sn=5c320b46f0e06ce9369a29909d62b401&amp;chksm=ce5f9e9ef928178834021b6f9b939550ac400abae5c31e1933bafca2f16b23d028cc51813aec&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">详细解析</a></p>
+<ul>
+<li>(2)【推荐】：选择适合的数据类型。</li>
+</ul>
+<p>例如：实体类型(要合理控制和使用数据结构内存编码优化配置,例如ziplist，但也要注意节省内存和性能之间的平衡)</p>
+<p>反例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> user:1:name tom</span><br><span class="line"><span class="built_in">set</span> user:1:age 19</span><br><span class="line"><span class="built_in">set</span> user:1:favor football</span><br></pre></td></tr></table></figure>
+<p>正例:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hmset user:1 name tom age 19 favor football</span><br></pre></td></tr></table></figure>
+<h5 id="【推荐】：控制key的生命周期，redis不是垃圾桶。"><a href="#【推荐】：控制key的生命周期，redis不是垃圾桶。" class="headerlink" title="【推荐】：控制key的生命周期，redis不是垃圾桶。"></a>【推荐】：控制key的生命周期，redis不是垃圾桶。</h5><p>建议使用expire设置过期时间(条件允许可以打散过期时间，防止集中过期)，不过期的数据重点关注idletime。</p>
+<h4 id="命令使用"><a href="#命令使用" class="headerlink" title="命令使用"></a>命令使用</h4><h5 id="【推荐】-O-N-命令关注N的数量"><a href="#【推荐】-O-N-命令关注N的数量" class="headerlink" title="【推荐】 O(N)命令关注N的数量"></a>【推荐】 O(N)命令关注N的数量</h5><p>例如hgetall、lrange、smembers、zrange、sinter等并非不能使用，但是需要明确N的值。有遍历的需求可以使用hscan、sscan、zscan代替。</p>
+<h5 id="【推荐】：禁用命令"><a href="#【推荐】：禁用命令" class="headerlink" title="【推荐】：禁用命令"></a>【推荐】：禁用命令</h5><p>禁止线上使用keys、flushall、flushdb等，通过redis的rename机制禁掉命令，或者使用scan的方式渐进式处理。</p>
+<h5 id="【推荐】合理使用select"><a href="#【推荐】合理使用select" class="headerlink" title="【推荐】合理使用select"></a>【推荐】合理使用select</h5><p>redis的多数据库较弱，使用数字进行区分，很多客户端支持较差，同时多业务用多数据库实际还是单线程处理，会有干扰。</p>
+<h5 id="【推荐】使用批量操作提高效率"><a href="#【推荐】使用批量操作提高效率" class="headerlink" title="【推荐】使用批量操作提高效率"></a>【推荐】使用批量操作提高效率</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">原生命令：例如mget、mset。</span><br><span class="line">非原生命令：可以使用pipeline提高效率。</span><br></pre></td></tr></table></figure>
+<p>但要注意控制一次批量操作的<strong>元素个数</strong>(例如500以内，实际也和元素字节数有关)。</p>
+<p>注意两者不同：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 原生是原子操作，pipeline是非原子操作。</span><br><span class="line">2. pipeline可以打包不同的命令，原生做不到</span><br><span class="line">3. pipeline需要客户端和服务端同时支持。</span><br></pre></td></tr></table></figure>
+<h5 id="【建议】Redis事务功能较弱，不建议过多使用"><a href="#【建议】Redis事务功能较弱，不建议过多使用" class="headerlink" title="【建议】Redis事务功能较弱，不建议过多使用"></a>【建议】Redis事务功能较弱，不建议过多使用</h5><p>Redis的事务功能较弱(不支持回滚)，而且集群版本(自研和官方)要求一次事务操作的key必须在一个slot上(可以使用hashtag功能解决)</p>
+<h5 id="【建议】Redis集群版本在使用Lua上有特殊要求："><a href="#【建议】Redis集群版本在使用Lua上有特殊要求：" class="headerlink" title="【建议】Redis集群版本在使用Lua上有特殊要求："></a>【建议】Redis集群版本在使用Lua上有特殊要求：</h5><ul>
+<li>1.所有key都应该由 KEYS 数组来传递，redis.call/pcall 里面调用的redis命令，key的位置，必须是KEYS array, 否则直接返回error，”-ERR bad lua script for redis cluster, all the keys that the script uses should be passed using the KEYS array”</li>
+<li>2.所有key，必须在1个slot上，否则直接返回error, “-ERR eval/evalsha command keys must in same slot”</li>
+</ul>
+<h5 id="【建议】必要情况下使用monitor命令时，要注意不要长时间使用。"><a href="#【建议】必要情况下使用monitor命令时，要注意不要长时间使用。" class="headerlink" title="【建议】必要情况下使用monitor命令时，要注意不要长时间使用。"></a>【建议】必要情况下使用monitor命令时，要注意不要长时间使用。</h5><h4 id="客户端使用"><a href="#客户端使用" class="headerlink" title="客户端使用"></a>客户端使用</h4><h5 id="【推荐】"><a href="#【推荐】" class="headerlink" title="【推荐】"></a>【推荐】</h5><p>避免多个应用使用一个Redis实例</p>
+<p>正例：不相干的业务拆分，公共数据做服务化。</p>
+<h5 id="【推荐】-1"><a href="#【推荐】-1" class="headerlink" title="【推荐】"></a>【推荐】</h5><p>使用带有连接池的数据库，可以有效控制连接，同时提高效率，标准使用方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">执行命令如下：</span><br><span class="line">Jedis jedis = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    jedis = jedisPool.getResource();</span><br><span class="line">    <span class="comment">//具体的命令</span></span><br><span class="line">    jedis.executeCommand()</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    logger.error(<span class="string">"op key &#123;&#125; error: "</span> + e.getMessage(), key, e);</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">//注意这里不是关闭连接，在JedisPool模式下，Jedis会被归还给资源池。</span></span><br><span class="line">    <span class="keyword">if</span> (jedis != <span class="keyword">null</span>) </span><br><span class="line">        jedis.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面是JedisPool优化方法的文章:</p>
+<ul>
+<li><a href="https://yq.aliyun.com/articles/236384?spm=a2c4e.11153940.blogcont531067.15.fdaf744aJsGIwe" target="_blank" rel="noopener">Jedis常见异常汇总</a></li>
+<li><a href="https://yq.aliyun.com/articles/236383?spm=a2c4e.11153940.blogcont531067.16.fdaf744aJsGIwe" target="_blank" rel="noopener">JedisPool资源池优化</a></li>
+</ul>
+<h5 id="【建议】"><a href="#【建议】" class="headerlink" title="【建议】"></a>【建议】</h5><p>高并发下建议客户端添加熔断功能(例如netflix hystrix)</p>
+<h5 id="【推荐】-2"><a href="#【推荐】-2" class="headerlink" title="【推荐】"></a>【推荐】</h5><p>设置合理的密码，如有必要可以使用SSL加密访问（阿里云Redis支持）</p>
+<h5 id="【建议】-1"><a href="#【建议】-1" class="headerlink" title="【建议】"></a>【建议】</h5><p>根据自身业务类型，选好maxmemory-policy(最大内存淘汰策略)，设置好过期时间。</p>
+<p>默认策略是volatile-lru，即超过最大内存后，在过期键中使用lru算法进行key的剔除，保证不过期数据不被删除，但是可能会出现OOM问题。</p>
+<h5 id="其他策略如下："><a href="#其他策略如下：" class="headerlink" title="其他策略如下："></a>其他策略如下：</h5><ul>
+<li>allkeys-lru：根据LRU算法删除键，不管数据有没有设置超时属性，直到腾出足够空间为止。</li>
+<li>allkeys-random：随机删除所有键，直到腾出足够空间为止。</li>
+<li>volatile-random:随机删除过期键，直到腾出足够空间为止。</li>
+<li>volatile-ttl：根据键值对象的ttl属性，删除最近将要过期数据。如果没有，回退到noeviction策略。</li>
+<li>noeviction：不会剔除任何数据，拒绝所有写入操作并返回客户端错误信息”(error) OOM command not allowed when used memory”，此时Redis只响应读操作。</li>
+</ul>
+<h4 id="相关工具"><a href="#相关工具" class="headerlink" title="相关工具"></a>相关工具</h4><h5 id="【推荐】：数据同步"><a href="#【推荐】：数据同步" class="headerlink" title="【推荐】：数据同步"></a>【推荐】：数据同步</h5><p>redis间数据同步可以使用：redis-port</p>
+<h5 id="【推荐】：big-key搜索"><a href="#【推荐】：big-key搜索" class="headerlink" title="【推荐】：big key搜索"></a>【推荐】：big key搜索</h5><p><a href="https://yq.aliyun.com/articles/117042?spm=a2c4e.11153940.blogcont531067.17.fdaf744aJsGIwe" target="_blank" rel="noopener">redis大key搜索工具</a></p>
+<h5 id="【推荐】：热点key寻找-内部实现使用monitor，所以建议短时间使用"><a href="#【推荐】：热点key寻找-内部实现使用monitor，所以建议短时间使用" class="headerlink" title="【推荐】：热点key寻找(内部实现使用monitor，所以建议短时间使用)"></a>【推荐】：热点key寻找(内部实现使用monitor，所以建议短时间使用)</h5><p><a href="https://github.com/facebookarchive/redis-faina" target="_blank" rel="noopener">facebook的redis-faina</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">阿里云Redis已经在内核层面解决热点key问题，欢迎使用。</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/04/21/阿里云Redis开发规范/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/21/Unix与Java的IO模型/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1007,126 +1219,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/06/博客迁移成功/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/06/博客迁移成功/" itemprop="url">博客迁移成功</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-06T15:48:34+08:00">
-                2019-01-06
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>成功将博客迁移到新的笔记本上，以此纪念。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1179,7 +1271,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">81</span>
+                  <span class="site-state-item-count">82</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
