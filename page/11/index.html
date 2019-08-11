@@ -291,6 +291,195 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/25/Spring中的12种常用注解/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/10/25/Spring中的12种常用注解/" itemprop="url">Spring中的常用注解</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-25T15:30:54+08:00">
+                2018-10-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p><strong>注解本身没有功能的，就和xml一样。注解和xml都是一种元数据，元数据即解释数据的数据，这就是所谓配置。</strong></p>
+<p>本文主要罗列Spring|SpringMVC相关注解的简介。</p>
+<h4 id="Spring部分"><a href="#Spring部分" class="headerlink" title="Spring部分"></a>Spring部分</h4><h5 id="声明bean的注解"><a href="#声明bean的注解" class="headerlink" title="声明bean的注解"></a><strong>声明bean的注解</strong></h5><p>@Component 组件，没有明确的角色</p>
+<p>@Service 在业务逻辑层使用（service层）</p>
+<p>@Repository 在数据访问层使用（dao层）</p>
+<p>@Controller 在展现层使用，控制器的声明（C）</p>
+<h5 id="注入bean的注解"><a href="#注入bean的注解" class="headerlink" title="注入bean的注解"></a><strong>注入bean的注解</strong></h5><p>@Autowired：由Spring提供</p>
+<p>@Inject：由JSR-330提供</p>
+<p>@Resource：由JSR-250提供</p>
+<p>都可以注解在set方法和属性上，推荐注解在属性上（一目了然，少写代码）。</p>
+<h5 id="java配置类相关注解"><a href="#java配置类相关注解" class="headerlink" title="java配置类相关注解"></a>java配置类相关注解</h5><p>@Configuration 声明当前类为配置类，相当于xml形式的Spring配置（类上）</p>
+<p>@Bean 注解在方法上，声明当前方法的返回值为一个bean，替代xml中的方式（方法上）</p>
+<p>@Configuration 声明当前类为配置类，其中内部组合了@Component注解，表明这个类是一个bean（类上）</p>
+<p>@ComponentScan 用于对Component进行扫描，相当于xml中的（类上）</p>
+<p>@WishlyConfiguration 为@Configuration与@ComponentScan的组合注解，可以替代这两个注解</p>
+<h5 id="切面（AOP）相关注解"><a href="#切面（AOP）相关注解" class="headerlink" title="切面（AOP）相关注解"></a>切面（AOP）相关注解</h5><p>Spring支持AspectJ的注解式切面编程。</p>
+<p>@Aspect 声明一个切面（类上）<br>使用@After、@Before、@Around定义建言（advice），可直接将拦截规则（切点）作为参数。</p>
+<p>@After 在方法执行之后执行（方法上）<br>@Before 在方法执行之前执行（方法上）<br>@Around 在方法执行之前与之后执行（方法上）</p>
+<p>@PointCut 声明切点 </p>
+<p>在java配置类中使用@EnableAspectJAutoProxy注解开启Spring对AspectJ代理的支持（类上）</p>
+<h5 id="Bean的属性支持"><a href="#Bean的属性支持" class="headerlink" title="@Bean的属性支持"></a>@Bean的属性支持</h5><p>@Scope 设置Spring容器如何新建Bean实例（方法上，得有@Bean）<br>其设置类型包括：</p>
+<p>Singleton （单例,一个Spring容器中只有一个bean实例，默认模式）,<br>Protetype （每次调用新建一个bean）,<br>Request （web项目中，给每个http request新建一个bean）,<br>Session （web项目中，给每个http session新建一个bean）,<br>GlobalSession（给每一个 global http session新建一个Bean实例）</p>
+<p>@StepScope 在Spring Batch中还有涉及</p>
+<p>@PostConstruct 由JSR-250提供，在构造函数执行完之后执行，等价于xml配置文件中bean的initMethod</p>
+<p>@PreDestory 由JSR-250提供，在Bean销毁之前执行，等价于xml配置文件中bean的destroyMethod</p>
+<h5 id="Value注解"><a href="#Value注解" class="headerlink" title="@Value注解"></a>@Value注解</h5><p>@Value 为属性注入值（属性上）<br>支持如下方式的注入：<br>》注入普通字符</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"Michael Jackson"</span>)</span><br><span class="line">String name;</span><br></pre></td></tr></table></figure>
+<p>》注入操作系统属性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"#&#123;systemProperties['os.name']&#125;"</span>)</span><br><span class="line">String osName;</span><br></pre></td></tr></table></figure>
+<p>》注入表达式结果</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"#&#123; T(java.lang.Math).random() * 100 &#125;"</span>)</span><br><span class="line">String randomNumber;</span><br></pre></td></tr></table></figure>
+<p>》注入其它bean属性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"#&#123;domeClass.name&#125;"</span>)</span><br><span class="line">String name;</span><br></pre></td></tr></table></figure>
+<p>》注入文件资源</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"classpath:com/hgs/hello/test.txt"</span>)</span><br><span class="line">Resource file;</span><br></pre></td></tr></table></figure>
+<p>》注入网站资源</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"http://www.cznovel.com"</span>)</span><br><span class="line">Resource url;</span><br></pre></td></tr></table></figure>
+<p>》注入配置文件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"$&#123;book.name&#125;"</span>)</span><br><span class="line">String bookName;</span><br></pre></td></tr></table></figure>
+<p>》注入配置使用方法：<br>① 编写配置文件（test.properties）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">book.name=《三体》</span><br></pre></td></tr></table></figure>
+<p>② @PropertySource 加载配置文件(类上)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PropertySource</span>(<span class="string">"classpath:com/hgs/hello/test/test.propertie"</span>)</span><br></pre></td></tr></table></figure>
+<p>③ 还需配置一个PropertySourcesPlaceholderConfigurer的bean。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/10/25/Spring中的12种常用注解/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/24/concurrentHashmap的设计艺术/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -903,164 +1092,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/10/HashMap容量的初始化/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/10/10/HashMap容量的初始化/" itemprop="url">HashMap容量的初始化</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-10T21:08:57+08:00">
-                2018-10-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据结构/" itemprop="url" rel="index">
-                    <span itemprop="name">数据结构</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>默认情况下HashMap的容量是16，但是，如果用户通过构造函数指定了一个数字作为容量，那么Hash会选择<strong>大于该数字的第一个2的幂</strong>作为容量。</p>
-<h4 id="为什么要设置HashMap的初始化容量"><a href="#为什么要设置HashMap的初始化容量" class="headerlink" title="为什么要设置HashMap的初始化容量"></a>为什么要设置HashMap的初始化容量</h4><p>《阿里巴巴Java开发手册》中建议设置HashMap的初始化容量。</p>
-<img src="/2018/10/10/HashMap容量的初始化/图1.jpg" title="图1">
-<p>那么，为什么要这么建议？</p>
-<p>先来写一段代码在JDK 1.7 （jdk1.7.0_79）下面来分别测试下，在不指定初始化容量和指定初始化容量的情况下性能情况如何。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">int</span> aHundredMillion = <span class="number">10000000</span>;</span><br><span class="line"></span><br><span class="line">   Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">   <span class="keyword">long</span> s1 = System.currentTimeMillis();</span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; aHundredMillion; i++) &#123;</span><br><span class="line">       map.put(i, i);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">long</span> s2 = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">   System.out.println(<span class="string">"未初始化容量，耗时 ： "</span> + (s2 - s1));</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   Map&lt;Integer, Integer&gt; map1 = <span class="keyword">new</span> HashMap&lt;&gt;(aHundredMillion / <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">long</span> s5 = System.currentTimeMillis();</span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; aHundredMillion; i++) &#123;</span><br><span class="line">       map1.put(i, i);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">long</span> s6 = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">   System.out.println(<span class="string">"初始化容量5000000，耗时 ： "</span> + (s6 - s5));</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   Map&lt;Integer, Integer&gt; map2 = <span class="keyword">new</span> HashMap&lt;&gt;(aHundredMillion);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">long</span> s3 = System.currentTimeMillis();</span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; aHundredMillion; i++) &#123;</span><br><span class="line">       map2.put(i, i);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">long</span> s4 = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">   System.out.println(<span class="string">"初始化容量为10000000，耗时 ： "</span> + (s4 - s3));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>以上代码不难理解，创建了3个HashMap，分别使用默认的容量（16）、使用元素个数的一半（5千万）作为初始容量、使用元素个数（一亿）作为初始容量进行初始化。然后分别向其中put一亿个KV。</p>
-<p>输出结果：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">未初始化容量，耗时 ： <span class="number">14419</span></span><br><span class="line">初始化容量<span class="number">5000000</span>，耗时 ： <span class="number">11916</span></span><br><span class="line">初始化容量为<span class="number">10000000</span>，耗时 ： <span class="number">7984</span></span><br></pre></td></tr></table></figure>
-<p><strong>从结果中，可以知道，在已知HashMap中将要存放的KV个数的时候，设置一个合理的初始化容量可以有效的提高性能。</strong></p>
-<p>HashMap有扩容机制，就是当达到扩容条件时会进行扩容。HashMap的扩容条件就是当HashMap中的元素个数（size）超过临界值（threshold）时就会自动扩容。在HashMap中，<code>threshold = loadFactor * capacity</code>。</p>
-<p>所以，如果没有设置初始容量大小，随着元素的不断增加，HashMap会发生多次扩容，而HashMap中的扩容机制决定了每次扩容都需要重建hash表，是非常影响性能的。</p>
-<p>从上面的代码示例中，还可以发现，同样是设置初始化容量，设置的数值不同也会影响性能，那么当已知HashMap中即将存放的KV个数的时候，容量设置成多少为好呢？</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/10/10/HashMap容量的初始化/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1113,7 +1144,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">82</span>
+                  <span class="site-state-item-count">83</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
