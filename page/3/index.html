@@ -291,6 +291,194 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/20/消息中间件的面试四连炮/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/07/20/消息中间件的面试四连炮/" itemprop="url">消息中间件的面试四连炮</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-20T20:03:43+08:00">
+                2019-07-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/中间件/" itemprop="url" rel="index">
+                    <span itemprop="name">中间件</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>大家平时也有用到一些消息中间件(MQ)，但是对其理解可能仅停留在会使用API能实现生产消息、消费消息就完事了。</p>
+<p>对MQ更加深入的问题，可能很多人没怎么思考过。</p>
+<p>比如，你跳槽面试时，如果面试官看到你简历上写了，熟练掌握消息中间件，那么很可能给你发起如下 4 个面试连环炮！</p>
+<ul>
+<li>为什么要使用MQ？</li>
+<li>使用了MQ之后有什么优缺点？</li>
+<li>怎么保证MQ消息不丢失？</li>
+<li>怎么保证MQ的高可用性？</li>
+</ul>
+<p>本文将通过一些场景，配合着通俗易懂的语言和多张手绘彩图，讨论一下这些问题。</p>
+<h4 id="为什么要使用MQ？"><a href="#为什么要使用MQ？" class="headerlink" title="为什么要使用MQ？"></a>为什么要使用MQ？</h4><p>相信大家也听过这样的一句话：<strong>好的架构不是设计出来的，是演进出来的</strong>。</p>
+<p>这句话在引入MQ的场景同样适用，使用MQ必定有其道理，是用来解决实际问题的。而不是看见别人用了，我也用着玩儿一下。</p>
+<p>其实使用MQ的场景有挺多的，但是比较核心的有3个：</p>
+<p><strong>异步、解耦、削峰填谷</strong></p>
+<h5 id="异步"><a href="#异步" class="headerlink" title="异步"></a>异步</h5><p>我们通过实际案例说明：假设A系统接收一个请求，需要在自己本地写库执行SQL，然后需要调用BCD三个系统的接口。</p>
+<p>假设自己本地写库要3ms，调用BCD三个系统分别要300ms、450ms、200ms。</p>
+<p>那么最终请求总延时是3 + 300 + 450 + 200 = 953ms，接近1s，可能用户会感觉太慢了。</p>
+<p>此时整个系统大概是这样的：</p>
+<img src="/2019/07/20/消息中间件的面试四连炮/图1.jpg" title="图1">
+<p>但是一旦使用了MQ之后，系统A只需要发送3条消息到MQ中的3个消息队列，然后就返回给用户了。</p>
+<p>假设发送消息到MQ中耗时20ms，那么用户感知到这个接口的耗时仅仅是20 + 3 = 23ms，用户几乎无感知，倍儿爽！</p>
+<p>此时整个系统结构大概是这样的：</p>
+<img src="/2019/07/20/消息中间件的面试四连炮/图2.jpg" title="图2">
+<p>可以看到，通过MQ的异步功能，可以大大提高接口的性能。</p>
+<h5 id="解耦"><a href="#解耦" class="headerlink" title="解耦"></a>解耦</h5><p>假设A系统在用户发生某个操作的时候，需要把用户提交的数据同时推送到B、C两个系统的时候。</p>
+<p>这个时候负责A系统的哥们想：没事啊，B、C两个系统给我提供一个Http接口或者RPC接口，我把数据推送过去不就完事了吗。负责A系统的哥们美滋滋。</p>
+<p>如下图所示：</p>
+<img src="/2019/07/20/消息中间件的面试四连炮/图3.jpg" title="图3">
+<p>一切看起来很美好，但是随着业务快速迭代，这个时候系统D也想要这个数据。那既然这样，A系统的开发同学就改咯，在发送数据给BC的同时加上一个D。</p>
+<p>但是，越到后面越发现，麻烦来了。。。</p>
+<p>整个系统好像不止这个数据要发送给BCD、还有第二、第三个数据要发送给BCD。甚至有时候又加入了E、F等等系统，他们也要这个数据。</p>
+<p>并且有时候可能B系统突然又不要这个数据了，A系统该来改去，A系统的开发哥们头皮发麻。</p>
+<p>更复杂的场景是，数据通过接口传给其他系统有时候还要考虑重试、超时等一些异常情况，真是头发都白了呀。。。</p>
+<p>来看下图，体会一下这无助的现场：</p>
+<img src="/2019/07/20/消息中间件的面试四连炮/图4.jpg" title="图4">
+<p>这个时候，就该我们的MQ粉墨登场了！</p>
+<p>这种情况下使用MQ来解耦是在合适不过了，因为负责A系统的哥们只需要把消息扔到MQ就行了，其他系统按需来订阅消息就好了。</p>
+<p>就算某个系统不需要这个数据了，也不会需要A系统改动代码。</p>
+<p>看看加入MQ解耦的下图，是不是清爽了很多！</p>
+<img src="/2019/07/20/消息中间件的面试四连炮/图5.jpg" title="图5">
+<h5 id="削峰填谷"><a href="#削峰填谷" class="headerlink" title="削峰填谷"></a>削峰填谷</h5><p>举个例子，比如我们的订单系统，在下单的时候就会往数据库写数据。但是数据库只能支撑每秒1000左右的并发写入，并发量再高就容易宕机。</p>
+<p>低峰期的时候并发也就100多个，但是在高峰期时候，并发量会突然激增到5000以上，这个时候数据库肯定死了。</p>
+<p>如下图，来感受一下数据库被打死的绝望：</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/07/20/消息中间件的面试四连炮/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/20/为了追求极致的性能，Kafka掌控了这11项要领！/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1006,182 +1194,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/11/热点缓存集群架构设计/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/06/11/热点缓存集群架构设计/" itemprop="url">热点缓存集群架构设计</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-11T21:14:42+08:00">
-                2019-06-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/系统架构/" itemprop="url" rel="index">
-                    <span itemprop="name">系统架构</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>面对一个热点缓存，咱们的攻城狮兄弟应该如何设计系统架构，才能抗住瞬间高峰的粉丝流量！</p>
-<p>也希望能借着这种热点话题，帮大家重新复习一下热点缓存架构设计相关的技术要点！</p>
-<p>话不多说，进入正题！</p>
-<h4 id="为什么要用缓存集群"><a href="#为什么要用缓存集群" class="headerlink" title="为什么要用缓存集群"></a>为什么要用缓存集群</h4><p>其实使用缓存集群的时候，最怕的就是热key、大value这两种情况，那啥叫热key大value呢？</p>
-<p>简单来说，<strong>热key</strong>，就是你的缓存集群中的某个key瞬间被数万甚至十万的并发请求打爆。<strong>大value</strong>，就是你的某个key对应的value可能有GB级的大小，导致查询value的时候导致网络相关的故障问题。</p>
-<p>我们先来看看下面一幅图，假设你手头有个系统，他本身是集群部署的，然后后面有一套缓存集群，这个集群不管你用redis cluster，还是memcached，或者是公司自研缓存集群，都可以。</p>
-<img src="/2019/06/11/热点缓存集群架构设计/图1.jpg" title="图1">
-<p>那么，这套系统用缓存集群干什么呢？</p>
-<p>很简单，在缓存里放一些平时不怎么变动的数据，然后用户在查询大量的平时不怎么变动的数据的时候，不就可以直接从缓存里走了吗？</p>
-<p>缓存集群的并发能力是很强的，而且读缓存的性能是很高的。举个例子，假设你每秒有2万请求，但是其中90%都是读请求，那么每秒1.8万请求都是在读一些不太变化的数据，而不是写数据。</p>
-<p>那此时你把这些数据都放在数据库里，然后每秒发送2万请求到数据库上读写数据，你觉得合适吗？</p>
-<p>当然不合适了，如果你要用数据库承载每秒2万请求的话，那么不好意思，你很可能就得搞分库分表 + 读写分离。</p>
-<p>比如你得分3个主库，承载每秒2000的写入请求，然后每个主库挂3个从库，一共9个从库承载每秒1.8万的读请求。</p>
-<p>这样的话，你可能就需要一共是12台高配置的数据库服务器，这是很耗费钱的，成本非常高，很不合适。</p>
-<p>大家看看下面的图，来体会下这种情况。</p>
-<img src="/2019/06/11/热点缓存集群架构设计/图2.jpg" title="图2">
-<p>因此，我们完全可以把平时不太变化的数据放在缓存集群里，缓存集群可以采用2主2从，主节点用来写入缓存，从节点用来读缓存。</p>
-<p>以缓存集群的性能，2个从节点完全可以用来承载每秒1.8万的大量读请求，然后3个数据库主库就是承载每秒2000的写请求和少量其他读请求就OK了。</p>
-<p>这样一来，你耗费的机器瞬间变成了<strong>4台缓存机器 + 3台数据库机器 = 7台机器</strong>，是不是比之前的12台机器减少了很大的资源开销？</p>
-<p>没错，缓存其实在系统架构里是非常重要的组成部分。很多时候，对于那些很少变化但是大量高并发读的数据，通过缓存集群来抗高并发读，是非常合适的。</p>
-<p>我们看看下面的图，体会一下这个过程。</p>
-<img src="/2019/06/11/热点缓存集群架构设计/图3.jpg" title="图3">
-<p>需要说明的是，这里所有的机器数量、并发请求量都是一个示例，大家主要是体会一下这个意思就好，其目的主要是给一些不太熟悉缓存相关技术的同学一点背景性的阐述，让这些同学能够理解在系统里用缓存集群承载读请求是什么意思。</p>
-<h4 id="20万用户同时访问一个热点缓存"><a href="#20万用户同时访问一个热点缓存" class="headerlink" title="20万用户同时访问一个热点缓存"></a>20万用户同时访问一个热点缓存</h4><p>好了，背景已经给大家解释清楚，现在就可以给大家说说今天重点要讨论的问题：<strong>热点缓存</strong>。</p>
-<p>我们来做一个假设，现在有10个缓存节点来抗大量的读请求。正常情况下，读请求应该是均匀的落在10个缓存节点上的，对吧！</p>
-<p>这10个缓存节点，每秒承载1万请求是差不多的。</p>
-<p>然后我们再做一个假设，你一个节点承载2万请求是极限，所以一般你就限制一个节点正常承载1万请求就ok了，稍微留一点buffer出来。</p>
-<p>好，所谓的热点缓存问题是什么意思呢？很简单，就是突然因为莫名的原因，出现大量的用户访问同一条缓存数据。</p>
-<p>比如林志玲突然宣布结婚，这时是不是会引发短时间内每秒都数十万用户去查看这条热点新闻？</p>
-<p>假设这条新闻就是一个缓存，对应一个缓存key，就存在一台缓存机器上，此时瞬时假设有20万请求奔向那一台机器上的一个key。</p>
-<p>此时会如何？我们看看下面的图，来体会一下这种绝望的感受。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/06/11/热点缓存集群架构设计/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1234,7 +1246,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">86</span>
+                  <span class="site-state-item-count">87</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
