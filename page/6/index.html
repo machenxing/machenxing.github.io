@@ -291,6 +291,198 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/24/Java-8中处理集合的优雅姿势——Stream/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/24/Java-8中处理集合的优雅姿势——Stream/" itemprop="url">Java 8中处理集合的优雅姿势——Stream</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-24T11:52:23+08:00">
+                2019-03-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>在Java中，集合和数组是我们经常会用到的数据结构，需要经常对他们做增、删、改、查、聚合、统计、过滤等操作。相比之下，关系型数据库中也同样有这些操作，但是在Java 8之前，集合和数组的处理并不是很便捷。</p>
+<p>不过，这一问题在Java 8中得到了改善，Java 8 API添加了一个新的抽象称为流Stream，可以让你以一种声明的方式处理数据。本文就来介绍下如何使用Stream。</p>
+<h4 id="Stream介绍"><a href="#Stream介绍" class="headerlink" title="Stream介绍"></a>Stream介绍</h4><p><strong>Stream 使用一种类似用 SQL 语句从数据库查询数据的直观方式来提供一种对 Java 集合运算和表达的高阶抽象</strong>。</p>
+<p>Stream API可以极大提高Java程序员的生产力，让程序员写出高效率、干净、简洁的代码。</p>
+<p>这种风格将要处理的元素集合看作一种流，流在管道中传输，并且可以在管道的节点上进行处理，比如筛选，排序，聚合等。</p>
+<p>Stream有以下特性及优点：</p>
+<ul>
+<li><strong>无存储</strong>。Stream不是一种数据结构，它只是某种数据源的一个视图，数据源可以是一个数组，Java容器或I/O channel等。</li>
+<li><strong>为函数式编程而生</strong>。对Stream的任何修改都不会修改背后的数据源，比如对Stream执行过滤操作并不会删除被过滤的元素，而是会产生一个不包含被过滤元素的新Stream。</li>
+<li><strong>惰式执行</strong>。Stream上的操作并不会立即执行，只有等到用户真正需要结果的时候才会执行。</li>
+<li><strong>可消费性</strong>。Stream只能被“消费”一次，一旦遍历过就会失效，就像容器的迭代器那样，想要再次遍历必须重新生成。</li>
+</ul>
+<p>我们举一个例子，来看一下到底Stream可以做什么事情：</p>
+<img src="/2019/03/24/Java-8中处理集合的优雅姿势——Stream/图1.jpg" title="图1">
+<p>上面的例子中，获取一些带颜色塑料球作为数据源，首先过滤掉红色的、把它们融化成随机的三角形。再过滤器并删除小的三角形。最后计算出剩余图形的周长。</p>
+<p>如上图，对于流的处理，主要有三种关键性操作：分别是<strong>流的创建</strong>、<strong>中间操作</strong>（intermediate operation）以及<strong>最终操作</strong>(terminal operation)。</p>
+<h4 id="Stream的创建"><a href="#Stream的创建" class="headerlink" title="Stream的创建"></a>Stream的创建</h4><p>在Java 8中，可以有多种方法来创建流。</p>
+<h5 id="通过已有的集合来创建流"><a href="#通过已有的集合来创建流" class="headerlink" title="通过已有的集合来创建流"></a>通过已有的集合来创建流</h5><p>在Java 8中，除了增加了很多Stream相关的类以外，还对集合类自身做了增强，在其中增加了stream方法，可以将一个集合类转换成流。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; strings = Arrays.asList(<span class="string">"Hollis"</span>, <span class="string">"HollisChuang"</span>, <span class="string">"hollis"</span>, <span class="string">"Hello"</span>, <span class="string">"HelloWorld"</span>, <span class="string">"Hollis"</span>);</span><br><span class="line">Stream&lt;String&gt; stream = strings.stream();</span><br></pre></td></tr></table></figure>
+<p>以上，通过一个已有的List创建一个流。除此以外，还有一个parallelStream方法，可以为集合创建一个并行流。</p>
+<p>这种通过集合创建出一个Stream的方式也是比较常用的一种方式。</p>
+<h5 id="通过Stream创建流"><a href="#通过Stream创建流" class="headerlink" title="通过Stream创建流"></a>通过Stream创建流</h5><p>可以使用Stream类提供的方法，直接返回一个由指定元素组成的流。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Stream&lt;String&gt; stream = Stream.of(<span class="string">"Hollis"</span>, <span class="string">"HollisChuang"</span>, <span class="string">"hollis"</span>, <span class="string">"Hello"</span>, <span class="string">"HelloWorld"</span>, <span class="string">"Hollis"</span>);</span><br></pre></td></tr></table></figure>
+<p>如以上代码，直接通过of方法，创建并返回一个Stream。</p>
+<h4 id="Stream中间操作"><a href="#Stream中间操作" class="headerlink" title="Stream中间操作"></a>Stream中间操作</h4><p><strong>Stream有很多中间操作，多个中间操作可以连接起来形成一个流水线，每一个中间操作就像流水线上的一个工人，每人工人都可以对流进行加工，加工后得到的结果还是一个流。</strong></p>
+<img src="/2019/03/24/Java-8中处理集合的优雅姿势——Stream/图2.jpg" title="图2">
+<p>以下是常用的中间操作列表:</p>
+<img src="/2019/03/24/Java-8中处理集合的优雅姿势——Stream/图3.jpg" title="图3">
+<h5 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h5><p>filter 方法用于通过设置的条件过滤出元素。以下代码片段使用 filter 方法过滤掉空字符串：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; strings = Arrays.asList(<span class="string">"Hollis"</span>, <span class="string">""</span>, <span class="string">"HollisChuang"</span>, <span class="string">"H"</span>, <span class="string">"hollis"</span>);</span><br><span class="line">strings.stream().filter(string -&gt; !string.isEmpty()).forEach(System.out::println);</span><br><span class="line"><span class="comment">//Hollis, , HollisChuang, H, hollis</span></span><br></pre></td></tr></table></figure>
+<h5 id="map"><a href="#map" class="headerlink" title="map"></a>map</h5><p>map 方法用于映射每个元素到对应的结果，以下代码片段使用 map 输出了元素对应的平方数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; numbers = Arrays.asList(<span class="number">3</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">7</span>, <span class="number">3</span>, <span class="number">5</span>);</span><br><span class="line">numbers.stream().map( i -&gt; i*i).forEach(System.out::println);</span><br><span class="line"><span class="comment">//9,4,4,9,49,9,25</span></span><br></pre></td></tr></table></figure>
+<h5 id="limit-skip"><a href="#limit-skip" class="headerlink" title="limit/skip"></a>limit/skip</h5><p>limit 返回 Stream 的前面 n 个元素；skip 则是扔掉前 n 个元素。以下代码片段使用 limit 方法保理4个元素：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; numbers = Arrays.asList(<span class="number">3</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">7</span>, <span class="number">3</span>, <span class="number">5</span>);</span><br><span class="line">numbers.stream().limit(<span class="number">4</span>).forEach(System.out::println);</span><br><span class="line"><span class="comment">//3,2,2,3</span></span><br></pre></td></tr></table></figure>
+<h5 id="sorted"><a href="#sorted" class="headerlink" title="sorted"></a>sorted</h5><p>sorted 方法用于对流进行排序。以下代码片段使用 sorted 方法进行排序：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; numbers = Arrays.asList(<span class="number">3</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">7</span>, <span class="number">3</span>, <span class="number">5</span>);</span><br><span class="line">numbers.stream().sorted().forEach(System.out::println);</span><br><span class="line"><span class="comment">//2,2,3,3,3,5,7</span></span><br></pre></td></tr></table></figure>
+<h5 id="distinct"><a href="#distinct" class="headerlink" title="distinct"></a>distinct</h5><p>distinct主要用来去重，以下代码片段使用 distinct 对元素进行去重：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; numbers = Arrays.asList(<span class="number">3</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">7</span>, <span class="number">3</span>, <span class="number">5</span>);</span><br><span class="line">numbers.stream().distinct().forEach(System.out::println);</span><br><span class="line"><span class="comment">//3,2,7,5</span></span><br></pre></td></tr></table></figure>
+<p>接下来我们通过一个例子和一张图，来演示下，当一个Stream先后通过filter、map、sort、limit以及distinct处理后会发生什么。</p>
+<p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; strings = Arrays.asList(<span class="string">"Hollis"</span>, <span class="string">"HollisChuang"</span>, <span class="string">"hollis"</span>, <span class="string">"Hello"</span>, <span class="string">"HelloWorld"</span>, <span class="string">"Hollis"</span>);</span><br><span class="line">Stream s = strings.stream().filter(string -&gt; string.length()&lt;= <span class="number">6</span>).map(String::length).sorted().limit(<span class="number">3</span>)</span><br><span class="line">            .distinct();</span><br></pre></td></tr></table></figure>
+<p>过程及每一步得到的结果如下图</p>
+<img src="/2019/03/24/Java-8中处理集合的优雅姿势——Stream/图4.jpg" title="图4">
+<h4 id="Stream最终操作"><a href="#Stream最终操作" class="headerlink" title="Stream最终操作"></a>Stream最终操作</h4><p><strong>Stream的中间操作得到的结果还是一个Stream，那么如何把一个Stream转换成我们需要的类型呢？比如计算出流中元素的个数、将流装换成集合等。这就需要最终操作（terminal operation）</strong></p>
+<p>最终操作会消耗流，产生一个最终结果。也就是说，在最终操作之后，不能再次使用流，也不能在使用任何中间操作，否则将抛出异常：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.lang.IllegalStateException: stream has already been operated upon or closed</span><br></pre></td></tr></table></figure>
+<p>俗话说，“你永远不会两次踏入同一条河”也正是这个意思。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/03/24/Java-8中处理集合的优雅姿势——Stream/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/13/Docker容器中无法使用jmap等命令的问题/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -937,224 +1129,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/22/消息队列基础/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/22/消息队列基础/" itemprop="url">消息队列基础</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-22T15:35:52+08:00">
-                2018-12-22
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/中间件/" itemprop="url" rel="index">
-                    <span itemprop="name">中间件</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h4 id="什么是MOM"><a href="#什么是MOM" class="headerlink" title="什么是MOM"></a>什么是MOM</h4><p>MOM 就是面向消息中间件（Message-oriented middleware），是用于以分布式应用或系统中的异步、松耦合、可靠、可扩展和安全通信的一类软件。MOM 的总体思想是它作为消息发送器和消息接收器之间的消息中介,这种中介提供了一个全新水平的松耦合。</p>
-<p>MOM思想就是A和B两个应用程序不直接发送消息。之前A和B直接发送消息有很多效率问题，如A发送之后B没有及时接受，那么A就一直再在那里堵塞并发性不好，A必须等B接受完之后有返结果了A才可以结束。而MOM就是为了解决这样的问题，不让A与B之间交互，在A和B之间加一个消息中间件，A把消息放到消息中间上，就可以走了，去做别的事情，B什么时候来消息中间件取消息A不用知道也不用管。这样就提高了效率提供并发性，等B去走后可以通过状态，通知，回调等方式通知A就可以。市面上实现这种思想的技术有很多，IBM（MQSEVICES）、Microsoft(MSMQ）以及BEA的MessageMQ等。处于百家争鸣阶段都是各自实现各自的，没有统一实现标准。此时SUN为了实现统一标准就出现了JMS统一实现规范。JMS主要有2种消息模型，点到点和发布订阅两种。</p>
-<h4 id="什么是消息队列"><a href="#什么是消息队列" class="headerlink" title="什么是消息队列"></a>什么是消息队列</h4><p>消息队列是在消息的传输过程中保存消息的容器，用于接收消息并以文件的方式存储，一个消息队列可以被一个也可以被多个消费者消费。</p>
-<p>消息队列中间件是分布式系统中重要的组件，主要解决应用耦合、异步消息、流量削锋等问题。实现高性能、高可用、可伸缩和最终一致性架构。是大型分布式系统不可缺少的中间件。</p>
-<p>目前在生产环境，使用较多的消息队列有ActiveMQ、RabbitMQ、ZeroMQ、Kafka、MetaMQ、RocketMQ等。</p>
-<h4 id="消息队列优点"><a href="#消息队列优点" class="headerlink" title="消息队列优点"></a>消息队列优点</h4><ol>
-<li>将数据从一个应用程序传到另一个应用程序，或者从软件的一个模块传送到另外一个模块</li>
-<li>负责建立网络通信的通道，进行数据的可靠传送</li>
-<li>保证数据不重发，不丢失</li>
-<li>能够实现跨平台操作，能够为不同操作系统上的软件集成技工数据传送服务</li>
-</ol>
-<h4 id="消息队列的应用场景"><a href="#消息队列的应用场景" class="headerlink" title="消息队列的应用场景"></a>消息队列的应用场景</h4><p>下面详细介绍一下消息队列在实际应用中常用的使用场景。场景分为<strong>异步处理、应用解耦、流量削锋和消息通讯</strong>四个场景。</p>
-<h5 id="异步处理"><a href="#异步处理" class="headerlink" title="异步处理"></a>异步处理</h5><p><strong>场景说明</strong> 用户注册后，需要发送注册邮件和发送注册信息，传统的做法有两种：串行方式、并行方式</p>
-<p><strong>串行方式</strong></p>
-<p>将注册信息写入数据库成功后，发送注册邮件，然后发送注册短信，而所有任务执行完成后，返回信息给客户端</p>
-<img src="/2018/12/22/消息队列基础/图1.jpg" title="图1">
-<p><strong>并行方式</strong></p>
-<p>将注册信息写入数据库成功后，同时进行发送注册邮件和发送注册短信的操作。而所有任务执行完成后，返回信息给客户端。同串行方式相比，并行方式可以提高执行效率，减少执行时间。</p>
-<img src="/2018/12/22/消息队列基础/图2.jpg" title="图2">
-<p>上面的比较可以发现，假设三个操作均需要50ms的执行时间，排除网络因素，则最终执行完成，串行方式需要150ms，而并行方式需要100ms。</p>
-<p>因为cpu在单位时间内处理的请求数量是一致的，假设：CPU每1秒吞吐量是100此，则串行方式1秒内可执行的请求量为1000/150，不到7次；并行方式1秒内可执行的请求量为1000/100，为10次。</p>
-<p>由上可以看出，传统串行和并行的方式会受到系统性能的局限，那么如何解决这个问题？<br>我们需要引入消息队列，将不是必须的业务逻辑，异步进行处理，由此改造出来的流程为</p>
-<img src="/2018/12/22/消息队列基础/图3.jpg" title="图3">
-<p>根据上述的流程，用户的响应的时间基本相当于将数据写入数据库的时间，发送注册邮件，发送注册短信的消息在写入消息队列后，即可返回执行结果，写入消息队列的时间很快，几乎可以忽略，也有此可以将系统吞吐量提升至20QPS，比串行方式提升近3倍，比并行方式提升2倍。</p>
-<h5 id="应用解耦"><a href="#应用解耦" class="headerlink" title="应用解耦"></a>应用解耦</h5><p><strong>场景说明</strong> 用户下单后，订单系统需要通知库存系统。</p>
-<p>传统的做法为：订单系统调用库存系统的接口。如下图所示：</p>
-<img src="/2018/12/22/消息队列基础/图4.jpg" title="图4">
-<p>传统方式具有如下缺点：</p>
-<ol>
-<li>假设库存系统访问失败，则订单减少库存失败，导致订单创建失败</li>
-<li>订单系统同库存系统过度耦合</li>
-</ol>
-<p>如何解决上述的缺点呢？需要引入消息队列，引入消息队列后的架构如下图所示：</p>
-<img src="/2018/12/22/消息队列基础/图5.jpg" title="图5">
-<p>引入消息队列，实现应用解耦</p>
-<ul>
-<li>订单系统：用户下单后，订单系统进行数据持久化处理，然后将消息写入消息队列，返回订单创建成功</li>
-<li>库存系统：使用拉/推的方式，获取下单信息，库存系统根据订单信息，进行库存操作。</li>
-</ul>
-<p>假如在下单时库存系统不能正常使用。也不影响正常下单，因为下单后，订单系统写入消息队列就不再关心其后续操作了。由此实现了订单系统与库存系统的应用解耦。</p>
-<h5 id="流量削锋"><a href="#流量削锋" class="headerlink" title="流量削锋"></a>流量削锋</h5><p>流量削峰 也是消息对列中的常用场景，一般在秒杀或团抢活动中使用广泛。</p>
-<p><strong>应用场景</strong> 秒杀活动，一般会因为流量过大，导致流量暴增，应用挂掉。为解决这个问题，一般需要在应用前端加入消息队列。</p>
-<ol>
-<li>可以控制参与活动的人数；</li>
-<li>可以缓解短时间内高流量对应用的巨大压力；</li>
-</ol>
-<p>流量削锋处理方式系统图如下：</p>
-<img src="/2018/12/22/消息队列基础/图6.jpg" title="图6">
-<ol>
-<li>服务器在接收到用户请求后，首先写入消息队列。这时如果消息队列中消息数量超过最大数量，则直接拒绝用户请求或返回跳转到错误页面；</li>
-<li>秒杀业务根据秒杀规则读取消息队列中的请求信息，进行后续处理。</li>
-</ol>
-<p><strong>日志处理</strong></p>
-<p>日志处理是指将消息队列用在日志处理中，比如Kafka的应用，解决大量日志传输的问题。</p>
-<p>日志处理是指将消息队列用在日志处理中，比如Kafka的应用，解决大量日志传输的问题。架构简化如下：</p>
-<img src="/2018/12/22/消息队列基础/图7.jpg" title="消息队列应用于日志处理的架构">
-<ul>
-<li>日志采集客户端：负责日志数据采集，定时写受写入Kafka队列；</li>
-<li>Kafka消息队列：负责日志数据的接收，存储和转发；</li>
-<li>日志处理应用：订阅并消费kafka队列中的日志数据；</li>
-</ul>
-<img src="/2018/12/22/消息队列基础/图8.jpg" title="服务的技术架构设计">
-<ol>
-<li>Kafka：接收用户日志的消息队列。</li>
-<li>Logstash：做日志解析，统一成JSON输出给Elasticsearch。</li>
-<li>Elasticsearch：实时日志分析服务的核心技术，一个schemaless，实时的数据存储服务，通过index组织数据，兼具强大的搜索和统计功能。</li>
-<li>Kibana：基于Elasticsearch的数据可视化组件，超强的数据可视化能力是众多公司选择ELK stack的重要原因。</li>
-</ol>
-<h5 id="消息通讯"><a href="#消息通讯" class="headerlink" title="消息通讯"></a>消息通讯</h5><p>消息通讯是指，消息队列一般都内置了高效的通信机制，因此也可以用在纯的消息通讯。比如实现点对点消息队列、聊天室等。</p>
-<h6 id="点对点通讯"><a href="#点对点通讯" class="headerlink" title="点对点通讯"></a>点对点通讯</h6><img src="/2018/12/22/消息队列基础/图9.jpg" title="点对点通讯架构设计">
-<p>在点对点通讯架构设计中，客户端A和客户端B共用一个消息队列，即可实现消息通讯功能。</p>
-<h6 id="聊天室通讯"><a href="#聊天室通讯" class="headerlink" title="聊天室通讯"></a>聊天室通讯</h6><img src="/2018/12/22/消息队列基础/图10.jpg" title="聊天室通讯架构设计">
-<p>客户端A、客户端B、直至客户端N订阅同一消息队列，进行消息的发布与接收，即可实现聊天通讯方案架构设计。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/12/22/消息队列基础/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1207,7 +1181,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">83</span>
+                  <span class="site-state-item-count">84</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
