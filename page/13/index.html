@@ -291,6 +291,164 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/10/HashMap容量的初始化/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/10/10/HashMap容量的初始化/" itemprop="url">HashMap容量的初始化</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-10T21:08:57+08:00">
+                2018-10-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据结构/" itemprop="url" rel="index">
+                    <span itemprop="name">数据结构</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>默认情况下HashMap的容量是16，但是，如果用户通过构造函数指定了一个数字作为容量，那么Hash会选择<strong>大于该数字的第一个2的幂</strong>作为容量。</p>
+<h4 id="为什么要设置HashMap的初始化容量"><a href="#为什么要设置HashMap的初始化容量" class="headerlink" title="为什么要设置HashMap的初始化容量"></a>为什么要设置HashMap的初始化容量</h4><p>《阿里巴巴Java开发手册》中建议设置HashMap的初始化容量。</p>
+<img src="/2018/10/10/HashMap容量的初始化/图1.jpg" title="图1">
+<p>那么，为什么要这么建议？</p>
+<p>先来写一段代码在JDK 1.7 （jdk1.7.0_79）下面来分别测试下，在不指定初始化容量和指定初始化容量的情况下性能情况如何。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">int</span> aHundredMillion = <span class="number">10000000</span>;</span><br><span class="line"></span><br><span class="line">   Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">   <span class="keyword">long</span> s1 = System.currentTimeMillis();</span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; aHundredMillion; i++) &#123;</span><br><span class="line">       map.put(i, i);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">long</span> s2 = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">   System.out.println(<span class="string">"未初始化容量，耗时 ： "</span> + (s2 - s1));</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   Map&lt;Integer, Integer&gt; map1 = <span class="keyword">new</span> HashMap&lt;&gt;(aHundredMillion / <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">long</span> s5 = System.currentTimeMillis();</span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; aHundredMillion; i++) &#123;</span><br><span class="line">       map1.put(i, i);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">long</span> s6 = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">   System.out.println(<span class="string">"初始化容量5000000，耗时 ： "</span> + (s6 - s5));</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   Map&lt;Integer, Integer&gt; map2 = <span class="keyword">new</span> HashMap&lt;&gt;(aHundredMillion);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">long</span> s3 = System.currentTimeMillis();</span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; aHundredMillion; i++) &#123;</span><br><span class="line">       map2.put(i, i);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">long</span> s4 = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">   System.out.println(<span class="string">"初始化容量为10000000，耗时 ： "</span> + (s4 - s3));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以上代码不难理解，创建了3个HashMap，分别使用默认的容量（16）、使用元素个数的一半（5千万）作为初始容量、使用元素个数（一亿）作为初始容量进行初始化。然后分别向其中put一亿个KV。</p>
+<p>输出结果：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">未初始化容量，耗时 ： <span class="number">14419</span></span><br><span class="line">初始化容量<span class="number">5000000</span>，耗时 ： <span class="number">11916</span></span><br><span class="line">初始化容量为<span class="number">10000000</span>，耗时 ： <span class="number">7984</span></span><br></pre></td></tr></table></figure>
+<p><strong>从结果中，可以知道，在已知HashMap中将要存放的KV个数的时候，设置一个合理的初始化容量可以有效的提高性能。</strong></p>
+<p>HashMap有扩容机制，就是当达到扩容条件时会进行扩容。HashMap的扩容条件就是当HashMap中的元素个数（size）超过临界值（threshold）时就会自动扩容。在HashMap中，<code>threshold = loadFactor * capacity</code>。</p>
+<p>所以，如果没有设置初始容量大小，随着元素的不断增加，HashMap会发生多次扩容，而HashMap中的扩容机制决定了每次扩容都需要重建hash表，是非常影响性能的。</p>
+<p>从上面的代码示例中，还可以发现，同样是设置初始化容量，设置的数值不同也会影响性能，那么当已知HashMap中即将存放的KV个数的时候，容量设置成多少为好呢？</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/10/10/HashMap容量的初始化/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/04/大话数据结构——排序/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -952,172 +1110,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/15/大话数据结构——树/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/15/大话数据结构——树/" itemprop="url">大话数据结构——树</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-15T12:42:18+08:00">
-                2018-09-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据结构/" itemprop="url" rel="index">
-                    <span itemprop="name">数据结构</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文在阅读大话数据结构这本书的基础上，结合<strong>java语言</strong>的特点，来理解<strong>树</strong>。</p>
-<h4 id="树"><a href="#树" class="headerlink" title="树"></a>树</h4><p>树（Tree）是n（n&gt;=0）个结点的有限集。 n=0又称为空树。在任意一课非空的树中：有且仅有一个特定的称为跟（Root）的结点；当n&gt;1时，其余结点可分为m（m&gt;0）个互不相交的有限集，其中每一个集合本身又是一棵树，并且称为根的子树（SubTree）。</p>
-<p><strong>树是一种一对多的数据结构。</strong></p>
-<p>需要注意的是：当n&gt;0时根结点是惟一的，不可能存在多个根结点。 m&gt;0时，子树的个数没有限制，但它们一定是互不相交的。如果相交，就不符合树的定义。</p>
-<p>结点拥有的子树称为<strong>结点的度</strong>。度为0的结点称为叶结点或终端结点；度不为0的结点称为非终端结点或分支结点。除根结点外，分支结点也称为内部结点。树的度是树内各结点的度的最大值。</p>
-<p><strong>树中结点最大的层次称为树的深度或高度。</strong></p>
-<h4 id="树的存储结构"><a href="#树的存储结构" class="headerlink" title="树的存储结构"></a>树的存储结构</h4><p>树有两种实现方式：数组和链表；</p>
-<p>树有三种不同表示法：双亲表示法、孩子表示法、孩子兄弟表示法。</p>
-<h4 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h4><p><strong>二叉树</strong>（Binary Tree）是n（n&gt;=0）个结点的有限集合，该集合或者为空集（称为空二叉树），或者由一个根结点和两棵互不相交的、分别称为根结点的左子树和右子树的二叉树组成。</p>
-<h5 id="二叉树的特点"><a href="#二叉树的特点" class="headerlink" title="二叉树的特点"></a>二叉树的特点</h5><p>每个结点最多有两棵子树，所以二叉树中不存在大于2的结点。注意不是只有两棵子树，而是最多有。没有子树或者有一棵子树都是可以的。左子树和右子树是有顺序的，次序不能颠倒。就像人的左右手。即使树中某结点只有一棵子树，也要区分它是左子树还是右子树。</p>
-<h5 id="二叉树有5种基本形态"><a href="#二叉树有5种基本形态" class="headerlink" title="二叉树有5种基本形态"></a>二叉树有5种基本形态</h5><p> 空二叉树。</p>
-<p> 只有一个根结点。</p>
-<p> 根结点只有左子树。</p>
-<p> 根结点只有右子树。</p>
-<p> 根结点既有左子树又有右子树。</p>
-<h5 id="特殊二叉树"><a href="#特殊二叉树" class="headerlink" title="特殊二叉树"></a>特殊二叉树</h5><p><strong>斜树：</strong>只有左子树或者只有右子树。线性表是一种特殊的树。</p>
-<p><strong>满二叉树：</strong>所有分支结点都存在左子树和右子树，并且所有叶子都在同一层上。</p>
-<p>满二叉树的特点有：</p>
-<p>叶子只能在最下一层。出现在其他层就不可能达到平衡。</p>
-<p>非叶子结点的度一定是2。否则就是“缺胳膊少腿了”。</p>
-<p>在同样深度的二叉树中，满二叉树的结点个数越多，叶子树越多。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/09/15/大话数据结构——树/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1170,7 +1162,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">87</span>
+                  <span class="site-state-item-count">88</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

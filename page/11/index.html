@@ -291,6 +291,157 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/03/JAVA打印Array数组内容的几种方法/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/03/JAVA打印Array数组内容的几种方法/" itemprop="url">JAVA打印Array数组内容的几种方法</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-03T11:26:52+08:00">
+                2018-11-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java基础/" itemprop="url" rel="index">
+                    <span itemprop="name">Java基础</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>下面是几种常见的打印Array数组内容的方式。</p>
+<p>方法一：使用循环打印</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] infos = <span class="keyword">new</span> String[] &#123;<span class="string">"Java"</span>, <span class="string">"Android"</span>, <span class="string">"C/C++"</span>, <span class="string">"Kotlin"</span>&#125;;</span><br><span class="line"></span><br><span class="line">        StringBuffer strBuffer = <span class="keyword">new</span> StringBuffer();</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i&lt; infos.length; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span>(i &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                strBuffer.append(<span class="string">", "</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            strBuffer.append(infos[i]);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(strBuffer);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>方法二：使用 Arrays.toString() 打印</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] infos = <span class="keyword">new</span> String[] &#123;<span class="string">"Java"</span>, <span class="string">"Android"</span>, <span class="string">"C/C++"</span>, <span class="string">"Kotlin"</span>&#125;;</span><br><span class="line"></span><br><span class="line">        System.out.println(Arrays.toString(infos));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>方法三：使用 JDK 8 的 java.util.Arrays.stream() 打印</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] infos = <span class="keyword">new</span> String[] &#123;<span class="string">"Java"</span>, <span class="string">"Android"</span>, <span class="string">"C/C++"</span>, <span class="string">"Kotlin"</span>&#125;;</span><br><span class="line"></span><br><span class="line">        Arrays.stream(infos).forEach(System.out::println);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>方法四：使用 Arrays.deepToString() 方法打印。<strong>如果数组中有其它数组，即多维数组，也会用同样的方法深度显示。</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] infos = <span class="keyword">new</span> String[] &#123;<span class="string">"Java"</span>, <span class="string">"Android"</span>, <span class="string">"C/C++"</span>, <span class="string">"Kotlin"</span>&#125;;</span><br><span class="line"></span><br><span class="line">        System.out.println(Arrays.deepToString(infos));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>茴香豆的写法有很多种，打开眼界最重要～</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/28/MySql数据库中的索引/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -991,195 +1142,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/25/Spring中的12种常用注解/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/10/25/Spring中的12种常用注解/" itemprop="url">Spring中的常用注解</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-25T15:30:54+08:00">
-                2018-10-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p><strong>注解本身没有功能的，就和xml一样。注解和xml都是一种元数据，元数据即解释数据的数据，这就是所谓配置。</strong></p>
-<p>本文主要罗列Spring|SpringMVC相关注解的简介。</p>
-<h4 id="Spring部分"><a href="#Spring部分" class="headerlink" title="Spring部分"></a>Spring部分</h4><h5 id="声明bean的注解"><a href="#声明bean的注解" class="headerlink" title="声明bean的注解"></a><strong>声明bean的注解</strong></h5><p>@Component 组件，没有明确的角色</p>
-<p>@Service 在业务逻辑层使用（service层）</p>
-<p>@Repository 在数据访问层使用（dao层）</p>
-<p>@Controller 在展现层使用，控制器的声明（C）</p>
-<h5 id="注入bean的注解"><a href="#注入bean的注解" class="headerlink" title="注入bean的注解"></a><strong>注入bean的注解</strong></h5><p>@Autowired：由Spring提供</p>
-<p>@Inject：由JSR-330提供</p>
-<p>@Resource：由JSR-250提供</p>
-<p>都可以注解在set方法和属性上，推荐注解在属性上（一目了然，少写代码）。</p>
-<h5 id="java配置类相关注解"><a href="#java配置类相关注解" class="headerlink" title="java配置类相关注解"></a>java配置类相关注解</h5><p>@Configuration 声明当前类为配置类，相当于xml形式的Spring配置（类上）</p>
-<p>@Bean 注解在方法上，声明当前方法的返回值为一个bean，替代xml中的方式（方法上）</p>
-<p>@Configuration 声明当前类为配置类，其中内部组合了@Component注解，表明这个类是一个bean（类上）</p>
-<p>@ComponentScan 用于对Component进行扫描，相当于xml中的（类上）</p>
-<p>@WishlyConfiguration 为@Configuration与@ComponentScan的组合注解，可以替代这两个注解</p>
-<h5 id="切面（AOP）相关注解"><a href="#切面（AOP）相关注解" class="headerlink" title="切面（AOP）相关注解"></a>切面（AOP）相关注解</h5><p>Spring支持AspectJ的注解式切面编程。</p>
-<p>@Aspect 声明一个切面（类上）<br>使用@After、@Before、@Around定义建言（advice），可直接将拦截规则（切点）作为参数。</p>
-<p>@After 在方法执行之后执行（方法上）<br>@Before 在方法执行之前执行（方法上）<br>@Around 在方法执行之前与之后执行（方法上）</p>
-<p>@PointCut 声明切点 </p>
-<p>在java配置类中使用@EnableAspectJAutoProxy注解开启Spring对AspectJ代理的支持（类上）</p>
-<h5 id="Bean的属性支持"><a href="#Bean的属性支持" class="headerlink" title="@Bean的属性支持"></a>@Bean的属性支持</h5><p>@Scope 设置Spring容器如何新建Bean实例（方法上，得有@Bean）<br>其设置类型包括：</p>
-<p>Singleton （单例,一个Spring容器中只有一个bean实例，默认模式）,<br>Protetype （每次调用新建一个bean）,<br>Request （web项目中，给每个http request新建一个bean）,<br>Session （web项目中，给每个http session新建一个bean）,<br>GlobalSession（给每一个 global http session新建一个Bean实例）</p>
-<p>@StepScope 在Spring Batch中还有涉及</p>
-<p>@PostConstruct 由JSR-250提供，在构造函数执行完之后执行，等价于xml配置文件中bean的initMethod</p>
-<p>@PreDestory 由JSR-250提供，在Bean销毁之前执行，等价于xml配置文件中bean的destroyMethod</p>
-<h5 id="Value注解"><a href="#Value注解" class="headerlink" title="@Value注解"></a>@Value注解</h5><p>@Value 为属性注入值（属性上）<br>支持如下方式的注入：<br>》注入普通字符</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"Michael Jackson"</span>)</span><br><span class="line">String name;</span><br></pre></td></tr></table></figure>
-<p>》注入操作系统属性</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"#&#123;systemProperties['os.name']&#125;"</span>)</span><br><span class="line">String osName;</span><br></pre></td></tr></table></figure>
-<p>》注入表达式结果</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"#&#123; T(java.lang.Math).random() * 100 &#125;"</span>)</span><br><span class="line">String randomNumber;</span><br></pre></td></tr></table></figure>
-<p>》注入其它bean属性</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"#&#123;domeClass.name&#125;"</span>)</span><br><span class="line">String name;</span><br></pre></td></tr></table></figure>
-<p>》注入文件资源</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"classpath:com/hgs/hello/test.txt"</span>)</span><br><span class="line">Resource file;</span><br></pre></td></tr></table></figure>
-<p>》注入网站资源</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"http://www.cznovel.com"</span>)</span><br><span class="line">Resource url;</span><br></pre></td></tr></table></figure>
-<p>》注入配置文件</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"$&#123;book.name&#125;"</span>)</span><br><span class="line">String bookName;</span><br></pre></td></tr></table></figure>
-<p>》注入配置使用方法：<br>① 编写配置文件（test.properties）</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">book.name=《三体》</span><br></pre></td></tr></table></figure>
-<p>② @PropertySource 加载配置文件(类上)</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PropertySource</span>(<span class="string">"classpath:com/hgs/hello/test/test.propertie"</span>)</span><br></pre></td></tr></table></figure>
-<p>③ 还需配置一个PropertySourcesPlaceholderConfigurer的bean。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/10/25/Spring中的12种常用注解/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1232,7 +1194,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">87</span>
+                  <span class="site-state-item-count">88</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

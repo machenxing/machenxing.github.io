@@ -291,6 +291,213 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/19/Mysql索引优化/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/19/Mysql索引优化/" itemprop="url">Mysql索引优化</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-19T22:43:59+08:00">
+                2018-12-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>关于MySQL中索引的数据结构及分类可以参考<a href="https://machenxing.github.io/2018/10/28/MySql%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/" target="_blank" rel="noopener">这篇博客</a>。</p>
+<p>建表、索引语句示例</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">建表：</span><br><span class="line">creat table student(</span><br><span class="line">    stu_id int unsigned not null auto_increment,</span><br><span class="line">    name varchar(32) not null default &apos;&apos;,</span><br><span class="line">    phone char(11) not null default &apos;&apos;,</span><br><span class="line">    stu_code varchar(32) not null default &apos;&apos;,</span><br><span class="line">    stu_desc text,</span><br><span class="line">    primary key (&apos;stu_id&apos;),     //主键索引</span><br><span class="line">    unique index &apos;stu_code&apos; (&apos;stu_code&apos;), //唯一索引</span><br><span class="line">    index &apos;name_phone&apos; (&apos;name&apos;,&apos;phone&apos;),  //普通索引，复合索引</span><br><span class="line">    fulltext index &apos;stu_desc&apos; (&apos;stu_desc&apos;), //全文索引</span><br><span class="line">) engine=myisam charset=utf8;</span><br><span class="line">说明：</span><br><span class="line">MySQL5.6版本后的InnoDB存储引擎开始支持全文索引，5.7版本后通过使用ngram插件开始支持中文。</span><br><span class="line"></span><br><span class="line">更新：</span><br><span class="line">alert table student</span><br><span class="line">    add primary key (&apos;stu_id&apos;),     //主键索引</span><br><span class="line">    add unique index &apos;stu_code&apos; (&apos;stu_code&apos;), //唯一索引</span><br><span class="line">    add index &apos;name_phone&apos; (&apos;name&apos;,&apos;phone&apos;),  //普通索引，复合索引</span><br><span class="line">    add fulltext index &apos;stu_desc&apos; (&apos;stu_desc&apos;); //全文索引</span><br><span class="line"></span><br><span class="line">删除：</span><br><span class="line">alert table sutdent</span><br><span class="line">    drop primary key,</span><br><span class="line">    drop index &apos;stu_code&apos;,</span><br><span class="line">    drop index &apos;name_phone&apos;,</span><br><span class="line">    drop index &apos;stu_desc&apos;;</span><br></pre></td></tr></table></figure>
+<h4 id="索引的使用原则"><a href="#索引的使用原则" class="headerlink" title="索引的使用原则"></a>索引的使用原则</h4><h5 id="列独立"><a href="#列独立" class="headerlink" title="列独立"></a>列独立</h5><p>保证索引包含的字段独立在查询语句中，不能是在表达式中</p>
+<h5 id="左前缀"><a href="#左前缀" class="headerlink" title="左前缀"></a>左前缀</h5><p>like:匹配模式左边不能以通配符开始，才能使用索引<br>注意：前缀索引在排序 order by 和分组 group by 操作的时候无法使用。</p>
+<h5 id="复合索引由左到右生效"><a href="#复合索引由左到右生效" class="headerlink" title="复合索引由左到右生效"></a>复合索引由左到右生效</h5><p>建立联合索引，要同时考虑列查询的频率和列的区分度。</p>
+<p>建立的索引为index(a,b,c)</p>
+<table>
+<thead>
+<tr>
+<th>语句</th>
+<th>索引是否发挥作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>where a=3</td>
+<td>是，只使用了a</td>
+</tr>
+<tr>
+<td>where a=3 and b=5</td>
+<td>是，使用了a,b</td>
+</tr>
+<tr>
+<td>where a=3 and b=5 and c=4</td>
+<td>是，使用了a,b,c</td>
+</tr>
+<tr>
+<td>where b=3 or where c=4</td>
+<td>否</td>
+</tr>
+<tr>
+<td>where a=3 and c=4</td>
+<td>是，仅使用了a</td>
+</tr>
+<tr>
+<td>where a=3 and b&gt;10 and c=7</td>
+<td>是，使用了a,b</td>
+</tr>
+<tr>
+<td>where a=3 and b like ‘%xx%’ and c=7</td>
+<td>使用了a,b</td>
+</tr>
+</tbody>
+</table>
+<p>or的两边都有存在可用的索引，该语句才能用索引。</p>
+<h5 id="不要滥用索引，多余的索引会降低读写性能"><a href="#不要滥用索引，多余的索引会降低读写性能" class="headerlink" title="不要滥用索引，多余的索引会降低读写性能"></a>不要滥用索引，多余的索引会降低读写性能</h5><p><strong>即使满足了上述原则，mysql还是可能会弃用索引，因为有些查询即使使用索引，也会出现大量的随机io，相对于从数据记录中的顺序io开销更大。</strong></p>
+<h4 id="mysql-中能够使用索引的典型应用"><a href="#mysql-中能够使用索引的典型应用" class="headerlink" title="mysql 中能够使用索引的典型应用"></a>mysql 中能够使用索引的典型应用</h4><blockquote>
+<p>测试库下载地址：<a href="https://downloads.mysql.com/docs/sakila-db.zip" target="_blank" rel="noopener">https://downloads.mysql.com/d…</a></p>
+</blockquote>
+<h5 id="匹配全值（match-the-full-value）"><a href="#匹配全值（match-the-full-value）" class="headerlink" title="匹配全值（match the full value）"></a>匹配全值（match the full value）</h5><p>对索引中所有列都指定具体值，即是对索引中的所有列都有等值匹配的条件。<br>例如，租赁表 rental 中通过指定出租日期 rental_date + 库存编号 inventory_id + 客户编号 customer_id 的组合条件进行查询，从执行计划的 key he extra 两字段的值看到优化器选择了复合索引 idx_rental_date:</p>
+<p>关于explain结果值及其含义可以参考我的另一篇博客<a href="https://machenxing.github.io/2018/10/28/MySql%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E7%9A%84%E7%B4%A2%E5%BC%95/" target="_blank" rel="noopener">MySql数据库中的索引</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">MySQL [sakila]&gt; explain select * from rental where rental_date=&apos;2005-05-25 17:22:10&apos; and inventory_id=373 and customer_id=343 \G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">           id: 1</span><br><span class="line">  select_type: SIMPLE</span><br><span class="line">        table: rental</span><br><span class="line">   partitions: NULL</span><br><span class="line">         type: const</span><br><span class="line">possible_keys: rental_date,idx_fk_inventory_id,idx_fk_customer_id</span><br><span class="line">          key: rental_date</span><br><span class="line">      key_len: 10</span><br><span class="line">          ref: const,const,const</span><br><span class="line">         rows: 1</span><br><span class="line">     filtered: 100.00</span><br><span class="line">        Extra: NULL</span><br><span class="line"> 1 row in set, 1 warning (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>explain 输出结果中字段 type 的值为 const，表示是常量；字段 key 的值为 rental_date, 表示优化器选择索引 rental_date 进行扫描。</p>
+<h5 id="匹配值的范围查询（match-a-range-of-values）"><a href="#匹配值的范围查询（match-a-range-of-values）" class="headerlink" title="匹配值的范围查询（match a range of values）"></a>匹配值的范围查询（match a range of values）</h5><p>对索引的值能够进行范围查找。<br>例如，检索租赁表 rental 中客户编号 customer_id 在指定范围内的记录：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">MySQL [sakila]&gt; explain select * from rental where customer_id &gt;= 373 and customer_id &lt; 400 \G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">           id: 1</span><br><span class="line">  select_type: SIMPLE</span><br><span class="line">        table: rental</span><br><span class="line">   partitions: NULL</span><br><span class="line">         type: range</span><br><span class="line">possible_keys: idx_fk_customer_id</span><br><span class="line">          key: idx_fk_customer_id</span><br><span class="line">      key_len: 2</span><br><span class="line">          ref: NULL</span><br><span class="line">         rows: 718</span><br><span class="line">     filtered: 100.00</span><br><span class="line">        Extra: Using index condition</span><br><span class="line"> 1 row in set, 1 warning (0.05 sec)</span><br></pre></td></tr></table></figure>
+<p>类型 type 为 range 说明优化器选择范围查询，索引 key 为 idx_fk_customer_id 说明优化器选择索引 idx_fk_customer_id 来加速访问，注意到这个列子中 extra 列为 using index codition ,表示 mysql 使用了 ICP（using index condition） 来进一步优化查询。</p>
+<h5 id="匹配最左前缀（match-a-leftmost-prefix）"><a href="#匹配最左前缀（match-a-leftmost-prefix）" class="headerlink" title="匹配最左前缀（match a leftmost prefix）"></a>匹配最左前缀（match a leftmost prefix）</h5><p>仅仅使用索引中的最左边列进行查询，比如在 col1 + col2 + col3 字段上的联合索引能够被包含 col1、(col1 + col2)、（col1 + col2 + col3）的等值查询利用到，可是不能够被 col2、（col2、col3）的等值查询利用到。<br>最左匹配原则可以算是 MySQL 中 B-Tree 索引使用的首要原则。</p>
+<h5 id="仅仅对索引进行查询（index-only-query）"><a href="#仅仅对索引进行查询（index-only-query）" class="headerlink" title="仅仅对索引进行查询（index only query）"></a>仅仅对索引进行查询（index only query）</h5><p>当查询的列都在索引的字段中时，查询的效率更高，所以应该尽量避免使用 select *，需要哪些字段，就只查哪些字段。</p>
+<h5 id="匹配列前缀（match-a-column-prefix）"><a href="#匹配列前缀（match-a-column-prefix）" class="headerlink" title="匹配列前缀（match a column prefix）"></a>匹配列前缀（match a column prefix）</h5><p>仅仅使用索引中的第一列，并且只包含索引第一列的开头一部分进行查找。<br>例如，现在需要查询出标题 title 是以 AFRICAN 开头的电影信息，从执行计划能够清楚看到，idx_title_desc_part 索引被利用上了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">MySQL [sakila]&gt; create index idx_title_desc_part on film_text(title (10), description(20));</span><br><span class="line">Query OK, 0 rows affected (0.07 sec)</span><br><span class="line">Records: 0  Duplicates: 0  Warnings: 0</span><br><span class="line"></span><br><span class="line">MySQL [sakila]&gt; explain select title from film_text where title like &apos;AFRICAN%&apos;\G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">           id: 1</span><br><span class="line">  select_type: SIMPLE</span><br><span class="line">        table: film_text</span><br><span class="line">   partitions: NULL</span><br><span class="line">         type: range</span><br><span class="line">possible_keys: idx_title_desc_part,idx_title_description</span><br><span class="line">          key: idx_title_desc_part</span><br><span class="line">      key_len: 32</span><br><span class="line">          ref: NULL</span><br><span class="line">         rows: 1</span><br><span class="line">     filtered: 100.00</span><br><span class="line">        Extra: Using where</span><br><span class="line"> 1 row in set, 1 warning (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>extra 值为 using where 表示优化器需要通过索引回表查询数据。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/12/19/Mysql索引优化/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/16/Spring-Cloud-自己的服务网关-Gateway/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1114,203 +1321,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/07/Spring-Cloud各组件的作用/" itemprop="url">Spring Cloud各组件的作用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-07T17:45:54+08:00">
-                2018-12-07
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p><strong>概述</strong></p>
-<p>毫无疑问，Spring Cloud是目前微服务架构领域的翘楚，无数的书籍博客都在讲解这个技术。不过大多数讲解还停留在对Spring Cloud功能使用的层面，其底层的很多原理，很多人可能并不知晓。<strong>因此本文将通过大量的手绘图</strong>，给大家谈谈Spring Cloud微服务架构的底层原理。</p>
-<p>实际上，Spring Cloud是一个全家桶式的技术栈，包含了很多组件。本文先从其最核心的几个组件入手，来剖析一下其底层的工作原理。<strong>也就是Eureka、Ribbon、Feign、Hystrix、Zuul这几个组件。</strong></p>
-<h4 id="业务场景介绍"><a href="#业务场景介绍" class="headerlink" title="业务场景介绍"></a>业务场景介绍</h4><p>先来给大家说一个业务场景，假设咱们现在开发一个电商网站，要实现支付订单的功能，流程如下：</p>
-<ul>
-<li>创建一个订单之后，如果用户立刻支付了这个订单，我们需要将订单状态更新为“已支付”</li>
-<li>扣减相应的商品库存</li>
-<li>通知仓储中心，进行发货</li>
-<li>给用户的这次购物增加相应的积分</li>
-</ul>
-<p>针对上述流程，<strong>我们需要有订单服务、库存服务、仓储服务、积分服务</strong>。整个流程的大体思路如下：</p>
-<ul>
-<li>用户针对一个订单完成支付之后，就会去找订单服务，更新订单状态</li>
-<li>订单服务调用库存服务，完成相应功能</li>
-<li>订单服务调用仓储服务，完成相应功能</li>
-<li>订单服务调用积分服务，完成相应功能</li>
-</ul>
-<p><strong>至此，整个支付订单的业务流程结束</strong></p>
-<p>下图这张图，清晰表明了各服务间的调用过程：</p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图1.jpg" title="图1">
-<p>有了业务场景之后，咱们就一起来看看Spring Cloud微服务架构中，这几个组件如何相互协作，各自发挥的作用以及其背后的原理。</p>
-<h4 id="核心组件：Eureka"><a href="#核心组件：Eureka" class="headerlink" title="核心组件：Eureka"></a>核心组件：Eureka</h4><p><strong>咱们来考虑第一个问题</strong>：订单服务想要调用库存服务、仓储服务，或者是积分服务，怎么调用？</p>
-<ul>
-<li>订单服务压根儿就不知道人家库存服务在哪台机器上啊！他就算想要发起一个请求，都不知道发送给谁，有心无力！</li>
-<li>这时候，就轮到Spring Cloud Eureka出场了。Eureka是微服务架构中的注册中心，专门负责服务的注册与发现。</li>
-</ul>
-<p> 咱们来看看下面的这张图，结合图来仔细剖析一下整个流程： </p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图2.jpg" title="图2">
-<p>如上图所示，库存服务、仓储服务、积分服务中都有一个Eureka Client组件，这个组件专门负责将这个服务的信息注册到Eureka Server中。说白了，就是告诉Eureka Server，自己在哪台机器上，监听着哪个端口。而Eureka Server是一个注册中心，里面有一个注册表，保存了各服务所在的机器和端口号</p>
-<p>订单服务里也有一个Eureka Client组件，这个Eureka Client组件会找Eureka Server问一下：库存服务在哪台机器啊？监听着哪个端口啊？仓储服务呢？积分服务呢？然后就可以把这些相关信息从Eureka Server的注册表中拉取到自己本地缓存起来。</p>
-<p>这时如果订单服务想要调用库存服务，不就可以找自己本地的Eureka Client问一下库存服务在哪台机器？监听哪个端口吗？收到响应后，紧接着就可以发送一个请求过去，调用库存服务扣减库存的那个接口！同理，如果订单服务要调用仓储服务、积分服务，也是如法炮制。</p>
-<p>总结一下：</p>
-<ul>
-<li><strong>Eureka</strong> <strong>Client：</strong>负责将这个服务的信息注册到Eureka Server中</li>
-<li><strong>Eureka Server：</strong>注册中心，里面有一个注册表，保存了各个服务所在的机器和端口号</li>
-</ul>
-<h4 id="核心组件：Feign"><a href="#核心组件：Feign" class="headerlink" title="核心组件：Feign"></a>核心组件：Feign</h4><p>现在订单服务确实知道库存服务、积分服务、仓库服务在哪里了，同时也监听着哪些端口号了。<strong>但是新问题又来了：难道订单服务要自己写一大堆代码，跟其他服务建立网络连接，然后构造一个复杂的请求，接着发送请求过去，最后对返回的响应结果再写一大堆代码来处理吗？</strong></p>
-<p>这是上述流程翻译的代码片段，咱们一起来看看，体会一下这种绝望而无助的感受！！！</p>
-<p><strong>友情提示，前方高能：</strong></p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图3.jpg" title="图3">
-<p>看完上面那一大段代码，有没有感到后背发凉、一身冷汗？实际上你进行服务间调用时，如果每次都手写代码，代码量比上面那段要多至少几倍，所以这个事儿压根儿就不是地球人能干的。</p>
-<p>既然如此，那怎么办呢？别急，Feign早已为我们提供好了优雅的解决方案。来看看如果用Feign的话，你的订单服务调用库存服务的代码会变成啥样？</p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图4.jpg" title="图4">
-<p>看完上面的代码什么感觉？是不是感觉整个世界都干净了，又找到了活下去的勇气！没有底层的建立连接、构造请求、解析响应的代码，直接就是用注解定义一个 FeignClient接口，然后调用那个接口就可以了。人家Feign Client会在底层根据你的注解，跟你指定的服务建立连接、构造请求、发起靕求、获取响应、解析响应，等等。这一系列脏活累活，人家Feign全给你干了。</p>
-<p>那么问题来了，Feign是如何做到这么神奇的呢？很简单，<strong>Feign的一个关键机制就是使用了动态代理</strong>。咱们一起来看看下面的图，结合图来分析：</p>
-<ul>
-<li>首先，如果你对某个接口定义了@FeignClient注解，Feign就会针对这个接口创建一个动态代理</li>
-<li>接着你要是调用那个接口，本质就是会调用 Feign创建的动态代理，这是核心中的核心</li>
-<li>Feign的动态代理会根据你在接口上的@RequestMapping等注解，来动态构造出你要请求的服务的地址</li>
-<li>最后针对这个地址，发起请求、解析响应</li>
-</ul>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图5.jpg" title="图5">
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/12/07/Spring-Cloud各组件的作用/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1363,7 +1373,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">87</span>
+                  <span class="site-state-item-count">88</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
