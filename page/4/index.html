@@ -291,6 +291,176 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/17/阿里淘宝的高并发分布式架构演进之路/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/17/阿里淘宝的高并发分布式架构演进之路/" itemprop="url">阿里淘宝的高并发分布式架构演进之路</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-17T20:19:11+08:00">
+                2019-06-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/系统架构/" itemprop="url" rel="index">
+                    <span itemprop="name">系统架构</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文以淘宝作为例子，介绍从一百个并发到千万级并发情况下服务端的架构的演进过程，同时列举出每个演进阶段会遇到的相关技术，让大家对架构的演进有一个整体的认知，文章最后汇总了一些架构设计的原则。</p>
+<h4 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h4><p>在介绍架构之前，为了避免部分读者对架构设计中的一些概念不了解，下面对几个最基础的概念进行介绍：</p>
+<ul>
+<li><strong>分布式</strong><br>系统中的多个模块在不同服务器上部署，即可称为分布式系统，如Tomcat和数据库分别部署在不同的服务器上，或两个相同功能的Tomcat分别部署在不同服务器上</li>
+<li><strong>高可用</strong><br>系统中部分节点失效时，其他节点能够接替它继续提供服务，则可认为系统具有高可用性</li>
+<li><strong>集群</strong><br>一个特定领域的软件部署在多台服务器上并作为一个整体提供一类服务，这个整体称为集群。如Zookeeper中的Master和Slave分别部署在多台服务器上，共同组成一个整体提供集中配置服务。在常见的集群中，客户端往往能够连接任意一个节点获得服务，并且当集群中一个节点掉线时，其他节点往往能够自动的接替它继续提供服务，这时候说明集群具有高可用性</li>
+<li><strong>负载均衡</strong><br>请求发送到系统时，通过某些方式把请求均匀分发到多个节点上，使系统中每个节点能够均匀的处理请求负载，则可认为系统是负载均衡的</li>
+<li><strong>正向代理和反向代理</strong><br>系统内部要访问外部网络时，统一通过一个代理服务器把请求转发出去，在外部网络看来就是代理服务器发起的访问，此时代理服务器实现的是正向代理；当外部请求进入系统时，代理服务器把该请求转发到系统中的某台服务器上，对外部请求来说，与之交互的只有代理服务器，此时代理服务器实现的是反向代理。简单来说，正向代理是代理服务器代替系统内部来访问外部网络的过程，反向代理是外部请求访问系统时通过代理服务器转发到内部服务器的过程。</li>
+</ul>
+<h4 id="架构演进"><a href="#架构演进" class="headerlink" title="架构演进"></a>架构演进</h4><h5 id="单机架构"><a href="#单机架构" class="headerlink" title="单机架构"></a>单机架构</h5><img src="/2019/06/17/阿里淘宝的高并发分布式架构演进之路/图1.jpg" title="图1">
+<p>以淘宝作为例子。在网站最初时，应用数量与用户数都较少，可以把Tomcat和数据库部署在同一台服务器上。浏览器往<a href="http://www.taobao.com发起请求时，首先经过DNS服务器（域名系统）把域名转换为实际IP地址10.102.4.1，浏览器转而访问该IP对应的Tomcat。" target="_blank" rel="noopener">www.taobao.com发起请求时，首先经过DNS服务器（域名系统）把域名转换为实际IP地址10.102.4.1，浏览器转而访问该IP对应的Tomcat。</a></p>
+<blockquote>
+<p><strong>随着用户数的增长，Tomcat和数据库之间竞争资源，单机性能不足以支撑业务</strong></p>
+</blockquote>
+<h5 id="第一次演进：Tomcat与数据库分开部署"><a href="#第一次演进：Tomcat与数据库分开部署" class="headerlink" title="第一次演进：Tomcat与数据库分开部署"></a>第一次演进：Tomcat与数据库分开部署</h5><img src="/2019/06/17/阿里淘宝的高并发分布式架构演进之路/图2.jpg" title="图2">
+<p>Tomcat和数据库分别独占服务器资源，显著提高两者各自性能。</p>
+<blockquote>
+<p><strong>随着用户数的增长，并发读写数据库成为瓶颈</strong></p>
+</blockquote>
+<h5 id="第二次演进：引入本地缓存和分布式缓存"><a href="#第二次演进：引入本地缓存和分布式缓存" class="headerlink" title="第二次演进：引入本地缓存和分布式缓存"></a>第二次演进：引入本地缓存和分布式缓存</h5><img src="/2019/06/17/阿里淘宝的高并发分布式架构演进之路/图3.jpg" title="图3">
+<p>在Tomcat同服务器上或同JVM中增加本地缓存，并在外部增加分布式缓存，缓存热门商品信息或热门商品的html页面等。通过缓存能把绝大多数请求在读写数据库前拦截掉，大大降低数据库压力。其中涉及的技术包括：使用memcached作为本地缓存，使用Redis作为分布式缓存，还会涉及缓存一致性、缓存穿透/击穿、缓存雪崩、热点数据集中失效等问题。</p>
+<blockquote>
+<p><strong>缓存抗住了大部分的访问请求，随着用户数的增长，并发压力主要落在单机的Tomcat上，响应逐渐变慢</strong></p>
+</blockquote>
+<h5 id="第三次演进：引入反向代理实现负载均衡"><a href="#第三次演进：引入反向代理实现负载均衡" class="headerlink" title="第三次演进：引入反向代理实现负载均衡"></a>第三次演进：引入反向代理实现负载均衡</h5>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/06/17/阿里淘宝的高并发分布式架构演进之路/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/14/分库分表技术演进暨最佳实践/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1045,167 +1215,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/31/Kafka参数调优实战/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/05/31/Kafka参数调优实战/" itemprop="url">Kafka参数调优实战</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-31T17:13:15+08:00">
-                2019-05-31
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/中间件/" itemprop="url" rel="index">
-                    <span itemprop="name">中间件</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h4 id="背景引入：很多同学看不懂kafka参数"><a href="#背景引入：很多同学看不懂kafka参数" class="headerlink" title="背景引入：很多同学看不懂kafka参数"></a>背景引入：很多同学看不懂kafka参数</h4><p>今天给大家聊一个很有意思的话题，大家知道很多公司都会基于Kafka作为MQ来开发一些复杂的大型系统。</p>
-<p>而在使用Kafka的客户端编写代码与服务器交互的时候，是需要对客户端设置很多的参数的。</p>
-<p>所以我就见过很多年轻的同学，可能刚刚加入团队，对Kafka这个技术其实并不是很了解。</p>
-<p>此时就会导致他们看团队里的一些资深同事写的一些代码，会看不懂是怎么回事，不了解背后的含义，这里面尤其是一些<strong>Kafka参数的设置</strong>。</p>
-<p>所以这篇文章，我们还是采用老规矩画图的形式，来聊聊Kafka生产端一些常见参数的设置，让大家下次看到一些Kafka客户端设置的参数时，不会再感到发怵。</p>
-<h4 id="一段Kafka生产端的示例代码"><a href="#一段Kafka生产端的示例代码" class="headerlink" title="一段Kafka生产端的示例代码"></a>一段Kafka生产端的示例代码</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Properties props = <span class="keyword">new</span> Properties();</span><br><span class="line">props.put(<span class="string">"bootstrap.servers"</span>, <span class="string">"localhost:9092"</span>); </span><br><span class="line">props.put(<span class="string">"key.serializer"</span>, <span class="string">"org.apache.kafka.common.serialization.StringSerializer"</span>);</span><br><span class="line">props.put(<span class="string">"value.serializer"</span>, <span class="string">"org.apache.kafka.common.serialization.StringSerializer"</span>);</span><br><span class="line">props.put(<span class="string">"buffer.memory"</span>, <span class="number">67108864</span>); </span><br><span class="line">props.put(<span class="string">"batch.size"</span>, <span class="number">131072</span>); </span><br><span class="line">props.put(<span class="string">"linger.ms"</span>, <span class="number">100</span>); </span><br><span class="line">props.put(<span class="string">"max.request.size"</span>, <span class="number">10485760</span>); </span><br><span class="line">props.put(<span class="string">"acks"</span>, <span class="string">"1"</span>); </span><br><span class="line">props.put(<span class="string">"retries"</span>, <span class="number">10</span>); </span><br><span class="line">props.put(<span class="string">"retry.backoff.ms"</span>, <span class="number">500</span>);</span><br><span class="line"></span><br><span class="line">KafkaProducer&lt;String, String&gt; producer = <span class="keyword">new</span> KafkaProducer&lt;String, String&gt;(props);</span><br></pre></td></tr></table></figure>
-<h4 id="内存缓冲的大小"><a href="#内存缓冲的大小" class="headerlink" title="内存缓冲的大小"></a>内存缓冲的大小</h4><p>首先我们看看“buffer.memory”这个参数是什么意思？</p>
-<p>Kafka的客户端发送数据到服务器，一般都是要经过缓冲的，也就是说，你通过KafkaProducer发送出去的消息都是先进入到客户端本地的内存缓冲里，然后把很多消息收集成一个一个的Batch，再发送到Broker上去的。</p>
-<img src="/2019/05/31/Kafka参数调优实战/图1.jpg" title="图1">
-<p>所以这个“buffer.memory”的本质就是用来约束KafkaProducer能够使用的内存缓冲的大小的，他的默认值是32MB。</p>
-<p>那么既然了解了这个含义，大家想一下，在生产项目里，这个参数应该怎么来设置呢？</p>
-<p>你可以先想一下，如果这个内存缓冲设置的过小的话，可能会导致一个什么问题？</p>
-<p>首先要明确一点，那就是在内存缓冲里大量的消息会缓冲在里面，形成一个一个的Batch，每个Batch里包含多条消息。</p>
-<p>然后KafkaProducer有一个Sender线程会把多个Batch打包成一个Request发送到Kafka服务器上去。</p>
-<img src="/2019/05/31/Kafka参数调优实战/图2.jpg" title="图2">
-<p>那么如果要是内存设置的太小，可能<strong>导致一个问题</strong>：消息快速的写入内存缓冲里面，但是Sender线程来不及把Request发送到Kafka服务器。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/05/31/Kafka参数调优实战/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1258,7 +1267,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">88</span>
+                  <span class="site-state-item-count">89</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
