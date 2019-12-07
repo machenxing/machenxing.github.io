@@ -101,8 +101,8 @@
         <tag>数据库</tag>
         <tag>内存</tag>
         <tag>线程</tag>
-        <tag>数据结构</tag>
         <tag>Redis</tag>
+        <tag>数据结构</tag>
         <tag>CPU</tag>
         <tag>锁</tag>
       </tags>
@@ -218,8 +218,8 @@
         <category>系统架构</category>
       </categories>
       <tags>
-        <tag>数据库</tag>
         <tag>一致性</tag>
+        <tag>数据库</tag>
         <tag>分布式</tag>
         <tag>并发</tag>
         <tag>缓存</tag>
@@ -514,8 +514,8 @@
         <category>数据库</category>
       </categories>
       <tags>
-        <tag>数据库</tag>
         <tag>一致性</tag>
+        <tag>数据库</tag>
         <tag>分布式</tag>
         <tag>事务</tag>
       </tags>
@@ -773,8 +773,8 @@
         <category>数据库</category>
       </categories>
       <tags>
-        <tag>数据库</tag>
         <tag>一致性</tag>
+        <tag>数据库</tag>
         <tag>分布式</tag>
         <tag>事务</tag>
       </tags>
@@ -858,8 +858,8 @@
         <category>服务器</category>
       </categories>
       <tags>
-        <tag>数据库</tag>
         <tag>一致性</tag>
+        <tag>数据库</tag>
         <tag>缓存</tag>
       </tags>
   </entry>
@@ -885,9 +885,9 @@
         <tag>数据库</tag>
         <tag>内存</tag>
         <tag>线程</tag>
-        <tag>数据结构</tag>
         <tag>Redis</tag>
         <tag>缓存</tag>
+        <tag>数据结构</tag>
         <tag>CPU</tag>
         <tag>锁</tag>
       </tags>
