@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Spring,分布式,负载均衡,">
+  <meta name="keywords" content="类,">
 
 
 
@@ -79,28 +79,18 @@
 
 
 
-<meta name="description" content="概述 毫无疑问，Spring Cloud是目前微服务架构领域的翘楚，无数的书籍博客都在讲解这个技术。不过大多数讲解还停留在对Spring Cloud功能使用的层面，其底层的很多原理，很多人可能并不知晓。因此本文将通过大量的手绘图，给大家谈谈Spring Cloud微服务架构的底层原理。 实际上，Spring Cloud是一个全家桶式的技术栈，包含了很多组件。本文先从其最核心的几个组件入手，来剖析一">
-<meta name="keywords" content="Spring,分布式,负载均衡">
+<meta name="description" content="概念类加载器把class文件中的二进制数据读入到内存中，存放在方法区，然后在堆区创建一个java.lang.Class对象，用来封装类在方法区内的数据结构。 加载：查找并加载类的二进制数据（把class文件里面的信息加载到内存里面） 连接：把内存中类的二进制数据合并到虚拟机的运行时环境中  验证：确保被加载的类的正确性，包括：  类文件的结构检查：检查是否满足Java类文件的固定格式 语义检查：确">
+<meta name="keywords" content="类">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Spring Cloud各组件的作用">
-<meta property="og:url" content="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/index.html">
+<meta property="og:title" content="Java虚拟机的类加载机制2">
+<meta property="og:url" content="http://yoursite.com/2019/12/07/Java虚拟机的类加载机制2/index.html">
 <meta property="og:site_name" content="Star&#39;s Blog">
-<meta property="og:description" content="概述 毫无疑问，Spring Cloud是目前微服务架构领域的翘楚，无数的书籍博客都在讲解这个技术。不过大多数讲解还停留在对Spring Cloud功能使用的层面，其底层的很多原理，很多人可能并不知晓。因此本文将通过大量的手绘图，给大家谈谈Spring Cloud微服务架构的底层原理。 实际上，Spring Cloud是一个全家桶式的技术栈，包含了很多组件。本文先从其最核心的几个组件入手，来剖析一">
+<meta property="og:description" content="概念类加载器把class文件中的二进制数据读入到内存中，存放在方法区，然后在堆区创建一个java.lang.Class对象，用来封装类在方法区内的数据结构。 加载：查找并加载类的二进制数据（把class文件里面的信息加载到内存里面） 连接：把内存中类的二进制数据合并到虚拟机的运行时环境中  验证：确保被加载的类的正确性，包括：  类文件的结构检查：检查是否满足Java类文件的固定格式 语义检查：确">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/图1.jpg">
-<meta property="og:image" content="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/图2.jpg">
-<meta property="og:image" content="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/图3.jpg">
-<meta property="og:image" content="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/图4.jpg">
-<meta property="og:image" content="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/图5.jpg">
-<meta property="og:image" content="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/图6.jpg">
-<meta property="og:image" content="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/图7.jpg">
-<meta property="og:image" content="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/图8.jpg">
-<meta property="og:image" content="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/图9.jpg">
-<meta property="og:updated_time" content="2019-12-07T05:46:16.143Z">
+<meta property="og:updated_time" content="2019-12-07T06:22:03.367Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Spring Cloud各组件的作用">
-<meta name="twitter:description" content="概述 毫无疑问，Spring Cloud是目前微服务架构领域的翘楚，无数的书籍博客都在讲解这个技术。不过大多数讲解还停留在对Spring Cloud功能使用的层面，其底层的很多原理，很多人可能并不知晓。因此本文将通过大量的手绘图，给大家谈谈Spring Cloud微服务架构的底层原理。 实际上，Spring Cloud是一个全家桶式的技术栈，包含了很多组件。本文先从其最核心的几个组件入手，来剖析一">
-<meta name="twitter:image" content="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/图1.jpg">
+<meta name="twitter:title" content="Java虚拟机的类加载机制2">
+<meta name="twitter:description" content="概念类加载器把class文件中的二进制数据读入到内存中，存放在方法区，然后在堆区创建一个java.lang.Class对象，用来封装类在方法区内的数据结构。 加载：查找并加载类的二进制数据（把class文件里面的信息加载到内存里面） 连接：把内存中类的二进制数据合并到虚拟机的运行时环境中  验证：确保被加载的类的正确性，包括：  类文件的结构检查：检查是否满足Java类文件的固定格式 语义检查：确">
 
 
 
@@ -130,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/">
+  <link rel="canonical" href="http://yoursite.com/2019/12/07/Java虚拟机的类加载机制2/">
 
 
 
 
 
-  <title>Spring Cloud各组件的作用 | Star's Blog</title>
+  <title>Java虚拟机的类加载机制2 | Star's Blog</title>
   
 
 
@@ -305,7 +295,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/07/Spring-Cloud各组件的作用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/07/Java虚拟机的类加载机制2/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Morning Star">
@@ -322,7 +312,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Spring Cloud各组件的作用</h1>
+          <h1 class="post-title" itemprop="name headline">Java虚拟机的类加载机制2</h1>
         
 
         <div class="post-meta">
@@ -334,8 +324,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-07T17:45:54+08:00">
-                2018-12-07
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-07T14:11:19+08:00">
+                2019-12-07
               </time>
             
 
@@ -357,8 +347,8 @@
               
               
                 <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/Spring/" itemprop="url" rel="index">
-                    <span itemprop="name">Spring</span>
+                  <a href="/categories/Java虚拟机/" itemprop="url" rel="index">
+                    <span itemprop="name">Java虚拟机</span>
                   </a>
                 </span>
 
@@ -399,121 +389,75 @@
       
 
       
-        <p><strong>概述</strong></p>
-<p>毫无疑问，Spring Cloud是目前微服务架构领域的翘楚，无数的书籍博客都在讲解这个技术。不过大多数讲解还停留在对Spring Cloud功能使用的层面，其底层的很多原理，很多人可能并不知晓。<strong>因此本文将通过大量的手绘图</strong>，给大家谈谈Spring Cloud微服务架构的底层原理。</p>
-<p>实际上，Spring Cloud是一个全家桶式的技术栈，包含了很多组件。本文先从其最核心的几个组件入手，来剖析一下其底层的工作原理。<strong>也就是Eureka、Ribbon、Feign、Hystrix、Zuul这几个组件。</strong></p>
-<h4 id="业务场景介绍"><a href="#业务场景介绍" class="headerlink" title="业务场景介绍"></a>业务场景介绍</h4><p>先来给大家说一个业务场景，假设咱们现在开发一个电商网站，要实现支付订单的功能，流程如下：</p>
-<ul>
-<li>创建一个订单之后，如果用户立刻支付了这个订单，我们需要将订单状态更新为“已支付”</li>
-<li>扣减相应的商品库存</li>
-<li>通知仓储中心，进行发货</li>
-<li>给用户的这次购物增加相应的积分</li>
-</ul>
-<p>针对上述流程，<strong>我们需要有订单服务、库存服务、仓储服务、积分服务</strong>。整个流程的大体思路如下：</p>
-<ul>
-<li>用户针对一个订单完成支付之后，就会去找订单服务，更新订单状态</li>
-<li>订单服务调用库存服务，完成相应功能</li>
-<li>订单服务调用仓储服务，完成相应功能</li>
-<li>订单服务调用积分服务，完成相应功能</li>
-</ul>
-<p><strong>至此，整个支付订单的业务流程结束</strong></p>
-<p>下图这张图，清晰表明了各服务间的调用过程：</p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图1.jpg" title="图1">
-<p>有了业务场景之后，咱们就一起来看看Spring Cloud微服务架构中，这几个组件如何相互协作，各自发挥的作用以及其背后的原理。</p>
-<h4 id="核心组件：Eureka"><a href="#核心组件：Eureka" class="headerlink" title="核心组件：Eureka"></a>核心组件：Eureka</h4><p><strong>咱们来考虑第一个问题</strong>：订单服务想要调用库存服务、仓储服务，或者是积分服务，怎么调用？</p>
-<ul>
-<li>订单服务压根儿就不知道人家库存服务在哪台机器上啊！他就算想要发起一个请求，都不知道发送给谁，有心无力！</li>
-<li>这时候，就轮到Spring Cloud Eureka出场了。Eureka是微服务架构中的注册中心，专门负责服务的注册与发现。</li>
-</ul>
-<p> 咱们来看看下面的这张图，结合图来仔细剖析一下整个流程： </p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图2.jpg" title="图2">
-<p>如上图所示，库存服务、仓储服务、积分服务中都有一个Eureka Client组件，这个组件专门负责将这个服务的信息注册到Eureka Server中。说白了，就是告诉Eureka Server，自己在哪台机器上，监听着哪个端口。而Eureka Server是一个注册中心，里面有一个注册表，保存了各服务所在的机器和端口号</p>
-<p>订单服务里也有一个Eureka Client组件，这个Eureka Client组件会找Eureka Server问一下：库存服务在哪台机器啊？监听着哪个端口啊？仓储服务呢？积分服务呢？然后就可以把这些相关信息从Eureka Server的注册表中拉取到自己本地缓存起来。</p>
-<p>这时如果订单服务想要调用库存服务，不就可以找自己本地的Eureka Client问一下库存服务在哪台机器？监听哪个端口吗？收到响应后，紧接着就可以发送一个请求过去，调用库存服务扣减库存的那个接口！同理，如果订单服务要调用仓储服务、积分服务，也是如法炮制。</p>
-<p>总结一下：</p>
-<ul>
-<li><strong>Eureka</strong> <strong>Client：</strong>负责将这个服务的信息注册到Eureka Server中</li>
-<li><strong>Eureka Server：</strong>注册中心，里面有一个注册表，保存了各个服务所在的机器和端口号</li>
-</ul>
-<h4 id="核心组件：Feign"><a href="#核心组件：Feign" class="headerlink" title="核心组件：Feign"></a>核心组件：Feign</h4><p>现在订单服务确实知道库存服务、积分服务、仓库服务在哪里了，同时也监听着哪些端口号了。<strong>但是新问题又来了：难道订单服务要自己写一大堆代码，跟其他服务建立网络连接，然后构造一个复杂的请求，接着发送请求过去，最后对返回的响应结果再写一大堆代码来处理吗？</strong></p>
-<p>这是上述流程翻译的代码片段，咱们一起来看看，体会一下这种绝望而无助的感受！！！</p>
-<p><strong>友情提示，前方高能：</strong></p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图3.jpg" title="图3">
-<p>看完上面那一大段代码，有没有感到后背发凉、一身冷汗？实际上你进行服务间调用时，如果每次都手写代码，代码量比上面那段要多至少几倍，所以这个事儿压根儿就不是地球人能干的。</p>
-<p>既然如此，那怎么办呢？别急，Feign早已为我们提供好了优雅的解决方案。来看看如果用Feign的话，你的订单服务调用库存服务的代码会变成啥样？</p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图4.jpg" title="图4">
-<p>看完上面的代码什么感觉？是不是感觉整个世界都干净了，又找到了活下去的勇气！没有底层的建立连接、构造请求、解析响应的代码，直接就是用注解定义一个 FeignClient接口，然后调用那个接口就可以了。人家Feign Client会在底层根据你的注解，跟你指定的服务建立连接、构造请求、发起靕求、获取响应、解析响应，等等。这一系列脏活累活，人家Feign全给你干了。</p>
-<p>那么问题来了，Feign是如何做到这么神奇的呢？很简单，<strong>Feign的一个关键机制就是使用了动态代理</strong>。咱们一起来看看下面的图，结合图来分析：</p>
-<ul>
-<li>首先，如果你对某个接口定义了@FeignClient注解，Feign就会针对这个接口创建一个动态代理</li>
-<li>接着你要是调用那个接口，本质就是会调用 Feign创建的动态代理，这是核心中的核心</li>
-<li>Feign的动态代理会根据你在接口上的@RequestMapping等注解，来动态构造出你要请求的服务的地址</li>
-<li>最后针对这个地址，发起请求、解析响应</li>
-</ul>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图5.jpg" title="图5">
-<a id="more"></a> 
-<h4 id="核心组件：Ribbon"><a href="#核心组件：Ribbon" class="headerlink" title="核心组件：Ribbon"></a>核心组件：Ribbon</h4><p>说完了Feign，还没完。现在新的问题又来了，如果人家库存服务部署在了5台机器上，如下所示：</p>
-<ul>
-<li>192.168.169:9000</li>
-<li>192.168.170:9000</li>
-<li>192.168.171:9000</li>
-<li>192.168.172:9000</li>
-<li>192.168.173:9000</li>
-</ul>
-<p><strong>这下麻烦了！人家Feign怎么知道该请求哪台机器呢？</strong></p>
-<ul>
-<li><p>这时Spring Cloud Ribbon就派上用场了。Ribbon就是专门解决这个问题的。它的作用是负载均衡，会帮你在每次请求时选择一台机器，均匀的把请求分发到各个机器上</p>
-</li>
-<li><p>Ribbon的负载均衡默认使用的最经典的Round Robin轮询算法。这是啥？简单来说，就是如果订单服务对库存服务发起10次请求，那就先让你请求第1台机器、然后是第2台机器、第3台机器、第4台机器、第5台机器，接着再来—个循环，第1台机器、第2台机器。。。以此类推。</p>
-</li>
-</ul>
-<p> <strong>此外，Ribbon是和Feign以及Eureka紧密协作，完成工作的，具体如下：</strong></p>
-<ul>
-<li>首先Ribbon会从 Eureka Client里获取到对应的服务注册表，也就知道了所有的服务都部署在了哪些机器上，在监听哪些端口号。</li>
-<li>然后Ribbon就可以使用默认的Round Robin算法，从中选择一台机器</li>
-<li>Feign就会针对这台机器，构造并发起请求。</li>
-</ul>
-<p>对上述整个过程，再来一张图，帮助大家更深刻的理解：</p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图6.jpg" title="图6">
-<h4 id="核心组件：Hystrix"><a href="#核心组件：Hystrix" class="headerlink" title="核心组件：Hystrix"></a>核心组件：Hystrix</h4><p>在微服务架构里，一个系统会有很多的服务。以本文的业务场景为例：订单服务在一个业务流程里需要调用三个服务。现在假设订单服务自己最多只有100个线程可以处理请求，然后呢，积分服务不幸的挂了，每次订单服务调用积分服务的时候，都会卡住几秒钟，然后抛出—个超时异常。</p>
-<p><strong>咱们一起来分析一下，这样会导致什么问题？</strong></p>
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>类加载器把class文件中的二进制数据读入到内存中，存放在方法区，然后在堆区创建一个java.lang.Class对象，用来封装类在方法区内的数据结构。</p>
+<h3 id="加载："><a href="#加载：" class="headerlink" title="加载："></a>加载：</h3><p>查找并加载类的二进制数据（把class文件里面的信息加载到内存里面）</p>
+<h3 id="连接："><a href="#连接：" class="headerlink" title="连接："></a>连接：</h3><p>把内存中类的二进制数据合并到虚拟机的运行时环境中</p>
 <ol>
-<li>如果系统处于高并发的场景下，大量请求涌过来的时候，订单服务的100个线程都会卡在请求积分服务这块。导致订单服务没有一个线程可以处理请求</li>
-<li>然后就会导致别人请求订单服务的时候，发现订单服务也挂了，不响应任何请求了</li>
+<li>验证：确保被加载的类的正确性，包括：</li>
+<li><ol>
+<li><strong>类文件的结构检查</strong>：检查是否满足Java类文件的固定格式</li>
+<li><strong>语义检查</strong>：确保类本身符合Java的语法规范</li>
+<li><strong>字节码验证</strong>：确保字节码流可以被Java虚拟机安全的执行。字节码流是操作码组成的序列。每一个操作码后面都会跟着一个或者多个操作数。字节码检查这个步骤会检查每一个操作码是否合法。</li>
+<li><strong>二进制兼容性验证</strong>：确保相互引用的类之间是协调一致的。</li>
 </ol>
-<p>上面这个，就是<strong>微服务架构中恐怖的服务雪崩问题</strong>，如下图所示：</p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图7.jpg" title="图7">
-<p>如上图，这么多服务互相调用，要是不做任何保护的话，某一个服务挂了，就会引起连锁反应，导致别的服务也挂。比如积分服务挂了，会导致订单服务的线程全部卡在请求积分服务这里，没有一个线程可以工作，瞬间导致订单服务也挂了，别人请求订单服务全部会卡住，无法响应。</p>
-<p><strong>但是我们思考一下，就算积分服务挂了，订单服务也可以不用挂啊！**</strong>为什么？**</p>
+</li>
+<li>准备：为类的静态变量分配内存，并将其初始化为默认值</li>
+<li>解析：把类中的符号引用转化为直接引用（比如说方法的符号引用，是由方法名和相关描述符组成。在解析阶段，JVM把符号引用替换成一个指针，这个指针就是直接引用，它指向该类的该方法在方法区中的内存位置）</li>
+</ol>
+<h3 id="初始化："><a href="#初始化：" class="headerlink" title="初始化："></a>初始化：</h3><p>为类的静态变量赋予正确的初始值。当静态变量的等号右边的值是一个常量表达式时，不会调用static代码块进行初始化。只有等号右边的值是一个运行时运算出来的值，才会调用static初始化。</p>
+<h2 id="双亲委派模型"><a href="#双亲委派模型" class="headerlink" title="双亲委派模型"></a>双亲委派模型</h2><p><strong>1、将类加载请求向上传递。</strong>当一个类加载器收到类加载请求时，它首先不会自己去加载这个类的信息，而是把该请求转发给父类加载器，依次向上。</p>
+<p>所以所有的类加载请求都会被传递到父类加载器中，只有当父类加载器中没有找到所需的类，子类加载器才会自己尝试去加载该类。</p>
+<p>当前类加载器和所有父类加载器都无法加载该类时，抛出ClassNotFindException异常。</p>
+<p><strong>2、意义：提高系统的安全性。</strong>用户自定义的类加载器不可能加载应该由父加载器加载的可靠类。</p>
+<p>比如用户定义了一个恶意代码，自定义的类加载器首先让系统加载器去加载，系统加载器检查该代码不符合规范，于是就不继续加载了。</p>
+<p><strong>3、定义类加载器</strong>：如果某个类加载器能够加载一个类，那么这个类加载器就叫做定义类加载器</p>
+<p><strong>4、初始类加载器</strong>：定义类加载器及其所有子加载器都称作初始类加载器。</p>
+<p><strong>5、运行时包：</strong></p>
 <ul>
-<li>我们结合业务来看：支付订单的时候，只要把库存扣减了，然后通知仓库发货就OK了</li>
-<li>如果积分服务挂了，大不了等他恢复之后，慢慢人肉手工恢复数据！为啥一定要因为一个积分服务挂了，就直接导致订单服务也挂了呢？不可以接受！</li>
+<li>由同一个类加载器加载并且拥有相同包名的类组成运行时包</li>
+<li>只有属于同一个运行时包的类，才能访问包可见（default）的类和类成员。</li>
+<li>其作用是限制用户自定义的类冒充核心类库的类去访问核心类库的包可见成员</li>
 </ul>
-<p><strong>现在问题分析完了，如何解决？</strong></p>
-<p>这时就轮到Hystrix闪亮登场了。Hystrix是隔离、熔断以及降级的一个框架。啥意思呢？说白了，Hystrix会搞很多个小小的线程池，比如订单服务请求库存服务是一个线程池，请求仓储服务是一个线程池，请求积分服务是一个线程池。每个线程池里的线程就仅仅用于请求那个服务。</p>
-<p><strong>打个比方：现在很不幸，积分服务挂了，会咋样？</strong></p>
-<p>当然会导致订单服务里的那个用来调用积分服务的线程都卡死不能工作了啊！但是由于订单服务调用库存服务、仓储服务的这两个线程池都是正常工作的，所以这两个服务不会受到任何影响。</p>
-<p>这个时候如果别人请求订单服务，订单服务还是可以正常调用库存服务扣减库存，调用仓储服务通知发货。只不过调用积分服务的时候，每次都会报错。<strong>但是如果积分服务都挂了，每次调用都要去卡住几秒钟干啥呢？**</strong>有意义吗？当然没有！**所以我们直接对积分服务熔断不就得了，比如在5分钟内请求积分服务直接就返回了，不要去走网络请求卡住几秒钟，这个过程，就是所谓的熔断！</p>
-<p><strong>那人家又说，兄弟，积分服务挂了你就熔断，好歹你干点儿什么啊！别啥都不干就直接返回啊？</strong>没问题，咱们就来个降级：每次调用积分服务，你就在数据库里记录一条消息，说给某某用户增加了多少积分，因为积分服务挂了，导致没增加成功！这样等积分服务恢复了，你可以根据这些记录手工加一下积分。这个过程，就是所谓的降级。</p>
-<p>为帮助大家更直观的理解，接下来用一张图，梳理一下Hystrix隔离、熔断和降级的全流程：</p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图8.jpg" title="图8">
-<h4 id="核心组件：Zuul"><a href="#核心组件：Zuul" class="headerlink" title="核心组件：Zuul"></a>核心组件：Zuul</h4><p>说完了Hystrix，接着给大家说说最后一个组件：Zuul，也就是微服务网关。这个组件是负责网络路由的。不懂网络路由？行，那我给你说说，如果没有Zuul的日常工作会怎样？</p>
-<p>假设你后台部署了几百个服务，现在有个前端兄弟，人家请求是直接从浏览器那儿发过来的。<strong>打个比方</strong>：人家要请求一下库存服务，你难道还让人家记着这服务的名字叫做inventory-service？部署在5台机器上？就算人家肯记住这一个，你后台可有几百个服务的名称和地址呢？难不成人家请求一个，就得记住一个？你要这样玩儿，那真是友谊的小船，说翻就翻！</p>
-<p>上面这种情况，压根儿是不现实的。所以一般微服务架构中都必然会设计一个网关在里面，像android、ios、pc前端、微信小程序、H5等等，不用去关心后端有几百个服务，就知道有一个网关，所有请求都往网关走，网关会根据请求中的一些特征，将请求转发给后端的各个服务。</p>
-<p>而且有一个网关之后，还有很多好处，比如可以做统一的降级、限流、认证授权、安全，等等。</p>
-<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>最后再来总结一下，上述几个Spring Cloud核心组件，在微服务架构中，分别扮演的角色：</p>
-<ul>
-<li><strong>Eureka</strong>：各个服务启动时，Eureka Client都会将服务注册到Eureka Server，并且Eureka Client还可以反过来从Eureka Server拉取注册表，从而知道其他服务在哪里</li>
-<li><strong>Ribbon</strong>：服务间发起请求的时候，基于Ribbon做负载均衡，从一个服务的多台机器中选择一台</li>
-<li><strong>Feign</strong>：基于Feign的动态代理机制，根据注解和选择的机器，拼接请求URL地址，发起请求</li>
-<li><strong>Hystrix</strong>：发起请求是通过Hystrix的线程池来走的，不同的服务走不同的线程池，实现了不同服务调用的隔离，避免了服务雪崩的问题</li>
-<li><strong>Zuul</strong>：如果前端、移动端要调用后端系统，统一从Zuul网关进入，由Zuul网关转发请求给对应的服务</li>
-</ul>
-<p>以上就是我们通过一个电商业务场景，阐述了Spring Cloud微服务架构几个核心组件的底层原理。</p>
-<p><strong>文字总结还不够直观？没问题！</strong>我们将Spring Cloud的5个核心组件通过一张图串联起来，再来直观的感受一下其底层的架构原理：</p>
-<img src="/2018/12/07/Spring-Cloud各组件的作用/图9.jpg" title="图9">
-<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p>石杉的架构笔记(公众号ID：shishan100)（原文出处）</p>
-<p><a href="https://mp.weixin.qq.com/s/7cIpSV0dHV5jHdxF4Wdtgw" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/7cIpSV0dHV5jHdxF4Wdtgw</a></p>
+<p><strong>6、加载两份相同class对象的情况</strong>：A 和 B 不属于父子类加载器关系，并且各自都加载了同一个类。</p>
+<h3 id="特点："><a href="#特点：" class="headerlink" title="特点："></a>特点：</h3><ol>
+<li><strong>全盘负责</strong>：当一个类加载器加载一个类时，该类所依赖的其他类也会被这个类加载器加载到内存中。</li>
+<li><strong>缓存机制</strong>：所有的Class对象都会被缓存，当程序需要使用某个Class时，类加载器先从缓存中查找，找不到，才从class文件中读取数据，转化成Class对象，存入缓存中。</li>
+</ol>
+<h2 id="两种类型的类加载器"><a href="#两种类型的类加载器" class="headerlink" title="两种类型的类加载器"></a>两种类型的类加载器</h2><h3 id="JVM自带的类加载器（3种）"><a href="#JVM自带的类加载器（3种）" class="headerlink" title="JVM自带的类加载器（3种）"></a>JVM自带的类加载器（3种）</h3><p><strong>（1） 根类加载器/启动类加载器（Bootstrap）：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a、C++编写的，程序员无法在程序中获取该类</span><br><span class="line">b、负责加载虚拟机的核心库，比如java.lang.Object</span><br><span class="line">c、没有继承ClassLoader类</span><br></pre></td></tr></table></figure>
+<p><strong>（2） 扩展类加载器（Extension）：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a、Java编写的，从指定目录中加载类库</span><br><span class="line">b、父加载器是根类加载器</span><br><span class="line">c、是ClassLoader的子类</span><br><span class="line">d、如果用户把创建的jar文件放到指定目录中，也会被扩展加载器加载。</span><br></pre></td></tr></table></figure>
+<p><strong>（3） 系统加载器（System）或者应用类加载器(App)：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">a、Java编写的</span><br><span class="line">b、父加载器是扩展类加载器</span><br><span class="line">c、从环境变量或者class.path中加载类</span><br><span class="line">d、是用户自定义类加载的默认父加载器</span><br><span class="line">e、是ClassLoader的子类</span><br></pre></td></tr></table></figure>
+<h3 id="用户自定义的类加载器："><a href="#用户自定义的类加载器：" class="headerlink" title="用户自定义的类加载器："></a>用户自定义的类加载器：</h3><p>（1）Java.lang.ClassLoader类的子类<br>（2）用户可以定制类的加载方式<br>（3）父类加载器是系统加载器<br>（4）编写步骤：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">A、继承ClassLoader</span><br><span class="line">B、重写findClass方法。从特定位置加载class文件，得到字节数组，然后利用defineClass把字节数组转化为Class对象</span><br></pre></td></tr></table></figure>
+<p>（5）为什么要自定义类加载器？ </p>
+<ol>
+<li>可以从指定位置加载class文件，比如说从数据库、云端加载class文件</li>
+<li>加密：Java代码可以被轻易的反编译，因此，如果需要对代码进行加密，那么加密以后的代码，就不能使用Java自带的ClassLoader来加载这个类了，需要自定义ClassLoader，对这个类进行解密，然后加载。</li>
+</ol>
+<a id="more"></a> 
+<h2 id="PS："><a href="#PS：" class="headerlink" title="PS："></a>PS：</h2><p>问题：Java程序对类的执行有几种方式：</p>
+<p>1、 <strong>主动使用</strong>（6种情况）：<br>// JVM必须在每个类“首次主动使用”的时候，才会初始化这些类。</p>
+<p>（1） 创建类的实例<br>（2） 读写某个类或者接口的静态变量<br>（3） 调用类的静态方法<br>（4） 同过反射的API（Class.forName()）获取类<br>（5） 初始化一个类的子类<br>（6） JVM启动的时候，被标明启动类的类（包含Main方法的类）</p>
+<p>// 只有当程序使用的静态变量或者静态方法确实在该类中定义时，该可以认为是对该类或者接口的主动使用。</p>
+<p>2、 <strong>被动使用</strong>：除了主动使用的6种情况，其他情况都是被动使用，都不会导致类的初始化。</p>
+<p>3、 <strong>JVM规范允许类加载器在预料某个类将要被使用的时候，就预先加载它</strong>。</p>
+<p>如果该class文件缺失或者存在错误，则在程序“首次 主动使用”时，才报告这个错误（Linkage Error错误）</p>
+<p>如果这个类一直没有被程序“主动使用”，就不会报错。</p>
+<p><strong>类加载机制与接口：</strong></p>
+<ol>
+<li>当Java虚拟机初始化一个类时，不会初始化该类实现的接口。</li>
+<li>在初始化一个接口时，不会初始化这个接口父接口。</li>
+<li>只有当程序首次使用该接口的静态变量时，才导致该接口的初始化。</li>
+</ol>
+<p><strong>ClassLoader</strong>：调用Classloader的loadClass方法去加载一个类，不是主动使用，因此不会进行类的初始化。</p>
+<p><strong>类的卸载：</strong></p>
+<ol>
+<li>有JVM自带的三种类加载器（根、扩展、系统）加载的类始终不会卸载。因为JVM始终引用这些类加载器，这些类加载器使用引用他们所加载的类，因此这些Class类对象始终是可到达的。</li>
+<li>由用户自定义类加载器加载的类，是可以被卸载的。</li>
+</ol>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p>原文出处：<a href="https://segmentfault.com/a/1190000016415939" target="_blank" rel="noopener">https://segmentfault.com/a/1190000016415939</a></p>
 
       
     </div>
@@ -560,11 +504,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Spring/" rel="tag"># Spring</a>
-          
-            <a href="/tags/分布式/" rel="tag"># 分布式</a>
-          
-            <a href="/tags/负载均衡/" rel="tag"># 负载均衡</a>
+            <a href="/tags/类/" rel="tag"># 类</a>
           
         </div>
       
@@ -577,8 +517,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/12/04/Tomcat-并发量配置以及优化/" rel="next" title="Tomcat 并发量配置以及优化">
-                <i class="fa fa-chevron-left"></i> Tomcat 并发量配置以及优化
+              <a href="/2019/12/07/如何在Spring-Boot中做参数校验？/" rel="next" title="如何在Spring-Boot中做参数校验？">
+                <i class="fa fa-chevron-left"></i> 如何在Spring-Boot中做参数校验？
               </a>
             
           </div>
@@ -586,10 +526,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/12/08/5种消息队列的差异/" rel="prev" title="5种消息队列的差异">
-                5种消息队列的差异 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -733,7 +669,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#业务场景介绍"><span class="nav-number">1.</span> <span class="nav-text">业务场景介绍</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#核心组件：Eureka"><span class="nav-number">2.</span> <span class="nav-text">核心组件：Eureka</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#核心组件：Feign"><span class="nav-number">3.</span> <span class="nav-text">核心组件：Feign</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#核心组件：Ribbon"><span class="nav-number">4.</span> <span class="nav-text">核心组件：Ribbon</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#核心组件：Hystrix"><span class="nav-number">5.</span> <span class="nav-text">核心组件：Hystrix</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#核心组件：Zuul"><span class="nav-number">6.</span> <span class="nav-text">核心组件：Zuul</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参考"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概念"><span class="nav-number">1.</span> <span class="nav-text">概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#加载："><span class="nav-number">1.1.</span> <span class="nav-text">加载：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#连接："><span class="nav-number">1.2.</span> <span class="nav-text">连接：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化："><span class="nav-number">1.3.</span> <span class="nav-text">初始化：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#双亲委派模型"><span class="nav-number">2.</span> <span class="nav-text">双亲委派模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#特点："><span class="nav-number">2.1.</span> <span class="nav-text">特点：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#两种类型的类加载器"><span class="nav-number">3.</span> <span class="nav-text">两种类型的类加载器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM自带的类加载器（3种）"><span class="nav-number">3.1.</span> <span class="nav-text">JVM自带的类加载器（3种）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户自定义的类加载器："><span class="nav-number">3.2.</span> <span class="nav-text">用户自定义的类加载器：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PS："><span class="nav-number">4.</span> <span class="nav-text">PS：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考文档"><span class="nav-number">5.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
             
 
           </div>

@@ -291,6 +291,190 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/21/Unix与Java的IO模型/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/04/21/Unix与Java的IO模型/" itemprop="url">Unix与Java的IO模型</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-21T13:25:44+08:00">
+                2019-04-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>要搞明白IO相关的概念，首先就得弄清楚同步与异步，阻塞与非阻塞到底是什么意思。</p>
+<h4 id="同步与异步"><a href="#同步与异步" class="headerlink" title="同步与异步"></a>同步与异步</h4><p>想要搞明白IO模型，就先得搞明白“同步”与“异步”的关系。</p>
+<p>所谓的“<strong>同步</strong>”，比如说调用者去调用一个接口，这个接口比如要执行一些磁盘文件读写操作，或者是网络通信操作。</p>
+<p>假设是“同步”的模式，调用者必须要等待这个接口的磁盘读写或者网络通信的操作执行完毕了，调用者才能返回，这就是“同步”，如下图所示：</p>
+<img src="/2019/04/21/Unix与Java的IO模型/图1.jpg" title="图1">
+<p>所谓的“<strong>异步</strong>”，就是说这个调用者调用接口之后，直接就返回了，他去干别的事儿了，也不管那个接口的磁盘读写或者是网络通信是否成功。</p>
+<p>然后这个接口后续如果干完了自己的任务，比如写完了文件或者是什么的，会反过来通知调用者，之前你的那个调用成功了。可以通过一些内部通信机制来通知，也可以通过回调函数来通知，如下图。</p>
+<img src="/2019/04/21/Unix与Java的IO模型/图2.jpg" title="图2">
+<h5 id="用生活中的例子理解同步与异步"><a href="#用生活中的例子理解同步与异步" class="headerlink" title="用生活中的例子理解同步与异步"></a>用生活中的例子理解同步与异步</h5><p>如果给大家举个生活中的例子，那么就可以用买烟这个事儿来举个例子</p>
+<p>比如说现在你要去一个柜台买很多条香烟，但是现在柜台没那么多货，他需要打电话给库房来查一下有没有足够的货。</p>
+<p>这个时候，库房的工作人员正好去吃饭了，那现在你有<strong>两种选择：</strong></p>
+<p>第一种选择，你可以在柜台等着，一直等待库房工作人员回来，柜台专员打通电话给他查到了库存是否充足，你再走。</p>
+<p>这个就是“同步”，你找柜台工作人员买香烟，他要打电话给库房工作人员问库存，如果你选择“同步”模式，那么你就在柜台一直等着，直到成功查询到库存为止。</p>
+<p>第二种选择，你可以先回家干点儿别的，比如说洗衣服做饭之类的，然后过了一会儿，柜台工作人员打通电话给库房工作人员，查到香烟库存了，就会打个电话给你，告诉你这个事儿。</p>
+<p>这就是“异步”，你跟柜台工作人员说了这个事儿，就直接走了，干别的去了，柜台工作人员后面完成他的任务之后，就会反过来打电话回调通知你。</p>
+<h4 id="阻塞与非阻塞"><a href="#阻塞与非阻塞" class="headerlink" title="阻塞与非阻塞"></a>阻塞与非阻塞</h4><p>实际上阻塞与非阻塞的概念，通常是针对底层的IO操作来说的。</p>
+<p>比如现在我们的程序想要通过网络读取数据，如果是阻塞IO模式，一旦发起请求到操作系统内核去从网络中读取数据，就会<strong>阻塞</strong>在那里，必须要等待网络中的数据到达了之后，才能从网络读取数据到内核，再从内核返回给程序，如下图。</p>
+<img src="/2019/04/21/Unix与Java的IO模型/图3.jpg" title="图3">
+<p>而<strong>非阻塞</strong>，指的就是程序发送请求给内核要从网络读取数据，但是此时网络中的数据还没到，此时不会阻塞住，内核会返回一个异常消息给程序。</p>
+<p>程序就可以干点儿别的，然后过一会儿再来发起一次请求给内核，让内核尝试从网络读取数据。</p>
+<p>因为如果网络中的数据还没到位，是不会阻塞住程序的，需要程序自己不断的轮询内核去尝试读取数据，所以这种IO就是非阻塞的。如下图：</p>
+<img src="/2019/04/21/Unix与Java的IO模型/图4.jpg" title="图4">
+<p>不要把“同步/异步”概念和“阻塞/非阻塞”概念混淆起来，实际上他们是两组不同的概念。</p>
+<p>“同步/异步”更多的是针对比如接口调用，服务调用，API类库调用，类似这样的场景。</p>
+<p>而“阻塞/非阻塞”概念针对的是底层IO操作的场景，比如磁盘IO，网络IO。但是在Java IO模型里，两种概念之间是有一定的关联关系的 。</p>
+<h4 id="Unix支持的5种IO模型"><a href="#Unix支持的5种IO模型" class="headerlink" title="Unix支持的5种IO模型"></a>Unix支持的5种IO模型</h4><p>Unix操作系统支持的IO模型主要就是5种：</p>
+<ol>
+<li><strong>阻塞IO</strong>：就是上面图里的那种阻塞IO模式，程序发起请求之后会阻塞，一直到系统内核发现网络中有数据到达了，拷贝数据给程序进程了，才能返回</li>
+<li><strong>非阻塞IO</strong>：就是上面图里的那种非阻塞IO模式，程序发起请求读取数据，系统内核发现网络数据还没到，就返回一个异常信息，程序不会阻塞在IO操作上，但是过一会儿还得再来发起请求给内核，直到内核发现网络数据到达了，此时就会拷贝数据给程序进程</li>
+<li><strong>IO多路复用</strong>：这个下面来讲</li>
+<li><strong>信号驱动式IO</strong>：一般很少用到，这里不说明</li>
+<li><strong>异步IO</strong>：下面来讲</li>
+</ol>
+<h4 id="JDK-1-4之前的同步阻塞IO"><a href="#JDK-1-4之前的同步阻塞IO" class="headerlink" title="JDK 1.4之前的同步阻塞IO"></a>JDK 1.4之前的同步阻塞IO</h4><p>在JDK 1.4之前，主要就是同步阻塞IO模型，在Java里叫做BIO。</p>
+<p>在Java代码里调用IO相关接口，发起IO操作之后，Java程序就会同步等待，这个同步指的是Java程序调用IO API接口的层面而言。</p>
+<p>而IO API在底层的IO操作是基于<strong>阻塞IO</strong>来的，向操作系统内核发起IO请求，系统内核会等待数据就位之后，才会执行IO操作，执行完毕了才会返回。</p>
+<h4 id="JDK-1-4之后的同步非阻塞NIO"><a href="#JDK-1-4之后的同步非阻塞NIO" class="headerlink" title="JDK 1.4之后的同步非阻塞NIO"></a>JDK 1.4之后的同步非阻塞NIO</h4><p>在JDK 1.4之后提供了<strong>NIO</strong>，他的概念是<strong>同步非阻塞</strong>，也就是说如果你调用NIO接口去执行IO操作，其实还是同步等待的，但是在底层的IO操作上 ，会对系统内核发起非阻塞IO请求，以非阻塞的形式来执行IO。</p>
+<p>也就是说，如果底层数据没到位，那么内核返回异常信息，不会阻塞住，但是NIO接口内部会采用非阻塞方式过一会儿再次调用内核发起IO请求，直到成功为止。</p>
+<p>但是之所以说是同步非阻塞，这里的“同步”指的就是因为在你的Java代码调用NIO接口层面是同步的，你还是要同步等待底层IO操作真正完成了才可以返回，只不过在执行底层IO的时候采用了非阻塞的方式来执行罢了。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/04/21/Unix与Java的IO模型/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/24/MySQL-单表查询的效率级别/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -943,216 +1127,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/23/Spring-Cloud参数优化/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/23/Spring-Cloud参数优化/" itemprop="url">Spring Cloud参数优化</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-23T18:03:28+08:00">
-                2018-12-23
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/Spring/" itemprop="url" rel="index">
-                    <span itemprop="name">Spring</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>相信不少朋友都在自己公司使用Spring Cloud框架来构建微服务架构，毕竟现在这是非常火的一门技术。</p>
-<p>如果只是用户量很少的传统IT系统，使用Spring Cloud可能还暴露不出什么问题。</p>
-<p>如果是较多用户量，高峰每秒高达上万并发请求的互联网公司的系统，使用Spring Cloud技术就有一些问题需要注意了。</p>
-<h4 id="并发量大引起系统问题"><a href="#并发量大引起系统问题" class="headerlink" title="并发量大引起系统问题"></a>并发量大引起系统问题</h4><p>新系统上线后，一开始用户规模很小，注册用户量小几十万，日活几千用户。</p>
-<p>每天都有新的数据进入数据库的表中，就这么日积月累的，没想到数据规模居然慢慢吞吞增长到了单表几百万。</p>
-<p>这个时候呢，看起来也没太大的毛病，就是有用户反映，系统有些操作，会感觉卡顿几秒钟，会刷不出来页面。</p>
-<p>这是为啥呢？</p>
-<ul>
-<li><p>核心原因是单表数据量大了一些，达到了几百万。</p>
-</li>
-<li><p>有个别服务，跑的SQL比较复杂，一大堆的多表关联。</p>
-</li>
-<li><p>并且还没有设计好索引，或者是设计了索引，但无奈一些小弟写了上百行的大SQL，SQL实在太复杂了，那么一个SQL跑出来好几秒肯定是正常的。</p>
-</li>
-</ul>
-<p>如果大家对微服务框架有点了解的话，应该知道，比如Feign + Ribbon组成的服务调用框架，是有接口调用超时这一说的，有一些参数可以设置接口调用的超时时间。</p>
-<p>如果你调用一个接口，好几秒刷不出来，人家就超时异常返回，用户就刷不出来页面了。</p>
-<p>一般碰到这种事情，一大坨屎一样的SQL摆在那儿，写SQL的人过一个月自己都看不懂了，80%的工程师看着都不愿意去花时间重写和优化。</p>
-<p>一是修改的人力成本太高，二是谁敢负担这责任呢？</p>
-<p>系统跑的好好的，就是慢了点而已，结果你硬是乱改一通，重构，把系统核心业务流程搞挂了怎么办？</p>
-<p>所以，那些兄弟第一反应是：增加超时时间啊！接口慢点可以，但是别超时不响应啊！</p>
-<p>咱们让接口执行个几秒把结果返回，用户不就可以刷出来页面了！不用重构系统了啊！轻松+愉快！</p>
-<p>如何增加呢？很简单，看下面的参数就知道了：</p>
-<img src="/2018/12/23/Spring-Cloud参数优化/图1.jpg" title="图1">
-<p>了解Spring Cloud组件作用的程序猿应该知道Spring Cloud里一般会用hystrix的线程池来执行接口调用的请求。</p>
-<p>不了解的话，请参看这篇博客<a href="https://machenxing.github.io/2018/12/07/Spring-Cloud%E5%90%84%E7%BB%84%E4%BB%B6%E7%9A%84%E4%BD%9C%E7%94%A8/" target="_blank" rel="noopener">Spring Cloud各组件的作用</a>。</p>
-<p>所以设置超时一般设置两个地方，<strong>feign和ribbon那块的超时，还有hystrix那块的超时。其中后者那块的超时一般必须大于前者。</strong></p>
-<p>优化了参数后，看上去效果不错，用户虽然觉得有的页面慢是慢点，但是起码过几秒能刷出来。</p>
-<p>这个时候，日活几千的用户量，压根儿没什么并发可言，高峰期每秒最多一二十并发请求罢了。</p>
-<p>大家看看下面这张图，感受一下现场氛围：</p>
-<img src="/2018/12/23/Spring-Cloud参数优化/图2.jpg" title="图2">
-<p>随着业务的发展，用户量蹭蹭蹭的直线增长。</p>
-<p>当高峰期每秒的并发请求居然达到了近万的时候，研发团队紧张的各种扩容服务，一台变两台，两台变四台。</p>
-<p>然后数据库主从架构挂上去，读写分离是必须的，否则单个数据库服务器哪能承载那么大的请求！多搞几个从库，扛一下大量的读请求，这样基本就扛住了。</p>
-<p>在这个过程中，经常会发现高峰期，系统的某个功能页面，突然就整个hang死了，就是没法再响应任何请求！所有用户刷新这个页面全部都是无法响应！</p>
-<p>这是为什么呢？原因很简单啊！一个服务A的实例里，专门调用服务B的那个线程池里的线程，总共可能就几十个。每个线程调用服务B都会卡住5秒钟。</p>
-<p>那如果每秒钟过来几百个请求这个服务实例呢？一下子那个线程池里的线程就全部hang死了，没法再响应任何请求了。</p>
-<p>大家来看看下面这张图，再直观的感受一下这个无助的过程！</p>
-<img src="/2018/12/23/Spring-Cloud参数优化/图3.jpg" title="图3">
-<p>这个时候咋办？兄弟们只能祭出程序员最古老的法宝，重启机器！</p>
-<p>遇到页面刷不出来，只能重启机器，相当于短暂的初始化了一下机器内的资源。</p>
-<p>然后接着运行一段时间，又卡死，再次重启！真是令人崩溃啊！用户们的体验是极差的，老板的心情是愤怒的！</p>
-<p>其实这个问题本身不大，但如果对Spring Cloud没有高并发场景的真实经验，确实可能会搞出些莫名其妙的问题。</p>
-<p>比如，明明应该去优化服务接口性能，结果硬是调大了超时时间。结果导致并发量高了，对那个服务的调用直接hang死，系统的核心页面刷不出来，影响用户体验了，这怪谁呢？</p>
-<h4 id="优化的过程"><a href="#优化的过程" class="headerlink" title="优化的过程"></a>优化的过程</h4><h5 id="优化服务"><a href="#优化服务" class="headerlink" title="优化服务"></a>优化服务</h5><p><strong>关键点，优化图中核心服务B的性能</strong>。互联网公司，核心业务逻辑，面向C端用户高并发的请求，不要用上百行的大SQL，多表关联，那样单表几百万行数据量的话，会导致一下执行好几秒。</p>
-<p>其实最佳的方式，就是对数据库就执行简单的单表查询和更新，然后复杂的业务逻辑全部放在java系统中来执行，比如一些关联，或者是计算之类的工作。</p>
-<p>这一步干完了之后，那个核心服务B的响应速度就已经优化成几十毫秒了，是不是很开心？从几秒变成了几十毫秒！</p>
-<h5 id="合理设置超时时间"><a href="#合理设置超时时间" class="headerlink" title="合理设置超时时间"></a>合理设置超时时间</h5><p>那个超时的时间，也就是上面那段ribbon和hystrix的超时时间设置。</p>
-<p>奉劝各位同学，不要因为系统接口的性能过差而懒惰，搞成几秒甚至几十秒的超时，<strong>一般超时定义在1秒以内，是比较通用以及合理的。</strong></p>
-<p>为什么这么说？</p>
-<p>因为一个接口，理论的最佳响应速度应该在200ms以内，或者慢点的接口就几百毫秒。</p>
-<p><strong>如果一个接口响应时间达到1秒+，建议考虑用缓存、索引、NoSQL等各种你能想到的技术手段，优化一下性能。</strong></p>
-<p><strong>否则你要是胡乱设置超时时间是几秒，甚至几十秒，万一下游服务偶然出了点问题响应时间长了点呢？那你这个线程池里的线程立马全部卡死！</strong> </p>
-<p>这两步解决之后，其实系统表现就正常了，核心服务B响应速度很快，而且超时时间也在1秒以内，不会出现hystrix线程池频繁卡死的情况了。</p>
-<h5 id="合理的重试"><a href="#合理的重试" class="headerlink" title="合理的重试"></a>合理的重试</h5><p>如果你要是超时时间设置成了1秒，如果就是因为偶然发生的网络抖动，导致接口某次调用就是在1.5秒呢？这个是经常发生的，因为网络的问题，接口调用偶然超时。</p>
-<p>所以此时配合着超时时间，一般都会设置一个合理的重试，如下所示：</p>
-<img src="/2018/12/23/Spring-Cloud参数优化/图4.jpg" title="图4">
-<p>设置这段重试之后，Spring Cloud中的Feign + Ribbon的组合，在进行服务调用的时候，如果发现某台机器超时请求失败，会自动重试这台机器，如果还是不行会换另外一台机器重试。</p>
-<h5 id="保障接口幂等性"><a href="#保障接口幂等性" class="headerlink" title="保障接口幂等性"></a>保障接口幂等性</h5><p>系统架构中，<strong>只要涉及到了重试，那么必须上接口的幂等性保障机制</strong>。</p>
-<p>否则的话，试想一下，你要是对一个接口重试了好几次，结果人家重复插入了多条数据，该怎么办呢？</p>
-<p>其实幂等性保证本身并不复杂，根据业务来，常见的方案：</p>
-<ul>
-<li>可以在数据库里建一个唯一索引，插入数据的时候如果唯一索引冲突了就不会插入重复数据</li>
-<li>或者是通过redis里放一个唯一id值，然后每次要插入数据，都通过redis判断一下，那个值如果已经存在了，那么就不要插入重复数据了。</li>
-</ul>
-<p>类似这样的方案还有一些。总之，<strong>要保证一个接口被多次调用的时候，不能插入重复的数据。</strong></p>
-<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>最终优化后的系统表现大概是长下面这样子的。</p>
-<img src="/2018/12/23/Spring-Cloud参数优化/图5.jpg" title="图5">
-<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p>本文出自微信公众号：石杉的架构笔记</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1205,7 +1179,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">89</span>
+                  <span class="site-state-item-count">90</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
