@@ -291,6 +291,210 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/18/JVM的垃圾回收机制/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/05/18/JVM的垃圾回收机制/" itemprop="url">JVM的垃圾回收机制</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-18T23:41:26+08:00">
+                2019-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java虚拟机/" itemprop="url" rel="index">
+                    <span itemprop="name">Java虚拟机</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h4 id="技术背景"><a href="#技术背景" class="headerlink" title="技术背景"></a>技术背景</h4><p>按照套路是要先装装X，谈谈JVM垃圾回收的前世今生的。说起垃圾回收（GC），大部分人都把这项技术当做Java语言的伴生产物。</p>
+<p>事实上，GC的历史比Java久远，早在1960年Lisp这门语言中就使用了内存动态分配和垃圾回收技术。</p>
+<h4 id="哪些内存需要回收？"><a href="#哪些内存需要回收？" class="headerlink" title="哪些内存需要回收？"></a>哪些内存需要回收？</h4><p>猿们都知道JVM的内存结构包括五大区域：程序计数器、虚拟机栈、本地方法栈、堆区、方法区。</p>
+<p>其中程序计数器、虚拟机栈、本地方法栈3个区域随线程而生、随线程而灭，因此这几个区域的内存分配和回收都具备确定性，就不需要过多考虑回收的问题，因为方法结束或者线程结束时，内存自然就跟随着回收了。</p>
+<p>而Java堆区和方法区则不一样，这部分内存的分配和回收是动态的，正是垃圾收集器所需关注的部分。</p>
+<p>垃圾收集器在对堆区和方法区进行回收前，首先要确定这些区域的对象哪些可以被回收，哪些暂时还不能回收，这就要用到判断对象是否存活的算法！（面试官肯定没少问你吧）</p>
+<h5 id="引用计数算法"><a href="#引用计数算法" class="headerlink" title="引用计数算法"></a>引用计数算法</h5><h6 id="算法分析"><a href="#算法分析" class="headerlink" title="算法分析"></a>算法分析</h6><p>引用计数是垃圾收集器中的早期策略。在这种方法中，堆中每个对象实例都有一个引用计数。</p>
+<p>当一个对象被创建时，就将该对象实例分配给一个变量，该变量计数设置为1。</p>
+<p>当任何其它变量被赋值为这个对象的引用时，计数加1（a = b,则b引用的对象实例的计数器+1），但当一个对象实例的某个引用超过了生命周期或者被设置为一个新值时，对象实例的引用计数器减1。</p>
+<p>任何引用计数器为0的对象实例可以被当作垃圾收集。当一个对象实例被垃圾收集时，它引用的任何对象实例的引用计数器减1。</p>
+<h6 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h6><p><strong>优点</strong>：引用计数收集器可以很快的执行，交织在程序运行中。对程序需要不被长时间打断的实时环境比较有利。</p>
+<p><strong>缺点</strong>：无法检测出循环引用。如父对象有一个对子对象的引用，子对象反过来引用父对象。这样，他们的引用计数永远不可能为0。 </p>
+<p>感觉很无趣 ？来段代码压压惊</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReferenceFindTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MyObject object1 = <span class="keyword">new</span> MyObject();</span><br><span class="line">        MyObject object2 = <span class="keyword">new</span> MyObject();</span><br><span class="line"></span><br><span class="line">        object1.object = object2;</span><br><span class="line">        object2.object = object1;</span><br><span class="line"></span><br><span class="line">        object1 = <span class="keyword">null</span>;</span><br><span class="line">        object2 = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段代码是用来验证引用计数算法不能检测出循环引用。最后面两句将<code>object1</code>和<code>object2</code>赋值为<code>null</code></p>
+<p>也就是说<code>object1</code>和<code>object2</code>指向的对象已经不可能再被访问，但是由于它们互相引用对方，导致它们的引用计数器都不为0，那么垃圾收集器就永远不会回收它们。</p>
+<h5 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h5><p>可达性分析算法是从离散数学中的图论引入的，程序把所有的引用关系看作一张图，从一个节点GC ROOT开始，寻找对应的引用节点</p>
+<p>找到这个节点以后，继续寻找这个节点的引用节点，当所有的引用节点寻找完毕之后，剩余的节点则被认为是没有被引用到的节点，即无用的节点，无用的节点将会被判定为是可回收的对象。</p>
+<img src="/2019/05/18/JVM的垃圾回收机制/图1.jpg" title="图1">
+<p>在Java语言中，可作为GC Roots的对象包括下面几种：</p>
+<ul>
+<li>虚拟机栈中引用的对象（栈帧中的本地变量表）；</li>
+<li>方法区中类静态属性引用的对象；</li>
+<li>方法区中常量引用的对象；</li>
+<li>本地方法栈中JNI（Native方法）引用的对象。</li>
+</ul>
+<h5 id="Java中的引用你了解多少"><a href="#Java中的引用你了解多少" class="headerlink" title="Java中的引用你了解多少"></a>Java中的引用你了解多少</h5><p>无论是通过引用计数算法判断对象的引用数量，还是通过可达性分析算法判断对象的引用链是否可达，判定对象是否存活都与“引用”有关。</p>
+<p>在Java语言中，将引用又分为强引用、软引用、弱引用、虚引用4种，这四种引用强度依次逐渐减弱。</p>
+<p><strong>强引用</strong></p>
+<p>在程序代码中普遍存在的，类似 <code>Object obj = new Object()</code> 这类引用，只要强引用还存在，垃圾收集器永远不会回收掉被引用的对象。</p>
+<p><strong>软引用</strong></p>
+<p>用来描述一些还有用但并非必须的对象。</p>
+<p>对于软引用关联着的对象，在系统将要发生内存溢出异常之前，将会把这些对象列进回收范围之中进行第二次回收。如果这次回收后还没有足够的内存，才会抛出内存溢出异常。</p>
+<p><strong>弱引用</strong></p>
+<p>也是用来描述非必需对象的，但是它的强度比软引用更弱一些，被弱引用关联的对象只能生存到下一次垃圾收集发生之前。</p>
+<p>当垃圾收集器工作时，无论当前内存是否足够，都会回收掉只被弱引用关联的对象。</p>
+<p><strong>虚引用</strong></p>
+<p>也叫幽灵引用或幻影引用（名字真会取，很魔幻的样子），是最弱的一种引用关系。</p>
+<p>一个对象是否有虚引用的存在，完全不会对其生存时间构成影响，也无法通过虚引用来取得一个对象实例。</p>
+<p>它的作用是能在这个对象被收集器回收时收到一个系统通知。</p>
+<p>不要被概念吓到，也别担心，还没跑题，再深入，可就不好说了。小编罗列这四个概念的目的是为了说明，无论引用计数算法还是可达性分析算法都是基于强引用而言的。</p>
+<h5 id="对象死亡（被回收）前的最后一次挣扎"><a href="#对象死亡（被回收）前的最后一次挣扎" class="headerlink" title="对象死亡（被回收）前的最后一次挣扎"></a>对象死亡（被回收）前的最后一次挣扎</h5><p>即使在可达性分析算法中不可达的对象，也并非是“非死不可”，这时候它们暂时处于“缓刑”阶段，要真正宣告一个对象死亡，至少要经历两次标记过程。</p>
+<p><strong>第一次标记</strong>：如果对象在进行可达性分析后发现没有与GC Roots相连接的引用链，那它将会被第一次标记；</p>
+<p><strong>第二次标记</strong>：第一次标记后接着会进行一次筛选，筛选的条件是此对象是否有必要执行<code>finalize()</code>方法。在<code>finalize()</code>方法中没有重新与引用链建立关联关系的，将被进行第二次标记。</p>
+<p>第二次标记成功的对象将真的会被回收，如果对象在<code>finalize()</code>方法中重新与引用链建立了关联关系，那么将会逃离本次回收，继续存活。</p>
+<p>猿们还跟的上吧，嘿嘿。</p>
+<h5 id="方法区如何判断是否需要回收"><a href="#方法区如何判断是否需要回收" class="headerlink" title="方法区如何判断是否需要回收"></a>方法区如何判断是否需要回收</h5><p>方法区存储内容是否需要回收的判断可就不一样咯。方法区主要回收的内容有：废弃常量和无用的类。</p>
+<p>对于废弃常量也可通过引用的可达性来判断，但是对于无用的类则需要同时满足下面3个条件：</p>
+<ul>
+<li>该类所有的实例都已经被回收，也就是Java堆中不存在该类的任何实例；</li>
+<li>加载该类的<code>ClassLoader</code>已经被回收；</li>
+<li>该类对应的<code>java.lang.Class</code>对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法。</li>
+</ul>
+<p>讲了半天，主角终于要粉墨登场了。</p>
+<h4 id="常用的垃圾收集算法"><a href="#常用的垃圾收集算法" class="headerlink" title="常用的垃圾收集算法"></a>常用的垃圾收集算法</h4><h5 id="标记-清除算法"><a href="#标记-清除算法" class="headerlink" title="标记-清除算法"></a>标记-清除算法</h5><p>标记-清除算法采用从根集合（GC Roots）进行扫描，对存活的对象进行标记</p>
+<p>标记完毕后，再扫描整个空间中未被标记的对象，进行回收，如下图所示。</p>
+<p>标记-清除算法不需要进行对象的移动，只需对不存活的对象进行处理，在存活对象比较多的情况下极为高效</p>
+<p>但由于标记-清除算法直接回收不存活的对象，因此会造成<strong>内存碎片</strong></p>
+<img src="/2019/05/18/JVM的垃圾回收机制/图2.jpg" title="图2">
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/05/18/JVM的垃圾回收机制/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/16/彻底理解cookie，session，token/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1019,201 +1223,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/24/MySQL-单表查询的效率级别/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/24/MySQL-单表查询的效率级别/" itemprop="url">MySQL 单表查询的效率级别</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-24T14:03:46+08:00">
-                2019-03-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>对于我们这些 <code>MySQL</code>的使用者来说，平时用的最多的就是查询功能。DBA时不时丢过来一些慢查询语句让优化，如果连查询是怎么执行的都不清楚还优化个毛线，所以是时候掌握真正的技术了。 <code>MySQL</code>有一个称为 <code>查询优化器</code>的模块，一条查询语句进行语法解析之后就会被交给查询优化器来进行优化，优化的结果就是生成一个所谓的 <code>执行计划</code>，这个执行计划表明了应该使用哪些索引进行查询，表之间的连接顺序是啥样的，最后会按照执行计划中的步骤调用存储引擎提供的方法来真正的执行查询，并将查询结果返回给用户。不过查询优化这个主题有点儿大，在学会跑之前还得先学会走，所以本章先来瞅瞅 <code>MySQL</code>怎么执行单表查询（就是 <code>FROM</code>子句后边只有一个表，最简单的那种查询～）。</p>
-<p>为了故事的发展，先得有个表：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE single_table (</span><br><span class="line">	id INT NOT NULL AUTO_INCREMENT,</span><br><span class="line">    key1 VARCHAR(100),</span><br><span class="line">    key2 INT,</span><br><span class="line">    key3 VARCHAR(100),</span><br><span class="line">    key_part1 VARCHAR(100),</span><br><span class="line">    key_part2 VARCHAR(100),</span><br><span class="line">    key_part3 VARCHAR(100),</span><br><span class="line">    common_field VARCHAR(100),</span><br><span class="line">    PRIMARY KEY (id),</span><br><span class="line">    KEY idx_key1 (key1),</span><br><span class="line">    UNIQUE KEY idx_key2 (key2),</span><br><span class="line">    KEY idx_key3 (key3),</span><br><span class="line">    KEY idx_key_part(key_part1, key_part2, key_part3)</span><br><span class="line">) Engine=InnoDB CHARSET=utf8;</span><br></pre></td></tr></table></figure>
-<p>我们为这个 <code>single_table</code>表建立了1个聚簇索引和4个二级索引，分别是：</p>
-<ul>
-<li>为 <code>id</code>列建立的聚簇索引。</li>
-<li>为 <code>key1</code>列建立的 <code>idx_key1</code>二级索引。</li>
-<li>为 <code>key2</code>列建立的 <code>idx_key2</code>二级索引，而且该索引是唯一二级索引。</li>
-<li>为 <code>key3</code>列建立的 <code>idx_key3</code>二级索引。</li>
-<li>为 <code>key_part1</code>、 <code>key_part2</code>、 <code>key_part3</code>列建立的 <code>idx_key_part</code>二级索引，这也是一个联合索引。</li>
-</ul>
-<p>然后我们需要为这个表插入10000行记录，除 <code>id</code>列外其余的列都插入随机值就好了，具体的插入语句我就不写了，自己写个程序插入吧（id列是自增主键列，不需要我们手动插入）。</p>
-<h4 id="访问方法（access-method）的概念"><a href="#访问方法（access-method）的概念" class="headerlink" title="访问方法（access method）的概念"></a>访问方法（access method）的概念</h4><p>我们平时所写的那些查询语句本质上只是一种声明式的语法，只是告诉 <code>MySQL</code>我们要获取的数据符合哪些规则，至于 <code>MySQL</code>背地里是怎么把查询结果搞出来的那是 <code>MySQL</code>自己的事儿。对于单个表的查询来说，设计MySQL的大叔把查询的执行方式大致分为下边两种：</p>
-<h5 id="使用全表扫描进行查询"><a href="#使用全表扫描进行查询" class="headerlink" title="使用全表扫描进行查询"></a>使用全表扫描进行查询</h5><p>这种执行方式很好理解，就是把表的每一行记录都扫一遍嘛，把符合搜索条件的记录加入到结果集就完了。不管是啥查询都可以使用这种方式执行，当然，这种也是最笨的执行方式。</p>
-<h5 id="使用索引进行查询"><a href="#使用索引进行查询" class="headerlink" title="使用索引进行查询"></a>使用索引进行查询</h5><p>因为直接使用全表扫描的方式执行查询要遍历好多记录，所以代价可能太大了。如果查询语句中的搜索条件可以使用到某个索引，那直接使用索引来执行查询可能会加快查询执行的时间。使用索引来执行查询的方式五花八门，又可以细分为许多种类：</p>
-<ul>
-<li>针对主键或唯一二级索引的等值查询</li>
-<li>针对普通二级索引的等值查询</li>
-<li>针对索引列的范围查询</li>
-<li>直接扫描整个索引</li>
-</ul>
-<p>设计 <code>MySQL</code>的大叔把 <code>MySQL</code>执行查询语句的方式称之为 <code>访问方法</code>或者 <code>访问类型</code>。同一个查询语句可能可以使用多种不同的访问方法来执行，虽然最后的查询结果都是一样的，但是执行的时间可能差老鼻子远了，就像是从钟楼到大雁塔，你可以坐火箭去，也可以坐飞机去，当然也可以坐乌龟去。下边细细道来各种 <code>访问方法</code>的具体内容。</p>
-<h4 id="const"><a href="#const" class="headerlink" title="const"></a>const</h4><p>有的时候我们可以通过主键列来定位一条记录，比方说这个查询：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE id = 1438;</span><br></pre></td></tr></table></figure>
-<p><code>MySQL</code>会直接利用主键值在聚簇索引中定位对应的用户记录，就像这样：</p>
-<img src="/2019/03/24/MySQL-单表查询的效率级别/图1.jpg" title="图1">
-<p>原谅我把聚簇索引对应的复杂的 <code>B+</code>树结构搞了一个极度精简版，为了突出重点，我们忽略掉了 <code>页</code>的结构，直接把所有的叶子节点的记录都放在一起展示，而且记录中只展示我们关心的索引列，对于 <code>single_table</code>表的聚簇索引来说，展示的就是 <code>id</code>列。我们想突出的重点就是： <code>B+</code>树叶子节点中的记录是按照索引列排序的，对于的聚簇索引来说，它对应的 <code>B+</code>树叶子节点中的记录就是按照 <code>id</code>列排序的。 <code>B+</code>树本来就是一个矮矮的大胖子，所以这样根据主键值定位一条记录的速度贼快。类似的，我们根据唯一二级索引列来定位一条记录的速度也是贼快的，比如下边这个查询：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE key2 = 3841;</span><br></pre></td></tr></table></figure>
-<p>这个查询的执行过程的示意图就是这样：</p>
-<img src="/2019/03/24/MySQL-单表查询的效率级别/图2.jpg" title="图2">
-<p>可以看到这个查询的执行分两步，第一步先从 <code>idx_key2</code>对应的 <code>B+</code>树索引中根据 <code>key2</code>列与常数的等值比较条件定位到一条二级索引记录，然后再根据该记录的 <code>id</code>值到聚簇索引中获取到完整的用户记录。</p>
-<p>设计 <code>MySQL</code>的大叔认为通过主键或者唯一二级索引列与常数的等值比较来定位一条记录是像坐火箭一样快的，所以他们把这种通过主键或者唯一二级索引列来定位一条记录的访问方法定义为： <code>const</code>，意思是常数级别的，代价是可以忽略不计的。不过这种 <code>const</code>访问方法只能在主键列或者唯一二级索引列和一个常数进行等值比较时才有效，如果主键或者唯一二级索引是由多个列构成的话，索引中的每一个列都需要与常数进行等值比较，这个 <code>const</code>访问方法才有效（这是因为只有该索引中全部列都采用等值比较才可以定位唯一的一条记录）。</p>
-<p>对于唯一二级索引来说，查询该列为 <code>NULL</code>值的情况比较特殊，比如这样：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE key2 IS NULL;</span><br></pre></td></tr></table></figure>
-<p>因为唯一二级索引列并不限制 <code>NULL</code>值的数量，所以上述语句可能访问到多条记录，也就是说上边这个语句不可以使用 <code>const</code>访问方法来执行。</p>
-<h4 id="ref"><a href="#ref" class="headerlink" title="ref"></a>ref</h4><p>有时候我们对某个普通的二级索引列与常数进行等值比较，比如这样：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE key1 = &apos;abc&apos;;</span><br></pre></td></tr></table></figure>
-<p>对于这个查询，我们当然可以选择全表扫描来逐一对比搜索条件是否满足要求，我们也可以先使用二级索引找到对应记录的 <code>id</code>值，然后再回表到聚簇索引中查找完整的用户记录。由于普通二级索引并不限制索引列值的唯一性，所以可能找到多条对应的记录，也就是说使用二级索引来执行查询的代价取决于等值匹配到的二级索引记录条数。如果匹配的记录较少，则回表的代价还是比较低的，所以 <code>MySQL</code>可能选择使用索引而不是全表扫描的方式来执行查询。设计 <code>MySQL</code>的大叔就把这种搜索条件为二级索引列与常数等值比较，采用二级索引来执行查询的访问方法称为： <code>ref</code>。我们看一下采用 <code>ref</code>访问方法执行查询的图示：</p>
-<img src="/2019/03/24/MySQL-单表查询的效率级别/图3.jpg" title="图3">
-<p>从图示中可以看出，对于普通的二级索引来说，通过索引列进行等值比较后可能匹配到多条连续的记录，而不是像主键或者唯一二级索引那样最多只能匹配1条记录，所以这种 <code>ref</code>访问方法比 <code>const</code>差了那么一丢丢，但是在二级索引等值比较时匹配的记录数较少时的效率还是很高的（如果匹配的二级索引记录太多那么回表的成本就太大了），跟坐高铁差不多。不过需要注意下边两种情况：</p>
-<p>1、二级索引列值为 <code>NULL</code>的情况，不论是普通的二级索引，还是唯一二级索引，它们的索引列对包含 <code>NULL</code>值的数量并不限制，所以我们采用 <code>key IS NULL</code>这种形式的搜索条件最多只能使用 <code>ref</code>的访问方法，而不是 <code>const</code>的访问方法。</p>
-<p>2、对于某个包含多个索引列的二级索引来说，只要是最左边的连续索引列是与常数的等值比较就可能采用 <code>ref</code>的访问方法，比方说下边这几个查询：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE key_part1 = &apos;god like&apos;;SELECT * FROM single_table WHERE key_part1 = &apos;god like&apos; AND key_part2 = &apos;legendary&apos;;SELECT * FROM single_table WHERE key_part1 = &apos;god like&apos; AND key_part2 = &apos;legendary&apos; AND key_part3 = &apos;penta kill&apos;;</span><br></pre></td></tr></table></figure>
-<p>但是如果最左边的连续索引列并不全部是等值比较的话，它的访问方法就不能称为 <code>ref</code>了，比方说这样：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE key_part1 = &apos;god like&apos; AND key_part2 &gt; &apos;legendary&apos;;</span><br></pre></td></tr></table></figure>
-<h4 id="ref-or-null"><a href="#ref-or-null" class="headerlink" title="ref or null"></a>ref or null</h4><p>有时候我们不仅想找出某个二级索引列的值等于某个常数的记录，还想把该列的值为 <code>NULL</code>的记录也找出来，就像下边这个查询：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_demo WHERE key1 = &apos;abc&apos; OR key1 IS NULL;</span><br></pre></td></tr></table></figure>
-<p>当使用二级索引而不是全表扫描的方式执行该查询时，这种类型的查询使用的访问方法就称为 <code>ref_or_null</code>，这个 <code>ref_or_null</code>访问方法的执行过程如下：</p>
-<img src="/2019/03/24/MySQL-单表查询的效率级别/图4.jpg" title="图4">
-<p>可以看到，上边的查询相当于先分别从 <code>idx_key1</code>索引对应的 <code>B+</code>树中找出 <code>key1 IS NULL</code>和 <code>key1=&#39;abc&#39;</code>的两个连续的记录范围，然后根据这些二级索引记录中的 <code>id</code>值再回表查找完整的用户记录。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/03/24/MySQL-单表查询的效率级别/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1266,7 +1275,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">93</span>
+                  <span class="site-state-item-count">94</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

@@ -291,6 +291,178 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/07/Java项目应该如何分层？/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/07/Java项目应该如何分层？/" itemprop="url">Java项目应该如何分层？</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-07T16:09:54+08:00">
+                2019-09-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>说起应用分层，大部分人都会认为这个不是很简单嘛 就controller，service, mapper三层。看起来简单，很多人其实并没有把他们职责划分开，在很多代码中,controller做的逻辑比service还多,service往往当成透传了，这其实是很多人开发代码都没有注意到的地方，反正功能也能用，至于放哪无所谓呗。这样往往造成后面代码无法复用，层级关系混乱，对后续代码的维护非常麻烦。</p>
+<p>的确在这些人眼中分层只是一个形式，前辈们的代码这么写的，其他项目代码这么写的，那么我也这么跟着写。但是在真正的团队开发中每个人的习惯都不同，写出来的代码必然带着自己的标签，有的人习惯controller写大量的业务逻辑，有的人习惯在service中之间调用远程服务，这样就导致了每个人的开发代码风格完全不同，后续其他人修改的时候，一看，我靠这个人写的代码和我平常的习惯完全不同，修改的时候到底是按着自己以前的习惯改，还是跟着前辈们走，这又是个艰难的选择，选择一旦有偏差，你的后辈又维护你的代码的时候，恐怕就要骂人了。</p>
+<p>所以一个好的应用分层需要具备以下几点:</p>
+<ul>
+<li>方便后续代码进行维护扩展。</li>
+<li>分层的效果需要让整个团队都接受</li>
+<li>各个层职责边界清晰</li>
+</ul>
+<h2 id="如何进行分层"><a href="#如何进行分层" class="headerlink" title="如何进行分层"></a>如何进行分层</h2><h3 id="阿里规范"><a href="#阿里规范" class="headerlink" title="阿里规范"></a>阿里规范</h3><p>在阿里的编码规范中约束的分层如下:</p>
+<img src="/2019/09/07/Java项目应该如何分层？/图1.jpg" title="图1">
+<p>开放接口层:可直接封装 Service 方法暴露成 RPC 接口;通过 Web 封装成 http 接口;进行 网关安全控制、流量控制等。</p>
+<p>终端显示层:各个端的模板渲染并执行显示的层。当前主要是 velocity 渲染，JS 渲染， JSP 渲染，移动端展示等。</p>
+<p>Web 层:主要是对访问控制进行转发，各类基本参数校验，或者不复用的业务简单处理等。</p>
+<p>Service 层:相对具体的业务逻辑服务层。</p>
+<p>Manager 层:通用业务处理层，它有如下特征:1. 对第三方平台封装的层，预处理返回结果及转化异常信息;2. 对Service层通用能力的下沉，如缓存方案、中间件通用处理;3. 与DAO层交互，对多个DAO的组合复用。</p>
+<p>DAO 层:数据访问层，与底层 MySQL、Oracle、Hbase 进行数据交互。</p>
+<p>阿里巴巴规约中的分层比较清晰简单明了，但是描述得还是过于简单了，以及service层和manager层有很多同学还是有点分不清楚之间的关系，就导致了很多项目中根本没有Manager层的存在。下面介绍一下具体业务中应该如何实现分层</p>
+<h3 id="优化分层"><a href="#优化分层" class="headerlink" title="优化分层"></a>优化分层</h3><p>从我们的业务开发中总结了一个较为的理想模型,这里要先说明一下由于我们的rpc框架选用的是thrift可能会比其他的一些rpc框架例如dubbo会多出一层,作用和controller层类似 </p>
+<img src="/2019/09/07/Java项目应该如何分层？/图2.jpg" title="图2">
+<p>1.最上层controller和TService是我们阿里分层规范里面的第一层:轻业务逻辑，参数校验，异常兜底。通常这种接口可以轻易更换接口类型,所以业务逻辑必须要轻，甚至不做具体逻辑。</p>
+<p>2.Service：业务层，复用性较低，这里推荐每一个controller方法都得对应一个service,不要把业务编排放在controller中去做，为什么呢？如果我们把业务编排放在controller层去做的话，如果以后我们要接入thrift,我们这里又需要把业务编排在做一次，这样会导致我们每接入一个入口层这个代码都得重新复制一份如下图所示: </p>
+<img src="/2019/09/07/Java项目应该如何分层？/图3.jpg" title="图3">
+<p>这样大量的重复工作必定会导致我们开发效率下降，所以我们需要把业务编排逻辑都得放进service中去做: </p>
+<img src="/2019/09/07/Java项目应该如何分层？/图4.jpg" title="图4">
+<p>3.Mannager：可复用逻辑层。这里的Mannager可以是单个服务的，比如我们的cache,mq等等，当然也可以是复合的，当你需要调用多个Mannager的时候，这个可以合为一个Mannager，比如逻辑上的连表查询等。如果是httpMannager或rpcMannager需要在这一层做一些数据转换</p>
+<p>4.DAO：数据库访问层。主要负责“操作数据库的某张表，映射到某个java对象”，dao应该只允许自己的Service访问，其他Service要访问我的数据必须通过对应的Service。</p>
+<h2 id="分层领域模型的转换"><a href="#分层领域模型的转换" class="headerlink" title="分层领域模型的转换"></a>分层领域模型的转换</h2><p>在阿里巴巴编码规约中列举了下面几个领域模型规约:</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/09/07/Java项目应该如何分层？/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/07/InnoDB一棵B-树可以存放多少行数据？/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1038,202 +1210,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/21/用户表分库分表方案/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/21/用户表分库分表方案/" itemprop="url">用户表分库分表方案</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-21T18:51:36+08:00">
-                2019-07-21
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/系统架构/" itemprop="url" rel="index">
-                    <span itemprop="name">系统架构</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>再次抛出笔者的观点，在能满足业务场景的情况下，单表&gt;分区&gt;单库分表&gt;分库分表，推荐优先级从左到右逐渐降低。</p>
-<p>本篇文章主要讲用户表（或者类似这种业务属性的表）的分表方案，至于订单表，流水表等，本文的方案可能不是很合适，可以参考另一篇文章《<a href="https://machenxing.github.io/2019/06/14/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B%E6%9A%A8%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/" target="_blank" rel="noopener">分库分表技术演进&amp;最佳实践-修订篇</a>》。</p>
-<p>我们首先来看一下分表时主要需要做的事情：</p>
-<ol>
-<li>选定分片键：既然是用户表那分片键非用户ID莫属；</li>
-<li>修改代码：以sharding-jdbc这种client模式的中间件为例，主要是引入依赖，然后新增一些配置。业务代码并不怎么需要改动。</li>
-<li>存量数据迁移；</li>
-<li>业务发展超过容量评估后需要开发和运维介入扩容；</li>
-</ol>
-<p>做过分库分表的都知道，第3步最麻烦，而且非常不好验证迁前后数据一致性（目前业界主流的迁移方案是存量数据迁移+利用binlog进行增量数据同步，待两边的数据持平后，将业务代码中的开关切到分表模式）。</p>
-<p>第4步同样麻烦，业务增长完全超过当初分表设计的容量评估是很常见的事情，这也成为业务高速发展的一个隐患。而且互联网类型的业务都希望能做到7x24小时不停服务，这样就给扩容带来了更大的挑战。笔者看过比较好的方案就是<strong>58沈剑</strong>提出的成倍扩容方案。如下图所示，假设现在已经有2张表：tb_user_1，tb_user_2。且有两个库是主备关系，并且分表算法是hash(user_id)%2：</p>
-<img src="/2019/07/21/用户表分库分表方案/图1.jpg" title="图1">
-<p>现在要扩容到4张表，做法是将两个库的主从关系切断。然后slave晋升为master，这样就有两个主库：master-1，master-2。新的分表算法是：</p>
-<ul>
-<li>库选择算法为：hash(user_id)%4的结果为1或者2，就选master-1库，hash(user_id)%4的结果为3或者0，就选master-2库；</li>
-<li>表的选择算法为：hash(user_id)%2的结果为1则选tb_user_1表，hash(user_id)%2的结果为0则选tb_user_2表。</li>
-</ul>
-<p>如此以来，两个库中总计4张表，都冗余了1倍的数据：master-1中tb_user_1冗余了3、7、11…，master-1中tb_user_2冗余了4、8、12…，master-2中tb_user_1冗余了1、5、9…，master-2中tb_user_2冗余了2、6、10…。将这些冗余数据删掉后，库、表、数据示意图如下所示：</p>
-<img src="/2019/07/21/用户表分库分表方案/图2.jpg" title="图2">
-<p>即使这样方案，还是避免不了分表时的存量数据迁移，以及分表后业务发展到一定时期后的繁琐扩容。那么有没有一种很好的方案，能够一劳永逸，分表时不需要存量数据迁移，用户量无论如何增长，扩容时都不需要迁移存量数据，只需要新增一个数据库示例，修改一下配置即可。软件开发行业，一个方案能撑过3~5年就是一个很优秀的方案，我们现在YY的是整个生命周期内都不用改动的完美的方案。没错，<strong>我们在寻找银弹</strong>。</p>
-<p>这个方案笔者在两个地方都接触到了：</p>
-<ol>
-<li>某V厂面试时，部门老大提出的方案；</li>
-<li>和美团大牛普架讨论了解到的CAT存储方案；</li>
-</ol>
-<blockquote>
-<p>说明：CAT是美团点评开源的APM，目前在Github上的star已经破万（Github地址：<a href="https://github.com/dianping/cat），比skywalking和pinpoint还快，如果你正在选型APM，而且能接受代码侵入，那么CAT是一个不错的选择。" target="_blank" rel="noopener">https://github.com/dianping/cat），比skywalking和pinpoint还快，如果你正在选型APM，而且能接受代码侵入，那么CAT是一个不错的选择。</a></p>
-</blockquote>
-<p>CAT存储方案是按照写入时间顺序存储，假设每小时写入量是千万级别，那么分表就按照小时维度。也就是说，2019年7月18号10点数据写入到表tb_catdata_2019071810中，2019年7月18号12点数据写入到表tb_catdata_2019071812中，2019年7月20号14点数据写入到表tb_catdata_2019072014中。这样做的优点如下：</p>
-<ol>
-<li>历史数据不用迁移；</li>
-<li>扩容非常简单；</li>
-</ol>
-<p>缺点如下：</p>
-<ol>
-<li>读写热点集中，所有写操作全部打在最新的表上。</li>
-</ol>
-<p>有没有发现，这个方案的优点就是我们需要的。BINGO，要的就是这样的方案。那么对应到用户表上来具体的分表方案非常类似：<strong>按照range切分</strong>。需要说明的是，这个方案的前提是用户ID一定要趋势递增，最好严格递增。笔者给出3种用户ID递增的方案：</p>
-<ul>
-<li>自增ID</li>
-</ul>
-<p>假设存量数据用户表的id最大值是960W，那么分表算法是这样的，表序号只需要根据user_id/10000000就能得到：</p>
-<ol>
-<li>用户ID在范围[1, 10000000)中分到tb_user_0中（需要将tb_user重命名为tb_user_0）；</li>
-<li>用户ID在范围[10000000, 20000000)中分到tb_user_1中；</li>
-<li>用户ID在范围[20000000, 30000000)中分到tb_user_2中；</li>
-<li>用户ID在范围[30000000, 40000000)中分到tb_user_3中；</li>
-<li>以此类推。</li>
-</ol>
-<p>如果你的tb_user本来就有自增主键，那这种方案就比较好。但是需要注意几点，由于用户ID是自增的，所以这个ID不能通过HTTP暴露出去，否则可以通过新注册一个用户后，就能得到你的真实用户数，这是比较危险的。其次，存量数据在单表中可以通过自增ID生成，但是当切换分表后，用户ID如果还是用自增生成，需要注意在创建新表时设置AUTO_INCREMENT，例如创建表tb_user_2时，设置AUTO_INCREMENT=10000000，DDL如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE if not exists `tb_user_2` (</span><br><span class="line">  `id` int(11) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,</span><br><span class="line">  `username` varchar(16) NOT NULL COMMENT &apos;用户名&apos;,</span><br><span class="line">  `remark` varchar(16) NOT NULL COMMENT &apos;备注&apos;</span><br><span class="line">) ENGINE=InnoDB AUTO_INCREMENT=10000000;</span><br><span class="line"></span><br><span class="line">- 这样的话，当新增用户时，用户ID就会从10000000开始，而不会与之前的用户ID冲突</span><br><span class="line">insert into tb_user_2 values(null, &apos;afei&apos;, &apos;afei&apos;);</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/07/21/用户表分库分表方案/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1286,7 +1262,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">93</span>
+                  <span class="site-state-item-count">94</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
