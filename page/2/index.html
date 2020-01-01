@@ -291,6 +291,223 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/01/在浏览器输入-URL-回车之后发生了什么？/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/10/01/在浏览器输入-URL-回车之后发生了什么？/" itemprop="url">在浏览器输入 URL 回车之后发生了什么？</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-01T16:22:13+08:00">
+                2019-10-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这个问题已经是老生常谈了，更是经常被作为面试的压轴题出现，网上也有很多文章，但最近闲的无聊，然后就自己做了一篇笔记，感觉比之前理解更透彻了。</p>
+<p>这篇笔记是我这两天看了数十篇文章总结出来的，所以相对全面一点，但由于我是做前端的，所以会比较重点分析浏览器渲染页面那一部分，至于其他部分我会罗列出关键词，感兴趣的可以自行查阅.</p>
+<p><strong>注意：</strong>本文的步骤是建立在，请求的是一个简单的 HTTP 请求，没有 HTTPS、HTTP2、最简单的 DNS、没有代理、并且服务器没有任何问题的基础上，尽管这是不切实际的。</p>
+<h2 id="大致流程"><a href="#大致流程" class="headerlink" title="大致流程"></a>大致流程</h2><ol>
+<li>URL 解析</li>
+<li>DNS 查询</li>
+<li>TCP 连接</li>
+<li>处理请求</li>
+<li>接受响应</li>
+<li>渲染页面</li>
+</ol>
+<h2 id="URL-解析"><a href="#URL-解析" class="headerlink" title="URL 解析"></a>URL 解析</h2><p><strong>地址解析：</strong></p>
+<p>首先判断你输入的是一个合法的 URL 还是一个待搜索的关键词，并且根据你输入的内容进行自动完成、字符编码等操作。</p>
+<p><strong>HSTS</strong></p>
+<p>由于安全隐患，会使用 HSTS 强制客户端使用 HTTPS 访问页面。详见：你所不知道的 HSTS[1]。</p>
+<p><strong>其他操作</strong></p>
+<p>浏览器还会进行一些额外的操作，比如安全检查、访问限制（之前国产浏览器限制 996.icu）。</p>
+<p><strong>检查缓存</strong></p>
+
+<h2 id="DNS-查询"><a href="#DNS-查询" class="headerlink" title="DNS 查询"></a>DNS 查询</h2><p><strong>基本步骤</strong></p>
+<img src="/2019/10/01/在浏览器输入-URL-回车之后发生了什么？/图2.jpg" title="图2">
+<p><strong>1. 浏览器缓存</strong></p>
+<p>浏览器会先检查是否在缓存中，没有则调用系统库函数进行查询。</p>
+<p><strong>2. 操作系统缓存</strong></p>
+<p>操作系统也有自己的 DNS缓存，但在这之前，会向检查域名是否存在本地的 Hosts 文件里，没有则向 DNS 服务器发送查询请求。</p>
+<p><strong>3. 路由器缓存</strong></p>
+<p>路由器也有自己的缓存。</p>
+<p><strong>4. ISP DNS 缓存</strong></p>
+<p>ISP DNS 就是在客户端电脑上设置的首选 DNS 服务器，它们在大多数情况下都会有缓存。</p>
+<p><strong>根域名服务器查询</strong></p>
+<p>在前面所有步骤没有缓存的情况下，本地 DNS 服务器会将请求转发到互联网上的根域，下面这个图很好的诠释了整个流程：</p>
+<img src="/2019/10/01/在浏览器输入-URL-回车之后发生了什么？/图3.jpg" title="图3">
+<p><strong>需要注意的点</strong></p>
+<ol>
+<li>递归方式：一路查下去中间不返回，得到最终结果才返回信息（浏览器到本地DNS服务器的过程）</li>
+<li>迭代方式，就是本地DNS服务器到根域名服务器查询的方式。</li>
+<li>什么是 DNS 劫持</li>
+<li>前端 dns-prefetch 优化</li>
+</ol>
+<h2 id="TCP-连接"><a href="#TCP-连接" class="headerlink" title="TCP 连接"></a>TCP 连接</h2><p>TCP/IP 分为四层，在发送数据时，每层都要对数据进行封装：</p>
+<img src="/2019/10/01/在浏览器输入-URL-回车之后发生了什么？/图4.jpg" title="图4">
+<h3 id="应用层：发送-HTTP-请求"><a href="#应用层：发送-HTTP-请求" class="headerlink" title="应用层：发送 HTTP 请求"></a>应用层：发送 HTTP 请求</h3><p>在前面的步骤我们已经得到服务器的 IP 地址，浏览器会开始构造一个 HTTP 报文，其中包括：</p>
+<ul>
+<li>请求报头（Request Header）：请求方法、目标地址、遵循的协议等等</li>
+<li>请求主体（其他参数）</li>
+</ul>
+<p>其中需要注意的点：</p>
+<ul>
+<li>浏览器只能发送 GET、POST 方法，而打开网页使用的是 GET 方法</li>
+</ul>
+<h3 id="传输层：TCP-传输报文"><a href="#传输层：TCP-传输报文" class="headerlink" title="传输层：TCP 传输报文"></a>传输层：TCP 传输报文</h3><p>传输层会发起一条到达服务器的 TCP 连接，为了方便传输，会对数据进行分割（以报文段为单位），并标记编号，方便服务器接受时能够准确地还原报文信息。</p>
+<p>在建立连接前，会先进行 TCP 三次握手。</p>
+<blockquote>
+<p>关于 TCP/IP 三次握手，网上已经有很多段子和图片生动地描述了。</p>
+<p>相关知识点：</p>
+<ol>
+<li>SYN 泛洪攻击</li>
+</ol>
+</blockquote>
+<h3 id="网络层：IP协议查询Mac地址"><a href="#网络层：IP协议查询Mac地址" class="headerlink" title="网络层：IP协议查询Mac地址"></a>网络层：IP协议查询Mac地址</h3><p>将数据段打包，并加入源及目标的IP地址，并且负责寻找传输路线。</p>
+<p>判断目标地址是否与当前地址处于同一网络中，是的话直接根据 Mac 地址发送，否则使用路由表查找下一跳地址，以及使用 ARP 协议查询它的 Mac 地址。</p>
+<blockquote>
+<p>注意：在 OSI 参考模型中 ARP 协议位于链路层，但在 TCP/IP 中，它位于网络层。</p>
+</blockquote>
+<h3 id="链路层：以太网协议"><a href="#链路层：以太网协议" class="headerlink" title="链路层：以太网协议"></a>链路层：以太网协议</h3><p><strong>以太网协议</strong></p>
+<p>根据以太网协议将数据分为以“帧”为单位的数据包，每一帧分为两个部分：</p>
+<ul>
+<li>标头：数据包的发送者、接受者、数据类型</li>
+<li>数据：数据包具体内容</li>
+</ul>
+<p><strong>Mac 地址</strong></p>
+<p>以太网规定了连入网络的所有设备都必须具备“网卡”接口，数据包都是从一块网卡传递到另一块网卡，网卡的地址就是 Mac 地址。每一个 Mac 地址都是独一无二的，具备了一对一的能力。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/10/01/在浏览器输入-URL-回车之后发生了什么？/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/01/new一个对象的过程中发生了什么？/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -987,197 +1204,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/07/InnoDB一棵B-树可以存放多少行数据？/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/07/InnoDB一棵B-树可以存放多少行数据？/" itemprop="url">InnoDB一棵B+树可以存放多少行数据？</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-07T15:24:20+08:00">
-                2019-09-07
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="一个问题？"><a href="#一个问题？" class="headerlink" title="一个问题？"></a>一个问题？</h2><p>InnoDB一棵B+树可以存放多少行数据？这个问题的简单回答是：约2千万。为什么是这么多呢？因为这是可以算出来的，要搞清楚这个问题，我们先从InnoDB索引数据结构、数据组织方式说起。</p>
-<p>我们都知道计算机在存储数据的时候，有最小存储单元，这就好比我们今天进行现金的流通最小单位是一毛。在计算机中磁盘存储数据最小单元是扇区，一个扇区的大小是512字节，而文件系统（例如XFS/EXT4）他的最小单元是块，一个块的大小是4k，而对于我们的InnoDB存储引擎也有自己的最小储存单元——页（Page），一个页的大小是16K。</p>
-<p>下面几张图可以帮你理解最小存储单元：</p>
-<p>文件系统中一个文件大小只有1个字节，但不得不占磁盘上4KB的空间。</p>
-<img src="/2019/09/07/InnoDB一棵B-树可以存放多少行数据？/图1.png" title="图1">
-<p>innodb的所有数据文件（后缀为ibd的文件），他的大小始终都是16384（16k）的整数倍。</p>
-<img src="/2019/09/07/InnoDB一棵B-树可以存放多少行数据？/图2.png" title="图2">
-<p>磁盘扇区、文件系统、InnoDB存储引擎都有各自的最小存储单元。</p>
-<img src="/2019/09/07/InnoDB一棵B-树可以存放多少行数据？/图3.png" title="图3">
-<p>在MySQL中我们的InnoDB页的大小默认是16k，当然也可以通过参数设置：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &apos;innodb_page_size&apos;;</span><br><span class="line"></span><br><span class="line">+------------------+-------+</span><br><span class="line"></span><br><span class="line">| Variable_name    | Value |</span><br><span class="line"></span><br><span class="line">+------------------+-------+</span><br><span class="line"></span><br><span class="line">| innodb_page_size | 16384 |</span><br><span class="line"></span><br><span class="line">+------------------+-------+</span><br><span class="line"></span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
-<p>数据表中的数据都是存储在页中的，所以一个页中能存储多少行数据呢？假设一行数据的大小是1k，那么一个页可以存放16行这样的数据。</p>
-<p>如果数据库只按这样的方式存储，那么如何查找数据就成为一个问题，因为我们不知道要查找的数据存在哪个页中，也不可能把所有的页遍历一遍，那样太慢了。所以人们想了一个办法，用B+树的方式组织这些数据。如图所示：</p>
-<img src="/2019/09/07/InnoDB一棵B-树可以存放多少行数据？/图4.png" title="图4">
-<p>我们先将数据记录按主键进行排序，分别存放在不同的页中（为了便于理解我们这里一个页中只存放3条记录，实际情况可以存放很多），除了存放数据的页以外，还有存放键值+指针的页，如图中page number=3的页，该页存放键值和指向数据页的指针，这样的页由N个键值+指针组成。当然它也是排好序的。这样的数据组织形式，我们称为索引组织表。现在来看下，要查找一条数据，怎么查？</p>
-<p>如select * from user where id=5;</p>
-<p>这里id是主键,我们通过这棵B+树来查找，首先找到根页，你怎么知道user表的根页在哪呢？其实每张表的根页位置在表空间文件中是固定的，即page number=3的页（这点我们下文还会进一步证明），找到根页后通过二分查找法，定位到id=5的数据应该在指针P5指向的页中，那么进一步去page number=5的页中查找，同样通过二分查询法即可找到id=5的记录：</p>
-<table>
-<thead>
-<tr>
-<th>5</th>
-<th>zhao2</th>
-<th>27</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<p>现在我们清楚了InnoDB中主键索引B+树是如何组织数据、查询数据的，我们总结一下：</p>
-<p>1、InnoDB存储引擎的最小存储单元是页，页可以用于存放数据也可以用于存放键值+指针，在B+树中叶子节点存放数据，非叶子节点存放键值+指针。</p>
-<p>2、索引组织表通过非叶子节点的二分查找法以及指针确定数据在哪个页中，进而在去数据页中查找到需要的数据；</p>
-<p>那么回到我们开始的问题，通常一棵B+树可以存放多少行数据？</p>
-<p>这里我们先假设B+树高为2，即存在一个根节点和若干个叶子节点，那么这棵B+树的存放总记录数为：根节点指针数*单个叶子节点记录行数。</p>
-<p>上文我们已经说明单个叶子节点（页）中的记录数=16K/1K=16。（这里假设一行记录的数据大小为1k，实际上现在很多互联网业务数据记录大小通常就是1K左右）。</p>
-<p>那么现在我们需要计算出非叶子节点能存放多少指针，其实这也很好算，我们假设主键ID为bigint类型，长度为8字节，而指针大小在InnoDB源码中设置为6字节，这样一共14字节，我们一个页中能存放多少这样的单元，其实就代表有多少指针，即16384/14=1170。那么可以算出一棵高度为2的B+树，能存放1170*16=18720条这样的数据记录。</p>
-<p>根据同样的原理我们可以算出一个高度为3的B+树可以存放：1170<em>1170</em>16=21902400条这样的记录。所以在InnoDB中B+树高度一般为1-3层，它就能满足千万级的数据存储。在查找数据时一次页的查找代表一次IO，所以通过主键索引查询通常只需要1-3次IO操作即可查找到数据。</p>
-<h2 id="怎么得到InnoDB主键索引B-树的高度？"><a href="#怎么得到InnoDB主键索引B-树的高度？" class="headerlink" title="怎么得到InnoDB主键索引B+树的高度？"></a>怎么得到InnoDB主键索引B+树的高度？</h2><p>上面我们通过推断得出B+树的高度通常是1-3，下面我们从另外一个侧面证明这个结论。在InnoDB的表空间文件中，约定<strong>page number为3</strong>的代表主键索引的根页，而在根页偏移量为<strong>64</strong>的地方存放了该B+树的page level。如果page level为1，树高为2，page level为2，则树高为3。即B+树的高度=page level+1；下面我们将从实际环境中尝试找到这个page level。</p>
-<p>在实际操作之前，你可以通过InnoDB元数据表确认主键索引根页的page number为3，你也可以从《InnoDB存储引擎》这本书中得到确认。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SELECT</span><br><span class="line">b.name, a.name, index_id, type, a.space, a.PAGE_NO</span><br><span class="line">FROM</span><br><span class="line">information_schema.INNODB_SYS_INDEXES a,</span><br><span class="line">information_schema.INNODB_SYS_TABLES b</span><br><span class="line">WHERE</span><br><span class="line">a.table_id = b.table_id AND a.space &lt;&gt; 0;</span><br></pre></td></tr></table></figure>
-<p>执行结果：</p>
-<img src="/2019/09/07/InnoDB一棵B-树可以存放多少行数据？/图5.jpg" title="图5">
-<p>可以看出数据库dbt3下的customer表、lineitem表主键索引根页的page number均为3，而其他的二级索引page number为4。关于二级索引与主键索引的区别请参考MySQL相关书籍，本文不在此介绍。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/09/07/InnoDB一棵B-树可以存放多少行数据？/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1230,7 +1256,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">92</span>
+                  <span class="site-state-item-count">93</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
