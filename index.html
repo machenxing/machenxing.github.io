@@ -291,6 +291,167 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/23/12306——秒杀系统的艺术/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/02/23/12306——秒杀系统的艺术/" itemprop="url">12306——秒杀系统的艺术</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-02-23T23:24:02+08:00">
+                2020-02-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/系统架构/" itemprop="url" rel="index">
+                    <span itemprop="name">系统架构</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="12306抢票-极限并发带来的思考"><a href="#12306抢票-极限并发带来的思考" class="headerlink" title="12306抢票,极限并发带来的思考?"></a>12306抢票,极限并发带来的思考?</h2><p>每到节假日期间,一二线城市返乡、外出游玩的人们几乎都面临着一个问题：抢火车票!虽然现在大多数情况下都能订到票,但是放票瞬间即无票的场景，相信大家都深有体会。尤其是春节期间，大家不仅使用12306，还会考虑“智行”和其他的抢票软件,全国上下几亿人在这段时间都在抢票。“12306服务”承受着这个世界上任何秒杀系统都无法超越的QPS,上百万的并发再正常不过了！笔者专门研究了一下“12306”的服务端架构,学习到了其系统设计上很多亮点，在这里和大家分享一下并模拟一个例子：如何在100万人同时抢1万张火车票时，系统提供正常、稳定的服务。<a href="https://github.com/GuoZhaoran/spikeSystem" target="_blank" rel="noopener">github代码地址</a></p>
+<h2 id="大型高并发系统架构"><a href="#大型高并发系统架构" class="headerlink" title="大型高并发系统架构"></a>大型高并发系统架构</h2><p>高并发的系统架构都会采用分布式集群部署，服务上层有着层层负载均衡，并提供各种容灾手段(双火机房、节点容错、服务器灾备等)保证系统的高可用,流量也会根据不同的负载能力和配置策略均衡到不同的服务器上。下边是一个简单的示意图:</p>
+<img src="/2020/02/23/12306——秒杀系统的艺术/图1.png" title="图1">
+<p>负载均衡简介</p>
+<p>上图中描述了用户请求到服务器经历了三层的负载均衡，下边分别简单介绍一下这三种负载均衡：</p>
+<ul>
+<li>OSPF(开放式最短链路优先)是一个内部网关协议(Interior Gateway Protocol,简称IGP)。OSPF通过路由器之间通告网络接口的状态来建立链路状态数据库，生成最短路径树，OSPF会自动计算路由接口上的Cost值，但也可以通过手工指定该接口的Cost值，手工指定的优先于自动计算的值。OSPF计算的Cost，同样是和接口带宽成反比，带宽越高，Cost值越小。到达目标相同Cost值的路径，可以执行负载均衡，最多6条链路同时执行负载均衡。</li>
+<li>LVS (Linux VirtualServer)，它是一种集群(Cluster)技术，采用IP负载均衡技术和基于内容请求分发技术。调度器具有很好的吞吐率，将请求均衡地转移到不同的服务器上执行，且调度器自动屏蔽掉服务器的故障，从而将一组服务器构成一个高性能的、高可用的虚拟服务器。</li>
+<li>Nginx想必大家都很熟悉了,是一款非常高性能的http代理/反向代理服务器,服务开发中也经常使用它来做负载均衡。Nginx实现负载均衡的方式主要有三种:轮询、加权轮询、ip hash轮询，下面我们就针对Nginx的加权轮询做专门的配置和测试</li>
+</ul>
+<h3 id="Nginx加权轮询的演示"><a href="#Nginx加权轮询的演示" class="headerlink" title="Nginx加权轮询的演示"></a>Nginx加权轮询的演示</h3><p>Nginx实现负载均衡通过upstream模块实现，其中加权轮询的配置是可以给相关的服务加上一个权重值，配置的时候可能根据服务器的性能、负载能力设置相应的负载。下面是一个加权轮询负载的配置，我将在本地的监听3001-3004端口,分别配置1，2，3，4的权重:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#配置负载均衡</span><br><span class="line">    upstream load_rule &#123;</span><br><span class="line">       server <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">3001</span> weight=<span class="number">1</span>;</span><br><span class="line">       server <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">3002</span> weight=<span class="number">2</span>;</span><br><span class="line">       server <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">3003</span> weight=<span class="number">3</span>;</span><br><span class="line">       server <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">3004</span> weight=<span class="number">4</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    server &#123;</span><br><span class="line">    listen       <span class="number">80</span>;</span><br><span class="line">    server_name  load_balance.com www.load_balance.com;</span><br><span class="line">    location / &#123;</span><br><span class="line">       proxy_pass http:<span class="comment">//load_rule;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我在本地/etc/hosts目录下配置了 <a href="http://www.load_balance.com" target="_blank" rel="noopener">www.load_balance.com</a></p>
+<p>的虚拟域名地址，接下来使用Go语言开启四个http端口监听服务，下面是监听在3001端口的Go程序,其他几个只需要修改端口即可：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"net/http"</span></span><br><span class="line">	<span class="string">"os"</span></span><br><span class="line">	<span class="string">"strings"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function">func <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	http.HandleFunc(<span class="string">"/buy/ticket"</span>, handleReq)</span><br><span class="line">	http.ListenAndServe(<span class="string">":3001"</span>, nil)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//处理请求函数,根据请求将响应结果信息写入日志</span></span><br><span class="line"><span class="function">func <span class="title">handleReq</span><span class="params">(w http.ResponseWriter, r *http.Request)</span> </span>&#123;</span><br><span class="line">	failedMsg :=  <span class="string">"handle in port:"</span></span><br><span class="line">	writeLog(failedMsg, <span class="string">"./stat.log"</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//写入日志</span></span><br><span class="line">func writeLog(msg <span class="built_in">string</span>, logPath <span class="built_in">string</span>) &#123;</span><br><span class="line">	fd, _ := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, <span class="number">0644</span>)</span><br><span class="line">	defer fd.Close()</span><br><span class="line">	content := strings.Join([]<span class="built_in">string</span>&#123;msg, <span class="string">"\r\n"</span>&#125;, <span class="string">"3001"</span>)</span><br><span class="line">	buf := []byte(content)</span><br><span class="line">	fd.Write(buf)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我将请求的端口日志信息写到了./stat.log文件当中，然后使用ab压测工具做压测:</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2020/02/23/12306——秒杀系统的艺术/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/23/Hystrix原理与实战/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1011,163 +1172,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/01/谈谈高并发系统的限流/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/01/01/谈谈高并发系统的限流/" itemprop="url">谈谈高并发系统的限流</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-01-01T20:28:59+08:00">
-                2020-01-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/算法/" itemprop="url" rel="index">
-                    <span itemprop="name">算法</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>开涛大神在博客中说过：<strong>在开发高并发系统时有三把利器用来保护系统：缓存、降级和限流</strong>。本文结合作者的一些经验介绍限流的相关概念、算法和常规的实现方式。</p>
-<h2 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h2><p>缓存比较好理解，在大型高并发系统中，如果没有缓存数据库将分分钟被爆，系统也会瞬间瘫痪。使用缓存不单单能够提升系统访问速度、提高并发访问量，也是保护数据库、保护系统的有效方式。大型网站一般主要是“读”，缓存的使用很容易被想到。在大型“写”系统中，缓存也常常扮演者非常重要的角色。比如累积一些数据批量写入，内存里面的缓存队列（生产消费），以及HBase写数据的机制等等也都是通过缓存提升系统的吞吐量或者实现系统的保护措施。甚至消息中间件，你也可以认为是一种分布式的数据缓存。</p>
-<h2 id="降级"><a href="#降级" class="headerlink" title="降级"></a>降级</h2><p>服务降级是当服务器压力剧增的情况下，根据当前业务情况及流量对一些服务和页面有策略的降级，以此释放服务器资源以保证核心任务的正常运行。降级往往会指定不同的级别，面临不同的异常等级执行不同的处理。根据服务方式：可以拒接服务，可以延迟服务，也有时候可以随机服务。根据服务范围：可以砍掉某个功能，也可以砍掉某些模块。总之服务降级需要根据不同的业务需求采用不同的降级策略。主要的目的就是服务虽然有损但是总比没有好。</p>
-<h2 id="限流"><a href="#限流" class="headerlink" title="限流"></a>限流</h2><p>限流可以认为服务降级的一种，限流就是限制系统的输入和输出流量已达到保护系统的目的。一般来说系统的吞吐量是可以被测算的，为了保证系统的稳定运行，一旦达到的需要限制的阈值，就需要限制流量并采取一些措施以完成限制流量的目的。比如：延迟处理，拒绝处理，或者部分拒绝处理等等。</p>
-<h2 id="限流的算法"><a href="#限流的算法" class="headerlink" title="限流的算法"></a>限流的算法</h2><p>常见的限流算法有：计数器、漏桶和令牌桶算法。</p>
-<h3 id="计数器"><a href="#计数器" class="headerlink" title="计数器"></a>计数器</h3><p>计数器是最简单粗暴的算法。比如某个服务最多只能每秒钟处理100个请求。我们可以设置一个1秒钟的滑动窗口，窗口中有10个格子，每个格子100毫秒，每100毫秒移动一次，每次移动都需要记录当前服务请求的次数。内存中需要保存10次的次数。可以用数据结构LinkedList来实现。格子每次移动的时候判断一次，当前访问次数和LinkedList中最后一个相差是否超过100，如果超过就需要限流了。</p>
-<img src="/2020/01/01/谈谈高并发系统的限流/图1.jpg" title="图1">
-<p>很明显，当滑动窗口的格子划分的越多，那么滑动窗口的滚动就越平滑，限流的统计就会越精确。</p>
-<p>示例代码如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//服务访问次数，可以放在Redis中，实现分布式系统的访问计数</span></span><br><span class="line">Long counter = <span class="number">0L</span>;</span><br><span class="line"><span class="comment">//使用LinkedList来记录滑动窗口的10个格子。</span></span><br><span class="line">LinkedList&lt;Long&gt; ll = <span class="keyword">new</span> LinkedList&lt;Long&gt;();</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Counter counter = <span class="keyword">new</span> Counter();</span><br><span class="line"></span><br><span class="line">    counter.doCheck();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doCheck</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="keyword">true</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        ll.addLast(counter);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (ll.size() &gt; <span class="number">10</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            ll.removeFirst();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//比较最后一个和第一个，两者相差一秒</span></span><br><span class="line">        <span class="keyword">if</span> ((ll.peekLast() - ll.peekFirst()) &gt; <span class="number">100</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//To limit rate</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Thread.sleep(<span class="number">100</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="漏桶算法"><a href="#漏桶算法" class="headerlink" title="漏桶算法"></a>漏桶算法</h3><p>漏桶算法即leaky bucket是一种非常常用的限流算法，可以用来实现流量整形（Traffic Shaping）和流量控制（Traffic Policing）。</p>
-<p>贴了一张维基百科上示意图帮助大家理解：</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/01/01/谈谈高并发系统的限流/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1220,7 +1224,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">97</span>
+                  <span class="site-state-item-count">98</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
