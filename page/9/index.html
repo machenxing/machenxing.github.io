@@ -291,6 +291,201 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/24/MySQL-单表查询的效率级别/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/24/MySQL-单表查询的效率级别/" itemprop="url">MySQL 单表查询的效率级别</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-24T14:03:46+08:00">
+                2019-03-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>对于我们这些 <code>MySQL</code>的使用者来说，平时用的最多的就是查询功能。DBA时不时丢过来一些慢查询语句让优化，如果连查询是怎么执行的都不清楚还优化个毛线，所以是时候掌握真正的技术了。 <code>MySQL</code>有一个称为 <code>查询优化器</code>的模块，一条查询语句进行语法解析之后就会被交给查询优化器来进行优化，优化的结果就是生成一个所谓的 <code>执行计划</code>，这个执行计划表明了应该使用哪些索引进行查询，表之间的连接顺序是啥样的，最后会按照执行计划中的步骤调用存储引擎提供的方法来真正的执行查询，并将查询结果返回给用户。不过查询优化这个主题有点儿大，在学会跑之前还得先学会走，所以本章先来瞅瞅 <code>MySQL</code>怎么执行单表查询（就是 <code>FROM</code>子句后边只有一个表，最简单的那种查询～）。</p>
+<p>为了故事的发展，先得有个表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE single_table (</span><br><span class="line">	id INT NOT NULL AUTO_INCREMENT,</span><br><span class="line">    key1 VARCHAR(100),</span><br><span class="line">    key2 INT,</span><br><span class="line">    key3 VARCHAR(100),</span><br><span class="line">    key_part1 VARCHAR(100),</span><br><span class="line">    key_part2 VARCHAR(100),</span><br><span class="line">    key_part3 VARCHAR(100),</span><br><span class="line">    common_field VARCHAR(100),</span><br><span class="line">    PRIMARY KEY (id),</span><br><span class="line">    KEY idx_key1 (key1),</span><br><span class="line">    UNIQUE KEY idx_key2 (key2),</span><br><span class="line">    KEY idx_key3 (key3),</span><br><span class="line">    KEY idx_key_part(key_part1, key_part2, key_part3)</span><br><span class="line">) Engine=InnoDB CHARSET=utf8;</span><br></pre></td></tr></table></figure>
+<p>我们为这个 <code>single_table</code>表建立了1个聚簇索引和4个二级索引，分别是：</p>
+<ul>
+<li>为 <code>id</code>列建立的聚簇索引。</li>
+<li>为 <code>key1</code>列建立的 <code>idx_key1</code>二级索引。</li>
+<li>为 <code>key2</code>列建立的 <code>idx_key2</code>二级索引，而且该索引是唯一二级索引。</li>
+<li>为 <code>key3</code>列建立的 <code>idx_key3</code>二级索引。</li>
+<li>为 <code>key_part1</code>、 <code>key_part2</code>、 <code>key_part3</code>列建立的 <code>idx_key_part</code>二级索引，这也是一个联合索引。</li>
+</ul>
+<p>然后我们需要为这个表插入10000行记录，除 <code>id</code>列外其余的列都插入随机值就好了，具体的插入语句我就不写了，自己写个程序插入吧（id列是自增主键列，不需要我们手动插入）。</p>
+<h4 id="访问方法（access-method）的概念"><a href="#访问方法（access-method）的概念" class="headerlink" title="访问方法（access method）的概念"></a>访问方法（access method）的概念</h4><p>我们平时所写的那些查询语句本质上只是一种声明式的语法，只是告诉 <code>MySQL</code>我们要获取的数据符合哪些规则，至于 <code>MySQL</code>背地里是怎么把查询结果搞出来的那是 <code>MySQL</code>自己的事儿。对于单个表的查询来说，设计MySQL的大叔把查询的执行方式大致分为下边两种：</p>
+<h5 id="使用全表扫描进行查询"><a href="#使用全表扫描进行查询" class="headerlink" title="使用全表扫描进行查询"></a>使用全表扫描进行查询</h5><p>这种执行方式很好理解，就是把表的每一行记录都扫一遍嘛，把符合搜索条件的记录加入到结果集就完了。不管是啥查询都可以使用这种方式执行，当然，这种也是最笨的执行方式。</p>
+<h5 id="使用索引进行查询"><a href="#使用索引进行查询" class="headerlink" title="使用索引进行查询"></a>使用索引进行查询</h5><p>因为直接使用全表扫描的方式执行查询要遍历好多记录，所以代价可能太大了。如果查询语句中的搜索条件可以使用到某个索引，那直接使用索引来执行查询可能会加快查询执行的时间。使用索引来执行查询的方式五花八门，又可以细分为许多种类：</p>
+<ul>
+<li>针对主键或唯一二级索引的等值查询</li>
+<li>针对普通二级索引的等值查询</li>
+<li>针对索引列的范围查询</li>
+<li>直接扫描整个索引</li>
+</ul>
+<p>设计 <code>MySQL</code>的大叔把 <code>MySQL</code>执行查询语句的方式称之为 <code>访问方法</code>或者 <code>访问类型</code>。同一个查询语句可能可以使用多种不同的访问方法来执行，虽然最后的查询结果都是一样的，但是执行的时间可能差老鼻子远了，就像是从钟楼到大雁塔，你可以坐火箭去，也可以坐飞机去，当然也可以坐乌龟去。下边细细道来各种 <code>访问方法</code>的具体内容。</p>
+<h4 id="const"><a href="#const" class="headerlink" title="const"></a>const</h4><p>有的时候我们可以通过主键列来定位一条记录，比方说这个查询：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE id = 1438;</span><br></pre></td></tr></table></figure>
+<p><code>MySQL</code>会直接利用主键值在聚簇索引中定位对应的用户记录，就像这样：</p>
+<img src="/2019/03/24/MySQL-单表查询的效率级别/图1.jpg" title="图1">
+<p>原谅我把聚簇索引对应的复杂的 <code>B+</code>树结构搞了一个极度精简版，为了突出重点，我们忽略掉了 <code>页</code>的结构，直接把所有的叶子节点的记录都放在一起展示，而且记录中只展示我们关心的索引列，对于 <code>single_table</code>表的聚簇索引来说，展示的就是 <code>id</code>列。我们想突出的重点就是： <code>B+</code>树叶子节点中的记录是按照索引列排序的，对于的聚簇索引来说，它对应的 <code>B+</code>树叶子节点中的记录就是按照 <code>id</code>列排序的。 <code>B+</code>树本来就是一个矮矮的大胖子，所以这样根据主键值定位一条记录的速度贼快。类似的，我们根据唯一二级索引列来定位一条记录的速度也是贼快的，比如下边这个查询：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE key2 = 3841;</span><br></pre></td></tr></table></figure>
+<p>这个查询的执行过程的示意图就是这样：</p>
+<img src="/2019/03/24/MySQL-单表查询的效率级别/图2.jpg" title="图2">
+<p>可以看到这个查询的执行分两步，第一步先从 <code>idx_key2</code>对应的 <code>B+</code>树索引中根据 <code>key2</code>列与常数的等值比较条件定位到一条二级索引记录，然后再根据该记录的 <code>id</code>值到聚簇索引中获取到完整的用户记录。</p>
+<p>设计 <code>MySQL</code>的大叔认为通过主键或者唯一二级索引列与常数的等值比较来定位一条记录是像坐火箭一样快的，所以他们把这种通过主键或者唯一二级索引列来定位一条记录的访问方法定义为： <code>const</code>，意思是常数级别的，代价是可以忽略不计的。不过这种 <code>const</code>访问方法只能在主键列或者唯一二级索引列和一个常数进行等值比较时才有效，如果主键或者唯一二级索引是由多个列构成的话，索引中的每一个列都需要与常数进行等值比较，这个 <code>const</code>访问方法才有效（这是因为只有该索引中全部列都采用等值比较才可以定位唯一的一条记录）。</p>
+<p>对于唯一二级索引来说，查询该列为 <code>NULL</code>值的情况比较特殊，比如这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE key2 IS NULL;</span><br></pre></td></tr></table></figure>
+<p>因为唯一二级索引列并不限制 <code>NULL</code>值的数量，所以上述语句可能访问到多条记录，也就是说上边这个语句不可以使用 <code>const</code>访问方法来执行。</p>
+<h4 id="ref"><a href="#ref" class="headerlink" title="ref"></a>ref</h4><p>有时候我们对某个普通的二级索引列与常数进行等值比较，比如这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE key1 = &apos;abc&apos;;</span><br></pre></td></tr></table></figure>
+<p>对于这个查询，我们当然可以选择全表扫描来逐一对比搜索条件是否满足要求，我们也可以先使用二级索引找到对应记录的 <code>id</code>值，然后再回表到聚簇索引中查找完整的用户记录。由于普通二级索引并不限制索引列值的唯一性，所以可能找到多条对应的记录，也就是说使用二级索引来执行查询的代价取决于等值匹配到的二级索引记录条数。如果匹配的记录较少，则回表的代价还是比较低的，所以 <code>MySQL</code>可能选择使用索引而不是全表扫描的方式来执行查询。设计 <code>MySQL</code>的大叔就把这种搜索条件为二级索引列与常数等值比较，采用二级索引来执行查询的访问方法称为： <code>ref</code>。我们看一下采用 <code>ref</code>访问方法执行查询的图示：</p>
+<img src="/2019/03/24/MySQL-单表查询的效率级别/图3.jpg" title="图3">
+<p>从图示中可以看出，对于普通的二级索引来说，通过索引列进行等值比较后可能匹配到多条连续的记录，而不是像主键或者唯一二级索引那样最多只能匹配1条记录，所以这种 <code>ref</code>访问方法比 <code>const</code>差了那么一丢丢，但是在二级索引等值比较时匹配的记录数较少时的效率还是很高的（如果匹配的二级索引记录太多那么回表的成本就太大了），跟坐高铁差不多。不过需要注意下边两种情况：</p>
+<p>1、二级索引列值为 <code>NULL</code>的情况，不论是普通的二级索引，还是唯一二级索引，它们的索引列对包含 <code>NULL</code>值的数量并不限制，所以我们采用 <code>key IS NULL</code>这种形式的搜索条件最多只能使用 <code>ref</code>的访问方法，而不是 <code>const</code>的访问方法。</p>
+<p>2、对于某个包含多个索引列的二级索引来说，只要是最左边的连续索引列是与常数的等值比较就可能采用 <code>ref</code>的访问方法，比方说下边这几个查询：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE key_part1 = &apos;god like&apos;;SELECT * FROM single_table WHERE key_part1 = &apos;god like&apos; AND key_part2 = &apos;legendary&apos;;SELECT * FROM single_table WHERE key_part1 = &apos;god like&apos; AND key_part2 = &apos;legendary&apos; AND key_part3 = &apos;penta kill&apos;;</span><br></pre></td></tr></table></figure>
+<p>但是如果最左边的连续索引列并不全部是等值比较的话，它的访问方法就不能称为 <code>ref</code>了，比方说这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_table WHERE key_part1 = &apos;god like&apos; AND key_part2 &gt; &apos;legendary&apos;;</span><br></pre></td></tr></table></figure>
+<h4 id="ref-or-null"><a href="#ref-or-null" class="headerlink" title="ref or null"></a>ref or null</h4><p>有时候我们不仅想找出某个二级索引列的值等于某个常数的记录，还想把该列的值为 <code>NULL</code>的记录也找出来，就像下边这个查询：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM single_demo WHERE key1 = &apos;abc&apos; OR key1 IS NULL;</span><br></pre></td></tr></table></figure>
+<p>当使用二级索引而不是全表扫描的方式执行该查询时，这种类型的查询使用的访问方法就称为 <code>ref_or_null</code>，这个 <code>ref_or_null</code>访问方法的执行过程如下：</p>
+<img src="/2019/03/24/MySQL-单表查询的效率级别/图4.jpg" title="图4">
+<p>可以看到，上边的查询相当于先分别从 <code>idx_key1</code>索引对应的 <code>B+</code>树中找出 <code>key1 IS NULL</code>和 <code>key1=&#39;abc&#39;</code>的两个连续的记录范围，然后根据这些二级索引记录中的 <code>id</code>值再回表查找完整的用户记录。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/03/24/MySQL-单表查询的效率级别/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/24/Java-8中处理集合的优雅姿势——Stream/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -958,177 +1153,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/23/JVM与Linux的内存关系分析/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/23/JVM与Linux的内存关系分析/" itemprop="url">JVM与Linux的内存关系分析</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-23T17:18:47+08:00">
-                2018-12-23
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java虚拟机/" itemprop="url" rel="index">
-                    <span itemprop="name">Java虚拟机</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h4 id="Linux与进程的内存模型"><a href="#Linux与进程的内存模型" class="headerlink" title="Linux与进程的内存模型"></a>Linux与进程的内存模型</h4><p>JVM以一个进程（Process）的身份运行在Linux系统上，了解Linux与进程的内存关系，是理解JVM与Linux内存的关系的基础。<br>下图给出了硬件、系统、进程三个层面的内存之间的概要关系。</p>
-<img src="/2018/12/23/JVM与Linux的内存关系分析/图1.jpg" title="图1">
-<p>从硬件上看，Linux系统的内存空间由两个部分构成：物理内存和SWAP（位于磁盘）。物理内存是Linux活动时使用的主要内存区域；当物理内 存不够使用时，Linux会把一部分暂时不用的内存数据放到磁盘上的SWAP中去，以便腾出更多的可用内存空间；而当需要使用位于SWAP的数据时，必须 先将其换回到内存中。</p>
-<p>从Linux系统上看，除了引导系统的BIN区，整个内存空间主要被分成两个部分：内核内存（Kernel space）、用户内存（User space）。<br>内核内存是Linux自身使用的内存空间，主要提供给程序调度、内存分配、连接硬件资源等程序逻辑使用。用户内存是提供给各个进程主要空间，Linux给 各个进程提供相同的虚拟内存空间；这使得进程之间相互独立，互不干扰。实现的方法是采用虚拟内存技术：给每一个进程一定虚拟内存空间，而只有当虚拟内存实 际被使用时，才分配物理内存。如下图所示，对于32的Linux系统来说，一般将0～3G的虚拟内存空间分配做为用户空间，将3～4G的虚拟内存空间分配 为内核空间；64位系统的划分情况是类似的。</p>
-<img src="/2018/12/23/JVM与Linux的内存关系分析/图2.jpg" title="图2">
-<p>从进程的角度来看，进程能直接访问的用户内存（虚拟内存空间）被划分为5个部分：代码区、数据区、堆区、栈区、未使用区。代码区中存放应用程序的机 器代码，运行过程中代码不能被修改，具有只读和固定大小的特点。数据区中存放了应用程序中的全局数据，静态数据和一些常量字符串等，其大小也是固定的。堆 是运行时程序动态申请的空间，属于程序运行时直接申请、释放的内存资源。栈区用来存放函数的传入参数、临时变量，以及返回地址等数据。未使用区是分配新内 存空间的预备区域。</p>
-<h4 id="进程与JVM内存模型"><a href="#进程与JVM内存模型" class="headerlink" title="进程与JVM内存模型"></a>进程与JVM内存模型</h4><p>JVM本质就是一个进程，因此其内存模型也有进程的一般特点。但是，JVM又不是一个普通的进程，其在内存模型上有许多崭新的特点，主要原因有两 个：1.JVM将许多本来属于操作系统管理范畴的东西，移植到了JVM内部，目的在于减少系统调用的次数；2. Java NIO，目的在于减少用于读写IO的系统调用的开销。 JVM进程与普通进程内存模型比较如下图:</p>
-<img src="/2018/12/23/JVM与Linux的内存关系分析/图3.jpg" title="图3">
-<p>需要说明的是，这个模型的并不是JVM内存使用的精确模型，更侧重于从操作系统的角度而省略了一些JVM的内部细节。下面从用户内存和内核内存两个方面讲解JVM进程的内存特点。</p>
-<h5 id="用户内存"><a href="#用户内存" class="headerlink" title="用户内存"></a>用户内存</h5><p>上图特别强调了JVM进程模型的代码区和数据区指的是JVM自身的，而非Java程序的。普通进程栈区，在JVM一般仅仅用做线程栈。JVM的堆区和普通进程的差别是最大的，下面具体详细说明：</p>
-<p>首先是永久代。永久代本质上是Java程序的代码区和数据区。Java程序中类（class），会被加载到整个区域的不同数据结构中去，包括常量 池、域、方法数据、方法体、构造函数、以及类中的专用方法、实例初始化、接口初始化等。这个区域对于操作系统来说，是堆的一个部分；而对于Java程序来 说，这是容纳程序本身及静态资源的空间，使得JVM能够解释执行Java程序。</p>
-<p>其次是新生代和老年代。新生代和老年代才是Java程序真正使用的堆空间，主要用于内存对象的存储；但是其管理方式和普通进程有本质的区别。<br>普通进程在运行时给内存对象分配空间时，比如C++执行new操作时，会触发一次分配内存空间的系统调用，由操作系统的线程根据对象的大小分配好空间后返 回；同时，程序释放对象时，比如C++执行delete操作时，也会触发一次系统调用，通知操作系统对象所占用的空间已经可以回收。<br>JVM对内存的使用和一般进程不同。JVM向操作系统申请一整段内存区域（具体大小可以在JVM参数调节）作为Java程序的堆（分为新生代和老年代）； 当Java程序申请内存空间，比如执行new操作，JVM将在这段空间中按所需大小分配给Java程序，并且Java程序不负责通知JVM何时可以释放这 个对象的空间，垃圾对象内存空间的回收由JVM进行。</p>
-<p>JVM的内存管理方式的优点是显而易见的，包括：第一，减少系统调用的次数，JVM在给Java程序分配内存空间时不需要操作系统干预，仅仅在 Java堆大小变化时需要向操作系统申请内存或通知回收，而普通程序每次内存空间的分配回收都需要系统调用参与；第二，减少内存泄漏，普通程序没有（或者 没有及时）通知操作系统内存空间的释放是内存泄漏的重要原因之一，而由JVM统一管理，可以避免程序员带来的内存泄漏问题。</p>
-<p>最后是未使用区，未使用区是分配新内存空间的预备区域。对于普通进程来说，这个区域被可用于堆和栈空间的申请及释放，每次堆内存分配都会使用这个区 域，因此大小变动频繁；对于JVM进程来说，调整堆大小及线程栈时会使用该区域，而堆大小一般较少调整，因此大小相对稳定。操作系统会动态调整这个区域的 大小，并且这个区域通常并没有被分配实际的物理内存，只是允许进程在这个区域申请堆或栈空间。</p>
-<h5 id="内核内存"><a href="#内核内存" class="headerlink" title="内核内存"></a>内核内存</h5><p>应用程序通常不直接和内核内存打交道，内核内存由操作系统进行管理和使用；不过随着Linux对性能的关注及改进，一些新的特性使得应用程序可以使 用内核内存，或者是映射到内核空间。Java NIO正是在这种背景下诞生的，其充分利用了Linux系统的新特性，提升了Java程序的IO性能。</p>
-<img src="/2018/12/23/JVM与Linux的内存关系分析/图4.jpg" title="图4">
-<p>上图给出了Java NIO使用的内核内存在linux系统中的分布情况。nio buffer主要包括：nio使用各种channel时所使用的ByteBuffer、Java程序主动使用 ByteBuffer.allocateDirector申请分配的Buffer。而在PageCache里面，nio使用的内存主要包 括：FileChannel.map方式打开文件占用mapped、FileChannel.transferTo和 FileChannel.transferFrom所需要的Cache（图中标示 nio file）。</p>
-<p>Linux和Java NIO在内核内存上开辟空间给程序使用，主要是减少不要的复制，以减少IO操作系统调用的开销。例如，将磁盘文件的数据发送网卡，使用普通方法和NIO时，数据流动比较下图所示：</p>
-<img src="/2018/12/23/JVM与Linux的内存关系分析/图5.jpg" title="图5">
-<p>将数据在内核内存和用户内存之间拷贝是比较消耗资源和时间的事情，而从上图我们可以看到，通过NIO的方式减少了2次内核内存和用户内存之间的数据拷贝。这是Java NIO高性能的重要机制之一（另一个是异步非阻塞）。</p>
-<p>从上面可以看出，内核内存对于Java程序性能也非常重要，因此，在划分系统内存使用时候，一定要给内核留出一定可用空间。</p>
-<h4 id="案例分析"><a href="#案例分析" class="headerlink" title="案例分析"></a>案例分析</h4><p>略</p>
-<h5 id="内存分配问题"><a href="#内存分配问题" class="headerlink" title="内存分配问题"></a>内存分配问题</h5><p>通过上面的分析，省略比较小的区域，可以总结JVM占用的内存：<br>JVM内存 ≈ Java永久代 ＋ Java堆(新生代和老年代) ＋ 线程栈＋ Java NIO</p>
-<p>程序在系统上运行的过程中，若SWAP和GC同时发生会导致GC时间很长，JVM严重卡顿，极端的情况下会导致服务崩溃。原因如下：JVM进行GC时，需要对相应堆分区的已用 内存进行遍历；假如GC的时候，有堆的一部分内容被交换到SWAP中，遍历到这部分的时候就需要将其交换回内存，同时由于内存空间不足，就需要把内存中堆 的另外一部分换到SWAP中去；于是在遍历堆分区的过程中，(极端情况下)会把整个堆分区轮流往SWAP写一遍。Linux对SWAP的回收是滞后的，我 们就会看到大量SWAP占用。</p>
-<p>上述问题，可以通过减少堆大小，或者增加物理内存解决。</p>
-<p>因此，我们得出一个结论：部署Java服务的Linux系统，在内存分配上，需要避免SWAP的使用；具体如何分配需要综合考虑不同场景下JVM对Java永久代 、Java堆(新生代和老年代)、线程栈、Java NIO所使用内存的需求。</p>
-<h5 id="内存泄漏问题"><a href="#内存泄漏问题" class="headerlink" title="内存泄漏问题"></a>内存泄漏问题</h5><p>原因：第一，Java程序没有在必要的时候调用System.gc()；第二，System.gc()被禁用。</p>
-<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p><a href="http://www.open-open.com/lib/view/open1420814127390.html" target="_blank" rel="noopener">http://www.open-open.com/lib/view/open1420814127390.html</a></p>
-<p><a href="https://tech.meituan.com/" target="_blank" rel="noopener">https://tech.meituan.com/</a></p>
-<p>微信公众号：占小狼的博客</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1181,7 +1205,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">98</span>
+                  <span class="site-state-item-count">99</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
