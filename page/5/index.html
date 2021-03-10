@@ -291,6 +291,180 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/07/Java-NIO面试题剖析/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Morning Star">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Star's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/07/Java-NIO面试题剖析/" itemprop="url">Java NIO面试题剖析</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-07T19:44:04+08:00">
+                2019-08-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>首先我们分别<strong>画图来看看，BIO、NIO、AIO，分别是什么？</strong></p>
+<h4 id="BIO"><a href="#BIO" class="headerlink" title="BIO"></a>BIO</h4><p>传统的网络通讯模型，就是BIO，同步阻塞IO</p>
+<p>它其实就是服务端创建一个ServerSocket， 然后就是客户端用一个Socket去连接服务端的那个ServerSocket， ServerSocket接收到了一个的连接请求就创建一个Socket和一个线程去跟那个Socket进行通讯。</p>
+<p>接着客户端和服务端就进行阻塞式的通信，客户端发送一个请求，服务端Socket进行处理后返回响应。</p>
+<p>在响应返回前，客户端那边就阻塞等待，上门事情也做不了。</p>
+<p>这种方式的缺点：每次一个客户端接入，都需要在服务端创建一个线程来服务这个客户端</p>
+<p>这样大量客户端来的时候，就会造成服务端的线程数量可能达到了几千甚至几万，这样就可能会造成服务端过载过高，最后崩溃死掉。</p>
+<p><strong>BIO模型图</strong></p>
+<img src="/2019/08/07/Java-NIO面试题剖析/图1.jpg" title="图1">
+<p><strong>Acceptor</strong></p>
+<p>传统的IO模型的网络服务的设计模式中有俩种比较经典的设计模式：一个是多线程， 一种是依靠线程池来进行处理。</p>
+<p>如果是基于多线程的模式来的话，就是这样的模式，这种也是Acceptor线程模型。</p>
+<img src="/2019/08/07/Java-NIO面试题剖析/图2.jpg" title="图2">
+<h4 id="NIO"><a href="#NIO" class="headerlink" title="NIO"></a>NIO</h4><p>NIO是一种同步非阻塞IO, 基于Reactor模型来实现的。</p>
+<p>其实相当于就是一个线程处理大量的客户端的请求，通过一个线程轮询大量的channel，每次就获取一批有事件的channel，然后对每个请求启动一个线程处理即可。</p>
+<p>这里的核心就是非阻塞，就那个selector一个线程就可以不停轮询channel，所有客户端请求都不会阻塞，直接就会进来，大不了就是等待一下排着队而已。</p>
+<p>这里面<strong>优化BIO的核心</strong>就是，一个客户端并不是时时刻刻都有数据进行交互，没有必要死耗着一个线程不放，所以客户端选择了让线程歇一歇，只有客户端有相应的操作的时候才发起通知，创建一个线程来处理请求。</p>
+<p><strong>NIO：模型图</strong></p>
+<img src="/2019/08/07/Java-NIO面试题剖析/图3.jpg" title="图3">
+<p><strong>Reactor模型</strong></p>
+<img src="/2019/08/07/Java-NIO面试题剖析/图4.jpg" title="图4">
+<h4 id="AIO"><a href="#AIO" class="headerlink" title="AIO"></a>AIO</h4><p>AIO：异步非阻塞IO，基于Proactor模型实现。</p>
+<p>每个连接发送过来的请求，都会绑定一个Buffer，然后通知操作系统去完成异步的读，这个时间你就可以去做其他的事情</p>
+<p>等到操作系统完成读之后，就会调用你的接口，给你操作系统异步读完的数据。这个时候你就可以拿到数据进行处理，将数据往回写</p>
+<p>在往回写的过程，同样是给操作系统一个Buffer，让操作系统去完成写，写完了来通知你。</p>
+<p>这俩个过程都有buffer存在，数据都是通过buffer来完成读写。</p>
+<p>这里面的主要的区别在于将数据写入的缓冲区后，就不去管它，剩下的去交给操作系统去完成。</p>
+<p>操作系统写回数据也是一样，写到Buffer里面，写完后通知客户端来进行读取数据。</p>
+<p><strong>AIO：模型图</strong></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/08/07/Java-NIO面试题剖析/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/21/用户表分库分表方案/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -1032,167 +1206,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/20/为了追求极致的性能，Kafka掌控了这11项要领！/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Morning Star">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Star's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/20/为了追求极致的性能，Kafka掌控了这11项要领！/" itemprop="url">为了追求极致的性能，Kafka掌控了这11项要领！</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-20T19:40:29+08:00">
-                2019-07-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/中间件/" itemprop="url" rel="index">
-                    <span itemprop="name">中间件</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>很多同学私信问我Kafka在性能优化方面做了哪些举措，对于相关问题的答案其实我早就写过了，就是没有系统的整理一篇，最近思考着花点时间来整理一下，下次再有同学问我相关的问题我就可以潇洒的甩个链接了。这个问题也是Kafka面试的时候的常见问题，面试官问你这个问题也不算刁难你。在网上也有很多相关的文章开讲解这个问题，比如之前各大公众号转载的“为什么Kafka这么快？”，这些文章我看了，写的不错，问题在于只是罗列了部分的要领，没有全部的详述出来。本文所罗列的要领会比你们网上搜寻到的都多，如果你在看完本篇文章之后，在面试的时候遇到相关问题，相信你一定能让面试官眼前一亮。</p>
-<h4 id="批量处理"><a href="#批量处理" class="headerlink" title="批量处理"></a>批量处理</h4><p>传统消息中间件的消息发送和消费整体上是针对单条的。对于生产者而言，它先发一条消息，然后broker返回ACK表示已接收，这里产生2次rpc；对于消费者而言，它先请求接受消息，然后broker返回消息，最后发送ACK表示已消费，这里产生了3次rpc（有些消息中间件会优化一下，broker返回的时候返回多条消息）。而Kafka采用了批量处理：生产者聚合了一批消息，然后再做2次rpc将消息存入broker，这原本是需要很多次的rpc才能完成的操作。假设需要发送1000条消息，每条消息大小1KB，那么传统的消息中间件需要2000次rpc，而Kafka可能会把这1000条消息包装成1个1MB的消息，采用2次rpc就完成了任务。这一改进举措一度被认为是一种“作弊”的行为，然而在微批次理念盛行的今日，其它消息中间件也开始纷纷效仿。</p>
-<h4 id="客户端优化"><a href="#客户端优化" class="headerlink" title="客户端优化"></a>客户端优化</h4><p>这里接着批量处理的概念继续来说，新版生产者客户端摒弃了以往的单线程，而采用了双线程：主线程和Sender线程。主线程负责将消息置入客户端缓存，Sender线程负责从缓存中发送消息，而这个缓存会聚合多个消息为一个批次。有些消息中间件会把消息直接扔到broker。</p>
-<h4 id="日志格式"><a href="#日志格式" class="headerlink" title="日志格式"></a>日志格式</h4><p>Kafka从0.8版本开始日志格式历经了三次变革：v0、v1、v2。在之前发过的一篇文章《<a href="http://mp.weixin.qq.com/s?__biz=MzU0MzQ5MDA0Mw==&amp;mid=2247483983&amp;idx=1&amp;sn=1c2bd11df195f84e5433512f6b2695e8&amp;chksm=fb0be8dbcc7c61cda63c599769b38a78c08e51ab8a2943985040014dcbcc1cbe1547d3f70ee6&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">一文看懂Kafka消息格式的演变</a>》中详细介绍了Kafka日志格式，Kafka的日志格式越来越利于批量消息的处理，有兴趣的同学可以阅读一下这篇文章以作了解。</p>
-<img src="/2019/07/20/为了追求极致的性能，Kafka掌控了这11项要领！/图1.jpg" title="图1">
-<h4 id="日志编码"><a href="#日志编码" class="headerlink" title="日志编码"></a>日志编码</h4><p>如果了解了Kafka具体的日志格式（可以参考上图），那么你应该了解日志（Record，或者称之为消息）本身除了基本的key和value之外，还有一些其它的字段，原本这些附加字段按照固定的大小占用一定的篇幅（参考上图左），而Kafka最新的版本中采用了变成字段Varints和ZigZag编码，有效地降低了这些附加字段的占用大小。日志（消息）尽可能变小了，那么网络传输的效率也会变高，日志存盘的效率也会提升，从而整理的性能也会有所提升。</p>
-<h4 id="消息压缩"><a href="#消息压缩" class="headerlink" title="消息压缩"></a>消息压缩</h4><p>Kafka支持多种消息压缩方式（gzip、snappy、lz4）。对消息进行压缩可以极大地减少网络传输 量、降低网络 I/O，从而提高整体的性能。消息压缩是一种使用时间换空间的优化方式，如果对 时延有一定的要求，则不推荐对消息进行压缩。</p>
-<h4 id="建立索引，方便快速定位查询"><a href="#建立索引，方便快速定位查询" class="headerlink" title="建立索引，方便快速定位查询"></a>建立索引，方便快速定位查询</h4><p>每个日志分段文件对应了两个索引文件，主要用来提高查找消息的效率，这也是提升性能的一种方式。（具体的内容在书中的第5章有详细的讲解，公众号里好像忘记发表了，找了一圈没找到）</p>
-<h4 id="分区"><a href="#分区" class="headerlink" title="分区"></a>分区</h4><p>很多人会忽略掉这个因素，其实分区也是提升性能的一种非常有效的方式，这种方式所带来的效果会比前面所说的日志编码、消息压缩等更加的明显。分区在其他分布式组件中也有大量涉及，至于为什么分区能够提升性能这种基本知识在这里就不在赘述了。不过需要注意，一昧地增加分区并不能一直带来性能的提升，有兴趣的同学可以看一下这篇《<a href="http://mp.weixin.qq.com/s?__biz=MzU0MzQ5MDA0Mw==&amp;mid=2247484320&amp;idx=1&amp;sn=eee3caea1f28b180cf68d3469bb7d4f2&amp;chksm=fb0be934cc7c6022cd2244ceb58b821d3fe0dc518eca1b29c4764f7d42cf2627a418bfbbf9f2&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">Kafka主题中的分区数越多吞吐量就越高？</a>》。</p>
-<h4 id="一致性"><a href="#一致性" class="headerlink" title="一致性"></a>一致性</h4><p>绝大多数的资料在讲述Kafka性能优化的举措之时是不会提及一致性的东西的。我们所了解的通用的一致性协议如Paxos、Raft、Gossip等，而Kafka另辟蹊径采用类似PacificA的做法不是“拍大腿”拍出来的，采用这种模型会提升整理的效率。具体的细节后面会整理一篇，类似《在Kafka中使用Raft替换PacificA的可行性分析及优缺点》。</p>
-<h4 id="顺序写盘"><a href="#顺序写盘" class="headerlink" title="顺序写盘"></a>顺序写盘</h4><p>操作系统可以针对线性读写做深层次的优化，比如预读(read-ahead，提前将一个比较大的磁盘块读入内存) 和后写(write-behind，将很多小的逻辑写操作合并起来组成一个大的物理写操作)技术。Kafka 在设计时采用了文件追加的方式来写入消息，即只能在日志文件的尾部追加新的消 息，并且也不允许修改已写入的消息，这种方式属于典型的顺序写盘的操作，所以就算 Kafka 使用磁盘作为存储介质，它所能承载的吞吐量也不容小觑。</p>
-<h4 id="页缓存"><a href="#页缓存" class="headerlink" title="页缓存"></a>页缓存</h4><p>为什么Kafka性能这么高？当遇到这个问题的时候很多人都会想到上面的顺序写盘这一点。其实在顺序斜盘前面还有页缓存（PageCache）这一层的优化。</p>
-<p>页缓存是操作系统实现的一种主要的磁盘缓存，以此用来减少对磁盘 I/O 的操作。具体 来说，就是把磁盘中的数据缓存到内存中，把对磁盘的访问变为对内存的访问。为了弥补性 能上的差异，现代操作系统越来越“激进地”将内存作为磁盘缓存，甚至会非常乐意将所有 可用的内存用作磁盘缓存，这样当内存回收时也几乎没有性能损失，所有对于磁盘的读写也 将经由统一的缓存。</p>
-<p>当一个进程准备读取磁盘上的文件内容时，操作系统会先查看待读取的数据所在的页 (page)是否在页缓存(pagecache)中，如果存在(命中)则直接返回数据，从而避免了对物 理磁盘的 I/O 操作;如果没有命中，则操作系统会向磁盘发起读取请求并将读取的数据页存入 页缓存，之后再将数据返回给进程。同样，如果一个进程需要将数据写入磁盘，那么操作系统也会检测数据对应的页是否在页缓存中，如果不存在，则会先在页缓存中添加相应的页，最后将数据写入对应的页。被修改过后的页也就变成了脏页，操作系统会在合适的时间把脏页中的 数据写入磁盘，以保持数据的一致性。</p>
-<p>对一个进程而言，它会在进程内部缓存处理所需的数据，然而这些数据有可能还缓存在操 作系统的页缓存中，因此同一份数据有可能被缓存了两次。并且，除非使用 Direct I/O 的方式， 否则页缓存很难被禁止。此外，用过 Java 的人一般都知道两点事实:对象的内存开销非常大， 通常会是真实数据大小的几倍甚至更多，空间使用率低下;Java 的垃圾回收会随着堆内数据的 增多而变得越来越慢。基于这些因素，使用文件系统并依赖于页缓存的做法明显要优于维护一 个进程内缓存或其他结构，至少我们可以省去了一份进程内部的缓存消耗，同时还可以通过结构紧凑的字节码来替代使用对象的方式以节省更多的空间。如此，我们可以在 32GB 的机器上使用 28GB 至 30GB 的内存而不用担心 GC 所带来的性能问题。此外，即使 Kafka 服务重启， 页缓存还是会保持有效，然而进程内的缓存却需要重建。这样也极大地简化了代码逻辑，因为 维护页缓存和文件之间的一致性交由操作系统来负责，这样会比进程内维护更加安全有效。</p>
-<p>Kafka 中大量使用了页缓存，这是 Kafka 实现高吞吐的重要因素之一。虽然消息都是先被写入页缓存，然后由操作系统负责具体的刷盘任务的。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/07/20/为了追求极致的性能，Kafka掌控了这11项要领！/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1245,7 +1258,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">99</span>
+                  <span class="site-state-item-count">100</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1256,7 +1269,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -1267,7 +1280,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">37</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -1314,7 +1327,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
